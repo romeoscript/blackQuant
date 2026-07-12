@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLenis } from "lenis/react";
@@ -10,6 +11,8 @@ import { NAV_LINKS } from "./data";
 export function Nav() {
   const lenis = useLenis();
   const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const goTo = (target: string) =>
     lenis?.scrollTo(`#${target}`, { offset: -80 });
@@ -51,14 +54,14 @@ export function Nav() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 rounded-full border border-bq-border bg-bq-panel/60 p-1">
             <ThemeButton
-              active={resolvedTheme === "dark"}
+              active={mounted && resolvedTheme === "dark"}
               onClick={() => setTheme("dark")}
               label="Dark theme"
             >
               <Moon className="size-3.5" />
             </ThemeButton>
             <ThemeButton
-              active={resolvedTheme === "light"}
+              active={mounted && resolvedTheme === "light"}
               onClick={() => setTheme("light")}
               label="Light theme"
             >
