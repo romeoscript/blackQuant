@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-/**
- * Validated environment variables. Import from here instead of reading
- * `process.env` directly so a missing/invalid var fails fast at startup
- * with a clear message rather than surfacing as a runtime error later.
- */
-/** Treat empty strings (`FOO=`) as unset so optional vars stay optional. */
 const optionalStr = z
   .string()
   .transform((v) => (v === "" ? undefined : v))

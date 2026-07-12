@@ -8,10 +8,6 @@ import {
 
 import type { User } from "@prisma/client";
 
-/**
- * Merge Tailwind class names, resolving conflicts so the last-wins rule
- * behaves as expected (e.g. `cn("p-2", condition && "p-4")`).
- */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
