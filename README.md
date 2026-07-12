@@ -1,106 +1,105 @@
-# Next.js + Prisma Postgres Example
+# BlackQuant
 
-![nextjs demo logos](https://github.com/user-attachments/assets/878d39b7-ca99-4dc5-a095-94ca9d010486)
+Quantitative trading platform — built on a modern, fully-wired Next.js foundation.
 
-This example demonstrates how to build a full-stack web application using [Next.js](https://nextjs.org/), [Prisma Client](https://www.prisma.io/docs/orm/overview/introduction/what-is-prisma), and [Prisma Postgres](https://www.prisma.io/postgres).
+## Stack
 
-> **TL;DR:** Prisma Postgres is a new kind of Postgres database that's optimized for developer productivity. It offers instant provisioning, built-in connection pooling, edge caching, and seamless integration with Prisma ORM.
->
-> [Learn more about Prisma Postgres →](https://www.prisma.io/postgres)
+| Concern            | Choice                                                        |
+| ------------------ | ------------------------------------------------------------ |
+| Framework          | Next.js 16 (App Router, Turbopack, React 19)                 |
+| Styling            | Tailwind CSS v4 (CSS-first config, design tokens)            |
+| Components         | shadcn/ui (Radix base, Lucide icons)                         |
+| Global state       | Zustand (user store synced from the session)                 |
+| Server state       | TanStack Query                                               |
+| Auth               | Auth.js (NextAuth v5) + Prisma adapter (GitHub OAuth)        |
+| Database / ORM     | PostgreSQL + Prisma                                          |
+| Animation / scroll | GSAP (+ ScrollTrigger) and Lenis, integrated via GSAP ticker |
+| Theming            | next-themes (light / dark / system)                          |
+| Env safety         | Zod-validated env (`lib/env.ts`)                             |
+
+## Architecture
+
+```
+app/            # App Router routes, server actions, root layout
+components/
+  ui/           # shadcn/ui primitives
+  ...           # app components (mode-toggle, etc.)
+providers/      # Client provider tree (session, query, theme, smooth scroll)
+store/          # Zustand stores (global client state)
+hooks/          # Reusable hooks (useUser, ...)
+lib/            # env, prisma singleton, gsap setup, utils (cn)
+types/          # Shared types + next-auth module augmentation
+prisma/         # schema + seed
+proxy.ts        # Next 16 proxy (auth middleware) with asset matcher
+```
+
+### Global user state
+
+The NextAuth session is resolved on the server in `app/layout.tsx` and passed
+into `<Providers>`. `SessionStoreSync` mirrors it into a Zustand store, so any
+client component reads the current user without prop drilling or its own
+`useSession()` call:
+
+```tsx
+"use client";
+import { useUser } from "@/hooks/use-user";
+
+export function Greeting() {
+  const { user, isAuthenticated, isLoading } = useUser();
+  if (isLoading) return null;
+  return <span>{isAuthenticated ? user!.name : "Guest"}</span>;
+}
+```
+
+### Animation
+
+Import GSAP from `@/lib/gsap` (plugins are registered there) rather than from
+`gsap` directly. Lenis smooth scroll is active app-wide and driven by GSAP's
+ticker, so `ScrollTrigger` stays in sync automatically.
 
 ## Getting started
 
-### 1. Fill out .env file
+1. Copy env and fill it in:
 
-If you just want to run the app locally, rename `.env.example` to `.env` and fill in the values.
+   ```bash
+   cp .env.example .env
+   npx auth secret            # generates AUTH_SECRET
+   ```
 
-#### 1.1 Create a Prisma Postgres instance
+   Set `DATABASE_URL` and (for GitHub login) `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`.
+   Create a GitHub OAuth app with callback `http://localhost:3000/api/auth/callback/github`.
 
-Go to [the Console](https://console.prisma.io) and create a new Prisma Postgres instance. Use the `DATABASE_URL` value from the new instance to fill out the `.env` file.
+2. Install and set up the database:
 
-#### 1.2 Create a GitHub OAuth app
+   ```bash
+   npm install
+   npm run db:push          # or: npm run db:migrate
+   npm run seed             # optional sample data
+   ```
 
-Go to [the GitHub Developer Settings](https://github.com/settings/developers) and create a new OAuth app.
+3. Run the dev server:
 
-For the required fields:
+   ```bash
+   npm run dev
+   ```
 
-- Application name and homepage URL can be whatever you want.
-- Authorization callback URL should be `http://localhost:3000/api/auth/callback/github`
+## Scripts
 
-After creating the app, you'll be redirected to the app's page. Copy the `Client ID` and `Client Secret` values and use them to fill out `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` in the `.env` file.
+| Script                | Description                        |
+| --------------------- | ---------------------------------- |
+| `npm run dev`         | Dev server (Turbopack)             |
+| `npm run build`       | Production build                   |
+| `npm run start`       | Serve the production build         |
+| `npm run typecheck`   | `tsc --noEmit`                     |
+| `npm run lint`        | ESLint                             |
+| `npm run format`      | Prettier                           |
+| `npm run db:push`     | Push Prisma schema to the database |
+| `npm run db:migrate`  | Create/apply a migration           |
+| `npm run db:studio`   | Prisma Studio                      |
+| `npm run seed`        | Seed sample data                   |
 
-#### 1.3 Fill out Auth.js secrets
+## Adding UI components
 
-Run `npx auth secret --copy` to generate a new `AUTH_SECRET` value. Fill out the `.env` file with the new value.
-
-### 2. Install dependencies
-
-Install npm dependencies:
-
+```bash
+npx shadcn@latest add <component>
 ```
-npm install
-```
-
-### 3. Create and seed the database
-
-Run the following command to create your database. This also creates the needed tables that are defined in [`prisma/schema.prisma`](./prisma/schema.prisma):
-
-```
-npx prisma migrate dev --name init
-```
-
-When `npx prisma migrate dev` is executed against a newly created database, seeding is also triggered. The seed file in [`prisma/seed.ts`](./prisma/seed.ts) will be executed and your database will be populated with the sample data.
-
-**If you switched to Prisma Postgres in the previous step**, you need to trigger seeding manually (because Prisma Postgres already created an empty database instance for you, so seeding isn't triggered):
-
-```
-npx prisma db seed
-```
-
-### 4. Start the Next.js server
-
-```
-npm run dev
-```
-
-The server is now running on `http://localhost:3000`.
-
-<details>
-<summary>📸 Expand for a tour of the app</summary>
-
-### Homepage
-
-Logged out view:
-![Homepage](/public/logged-out-homepage.png)
-
-Logged in view:
-![Homepage](/public/logged-in-homepage.png)
-
-### User Profile
-
-![User Profile](/public/user-profile.png)
-
-### Creating Posts
-
-![Create Post](/public/create-post.png)
-
-### View your posts and drafts
-
-![View Posts](/public/view-posts.png)
-
-</details>
-
-## Next Steps
-
-Here are some ways to learn more and expand upon this example:
-
-1. 🚀 [Deploy your app to Vercel](https://vercel.com/docs/frameworks/nextjs) in just a few clicks
-2. 📚 Learn more about [Prisma ORM](https://www.prisma.io/docs/orm/overview/introduction/what-is-prisma) and database workflows.
-3. 🔍 Explore the [Prisma Client API](https://www.prisma.io/docs/orm/reference/prisma-client-reference) to add more database features.
-4. ⭐ Check out more [Prisma examples](https://github.com/prisma/prisma-examples) for inspiration.
-
-## Join our community!
-
-- [Discord](https://pris.ly/discord)
-- [Twitter](https://twitter.com/prisma)
-- [Bluesky](https://bsky.app/profile/prisma.dev)
