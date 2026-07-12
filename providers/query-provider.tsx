@@ -17,7 +17,7 @@ function makeQueryClient() {
 }
 
 export function QueryProvider({ children }: { children: ReactNode }) {
-  // One client per browser session; useState keeps it stable across renders.
+
   const [queryClient] = useState(makeQueryClient);
 
   return (

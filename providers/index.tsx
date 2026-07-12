@@ -7,6 +7,7 @@ import { ThemeProvider } from "./theme-provider";
 import { QueryProvider } from "./query-provider";
 import { SmoothScrollProvider } from "./smooth-scroll-provider";
 import { SessionStoreSync } from "./session-store-sync";
+import { Toaster } from "@/components/ui/sonner";
 
 /**
  * Root client providers. Wrap the app once in the root layout.
@@ -27,6 +28,7 @@ export function Providers({
           <SmoothScrollProvider>
             <SessionStoreSync />
             {children}
+            <Toaster />
           </SmoothScrollProvider>
         </ThemeProvider>
       </QueryProvider>
