@@ -102,7 +102,7 @@ function OrbitingLabels() {
           }}
           className="absolute left-1/2 top-1/2"
         >
-          <span className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-bq-border bg-bq-panel/80 px-2.5 py-1 text-[11px] font-medium text-bq-text/80 backdrop-blur-sm">
+          <span className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-bq-border bg-bq-panel/95 px-2.5 py-1 text-[11px] font-medium text-bq-text/80">
             <span
               className={cn(
                 "size-1.5 rounded-full",
@@ -130,6 +130,7 @@ export function Globe({ className }: { className?: string }) {
     let world: { _destructor?: () => void } | null = null;
     let disposed = false;
     let onResize: (() => void) | null = null;
+    let io: IntersectionObserver | null = null;
 
     const init = async () => {
       const [{ default: Globe }, THREE, topojson, countriesTopo, landTopo, h3] =
@@ -216,6 +217,9 @@ export function Globe({ className }: { className?: string }) {
       // wash the whole canvas into an opaque rectangle). Glow comes from the
       // transparent atmosphere shell plus a CSS halo behind the canvas.
       g.renderer().setClearColor(0x000000, 0);
+      // Cap pixel ratio: full retina (2x) means 4x the fragments per frame on a
+      // ~960px canvas, which starves the main thread during scroll.
+      g.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 
       g.pointOfView({ lat: 12, lng: -55, altitude: 1.95 });
       const controls = g.controls();
@@ -230,6 +234,18 @@ export function Globe({ className }: { className?: string }) {
         g.width(s).height(s);
       };
       window.addEventListener("resize", onResize);
+
+      // Stop the WebGL render loop while the globe is scrolled off-screen so it
+      // isn't burning frames (and contending with scroll) below the fold.
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) g.resumeAnimation();
+          else g.pauseAnimation();
+        },
+        { threshold: 0 },
+      );
+      io.observe(el);
+
       world = g as unknown as typeof world;
       setReady(true);
     };
@@ -247,6 +263,7 @@ export function Globe({ className }: { className?: string }) {
         window.clearTimeout(ric as number);
       }
       if (onResize) window.removeEventListener("resize", onResize);
+      io?.disconnect();
       world?._destructor?.();
       if (el) el.innerHTML = "";
     };
