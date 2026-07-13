@@ -45,34 +45,51 @@ function OrbitingLabels() {
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
     const n = RING_LABELS.length;
+
+    // Cache the radius and only recompute on resize — reading clientWidth every
+    // frame forces a synchronous layout (reflow) and is a jank source.
+    let radius = (wrap.clientWidth / 2) * 0.96;
+    const ro = new ResizeObserver(() => {
+      radius = (wrap.clientWidth / 2) * 0.96;
+    });
+    ro.observe(wrap);
+
+    const place = (phase: number) => {
+      for (let i = 0; i < n; i++) {
+        const el = itemRefs.current[i];
+        if (!el) continue;
+        const a = (i / n) * Math.PI * 2 + phase - Math.PI / 2;
+        const x = Math.cos(a) * radius;
+        const y = Math.sin(a) * radius * 0.92; // slight vertical squash
+        el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+      }
+    };
+
+    // Reduced motion: position once, no ongoing animation loop.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      place(0);
+      return () => ro.disconnect();
+    }
+
     let raf = 0;
     let phase = 0;
     let last = 0;
     const speed = (Math.PI * 2) / RING_PERIOD_MS;
-
     const tick = (t: number) => {
-      const wrap = wrapRef.current;
-      if (wrap) {
-        if (!last) last = t;
-        const dt = t - last;
-        last = t;
-        if (!reduce) phase += dt * speed;
-        const radius = (wrap.clientWidth / 2) * 0.96;
-        for (let i = 0; i < n; i++) {
-          const el = itemRefs.current[i];
-          if (!el) continue;
-          const a = (i / n) * Math.PI * 2 + phase - Math.PI / 2;
-          const x = Math.cos(a) * radius;
-          const y = Math.sin(a) * radius * 0.92; // slight vertical squash
-          el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-        }
-      }
+      if (!last) last = t;
+      phase += (t - last) * speed;
+      last = t;
+      place(phase);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
   }, []);
 
   return (
@@ -114,7 +131,7 @@ export function Globe({ className }: { className?: string }) {
     let disposed = false;
     let onResize: (() => void) | null = null;
 
-    (async () => {
+    const init = async () => {
       const [{ default: Globe }, THREE, topojson, countriesTopo, landTopo, h3] =
         await Promise.all([
           import("globe.gl"),
@@ -132,7 +149,7 @@ export function Globe({ className }: { className?: string }) {
       const lTopo = (landTopo.default ?? landTopo) as unknown as {
         objects: { land: unknown };
       };
-      const HEX_RES = 4;
+      const HEX_RES = 3;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const allFeatures = (topojson.feature(cTopo as any, cTopo.objects.countries as any) as any)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -215,10 +232,20 @@ export function Globe({ className }: { className?: string }) {
       window.addEventListener("resize", onResize);
       world = g as unknown as typeof world;
       setReady(true);
-    })();
+    };
+
+    const hasIdle = typeof window.requestIdleCallback === "function";
+    const ric = hasIdle
+      ? window.requestIdleCallback(() => init(), { timeout: 2500 })
+      : window.setTimeout(() => init(), 200);
 
     return () => {
       disposed = true;
+      if (hasIdle) {
+        window.cancelIdleCallback(ric as number);
+      } else {
+        window.clearTimeout(ric as number);
+      }
       if (onResize) window.removeEventListener("resize", onResize);
       world?._destructor?.();
       if (el) el.innerHTML = "";
@@ -227,7 +254,6 @@ export function Globe({ className }: { className?: string }) {
 
   return (
     <div className={cn("relative aspect-square", className)}>
-      {/* soft blue halo behind the globe (fades out well within the box) */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-[16%] rounded-full blur-2xl"
@@ -237,7 +263,7 @@ export function Globe({ className }: { className?: string }) {
           animation: "bq-glow 7s ease-in-out infinite",
         }}
       />
-      {/* tight cyan rim highlight (top-right), like the reference */}
+
       <div
         aria-hidden
         className="pointer-events-none absolute left-[64%] top-[28%] size-28 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
