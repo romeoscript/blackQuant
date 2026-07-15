@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { joinLuminaryCircle, type JoinState } from "@/app/actions";
 import { Reveal } from "./reveal";
+import { CountUp } from "./count-up";
 import { CTA_STATS, FOOTER_COLUMNS, AUDITS, CHAINS } from "./data";
 
 function LuminaryForm() {
@@ -122,7 +123,10 @@ export function CtaFooter() {
                   <p className="font-plex text-[10px] uppercase tracking-[1.5px] text-bq-muted">
                     {s.label}
                   </p>
-                  <p className="mt-2 font-satoshi text-3xl font-bold text-white">{s.value}</p>
+                  <CountUp
+                    value={s.value}
+                    className="mt-2 block font-satoshi text-3xl font-bold tabular-nums text-white"
+                  />
                 </div>
               ))}
             </div>
