@@ -107,7 +107,7 @@ function OrbitingLabels() {
               className={cn(
                 "size-1.5 rounded-full",
                 d.live
-                  ? "bg-bq-blue shadow-[0_0_6px_2px_rgba(59,130,246,0.55)]"
+                  ? "bg-bq-green shadow-[0_0_6px_2px_rgba(74,222,128,0.55)]"
                   : "bg-bq-muted",
               )}
             />
@@ -176,23 +176,23 @@ export function Globe({ className }: { className?: string }) {
         .height(size)
         .backgroundColor("rgba(0,0,0,0)")
         .showAtmosphere(true)
-        .atmosphereColor("#2b74ff")
+        .atmosphereColor("#25e07a")
         .atmosphereAltitude(0.16)
         // dotted continents
         .hexPolygonsData(countries)
         .hexPolygonResolution(HEX_RES)
         .hexPolygonMargin(0.18)
         .hexPolygonUseDots(true)
-        .hexPolygonColor(() => "rgba(130,190,255,0.98)")
+        .hexPolygonColor(() => "rgba(110,240,170,0.98)")
         // glowing coastline outlines
         .polygonsData(land)
         .polygonCapColor(() => "rgba(0,0,0,0)")
         .polygonSideColor(() => "rgba(0,0,0,0)")
-        .polygonStrokeColor(() => "#6cb6ff")
+        .polygonStrokeColor(() => "#5cf0a0")
         .polygonAltitude(0.008)
         // animated flying arcs (GitHub-globe style)
         .arcsData(ARCS)
-        .arcColor(() => ["rgba(74,158,255,0)", "rgba(130,200,255,0.9)"])
+        .arcColor(() => ["rgba(74,222,128,0)", "rgba(150,255,195,0.9)"])
         .arcAltitudeAutoScale(0.45)
         .arcStroke(0.45)
         .arcDashLength(0.4)
@@ -208,8 +208,8 @@ export function Globe({ className }: { className?: string }) {
         emissiveIntensity?: number;
         shininess?: number;
       };
-      mat.color = new THREE.Color("#04060e");
-      mat.emissive = new THREE.Color("#02030a");
+      mat.color = new THREE.Color("#04100a");
+      mat.emissive = new THREE.Color("#031008");
       mat.emissiveIntensity = 0.15;
       mat.shininess = 0.2;
 
@@ -276,7 +276,7 @@ export function Globe({ className }: { className?: string }) {
         className="pointer-events-none absolute inset-[16%] rounded-full blur-2xl"
         style={{
           background:
-            "radial-gradient(circle, rgba(45,116,255,0.22), rgba(45,116,255,0.06) 45%, transparent 66%)",
+            "radial-gradient(circle, rgba(74,222,128,0.22), rgba(74,222,128,0.06) 45%, transparent 66%)",
           animation: "bq-glow 7s ease-in-out infinite",
         }}
       />
@@ -285,7 +285,7 @@ export function Globe({ className }: { className?: string }) {
         aria-hidden
         className="pointer-events-none absolute left-[64%] top-[28%] size-28 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
         style={{
-          background: "radial-gradient(circle, rgba(34,211,238,0.22), transparent 72%)",
+          background: "radial-gradient(circle, rgba(52,211,153,0.22), transparent 72%)",
         }}
       />
 
