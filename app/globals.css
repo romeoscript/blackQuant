@@ -213,6 +213,68 @@ body {
   animation: bq-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Live infrastructure-network panel. */
+@keyframes bq-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.bq-marquee-track {
+  animation: bq-marquee 38s linear infinite;
+}
+.bq-dot-green {
+  filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.85));
+}
+@keyframes bq-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+}
+.bq-live-dot {
+  animation: bq-pulse-dot 1.4s ease-in-out infinite;
+}
+
+/* React Flow verification mesh */
+.react-flow {
+  background: transparent;
+}
+.react-flow__edge.bq-edge-green .react-flow__edge-path {
+  filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.45));
+}
+.react-flow__edge.bq-edge-red .react-flow__edge-path {
+  filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.35));
+}
+@keyframes bq-verify-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 14px rgba(74, 222, 128, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(74, 222, 128, 0.5);
+  }
+}
+.bq-verify {
+  animation: bq-verify-pulse 2.6s ease-in-out infinite;
+}
+@keyframes bq-threat-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(239, 68, 68, 0.6);
+  }
+}
+.bq-threat {
+  animation: bq-threat-pulse 1.8s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

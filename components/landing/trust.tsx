@@ -1,13 +1,14 @@
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Reveal } from "./reveal";
-import { NetworkDiagram } from "./network-diagram";
-import { TRUST_METRICS, TRUST_CARDS, AUDITS, LIVE_METRICS } from "./data";
+import { NetworkFlow } from "./network-flow";
+import { LiveMetrics } from "./live-metrics";
+import { TRUST_METRICS, TRUST_CARDS, AUDITS } from "./data";
 
 const LEGEND = [
-  { label: "Execution Logic (BQ)", color: "bg-white" },
-  { label: "Strategy Modules (Nexus/Arbor)", color: "bg-bq-muted" },
-  { label: "Public Liquidity Sources", color: "bg-bq-dim" },
+  { label: "Verified execution node", color: "bg-bq-green" },
+  { label: "Liquidity venue", color: "bg-white/70" },
+  { label: "Blocked MEV bot", color: "bg-red-500" },
   { label: "Live · scanning", color: "bg-bq-green" },
 ];
 
@@ -88,8 +89,8 @@ export function Trust() {
 
             <div className="grid gap-6 p-6 lg:grid-cols-[1fr_260px]">
               <div className="flex flex-col">
-                <NetworkDiagram />
-                <p className="mt-2 font-plex text-[11px] uppercase tracking-[1.5px] text-bq-text">
+                <NetworkFlow />
+                <p className="mt-3 font-plex text-[11px] uppercase tracking-[1.5px] text-bq-text">
                   Execution Only · No Custody
                 </p>
               </div>
@@ -110,17 +111,11 @@ export function Trust() {
                 </div>
 
                 <div className="border-t border-bq-border-soft pt-5">
-                  <p className="font-plex text-[10px] uppercase tracking-[1.5px] text-bq-muted">
+                  <p className="flex items-center gap-2 font-plex text-[10px] uppercase tracking-[1.5px] text-bq-muted">
+                    <span className="bq-live-dot size-1.5 rounded-full bg-bq-green" />
                     Live Metrics
                   </p>
-                  <ul className="mt-3 space-y-2.5">
-                    {LIVE_METRICS.map((m) => (
-                      <li key={m.label} className="flex items-center justify-between text-[12px]">
-                        <span className="text-bq-muted">{m.label}</span>
-                        <span className="font-satoshi font-bold text-white">{m.value}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <LiveMetrics />
                 </div>
 
                 <div className="flex gap-2.5 rounded-xl border border-bq-border bg-bq-card p-4">
@@ -133,12 +128,15 @@ export function Trust() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-x-6 gap-y-1 overflow-hidden border-t border-bq-border-soft px-6 py-3 font-plex text-[10px] text-bq-dim">
-              {TICKER.map((t) => (
-                <span key={t} className="whitespace-nowrap">
-                  {t}
-                </span>
-              ))}
+            <div className="relative overflow-hidden border-t border-bq-border-soft py-3 [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+              <div className="bq-marquee-track flex w-max gap-10 pl-10 font-plex text-[10px] text-bq-dim">
+                {[...TICKER, ...TICKER].map((t, i) => (
+                  <span key={i} className="flex items-center gap-2.5 whitespace-nowrap">
+                    <span className="size-[3px] rounded-full bg-bq-dim" />
+                    {t}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </Reveal>
@@ -147,16 +145,16 @@ export function Trust() {
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           {TRUST_CARDS.map((c, i) => (
             <Reveal key={c.index} delay={i * 60}>
-              <div className="flex h-full gap-4 rounded-2xl border border-bq-border bg-bq-panel p-7">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-bq-border bg-bq-card text-bq-green">
-                  <c.icon className="size-4.5" />
-                </span>
+              <div className="flex h-full gap-5 rounded-2xl border border-bq-border bg-bq-panel p-7">
+                <div className="flex shrink-0 flex-col items-center gap-2">
+                  <span className="font-plex text-[9px] text-bq-dim">{c.index}</span>
+                  <span className="flex size-10 items-center justify-center rounded-xl border border-bq-border bg-bq-card text-bq-green">
+                    <c.icon className="size-4.5" />
+                  </span>
+                </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-plex text-[10px] text-bq-dim">{c.index}</span>
-                    <h3 className="font-satoshi text-[17px] font-bold text-white">{c.title}</h3>
-                  </div>
-                  <p className="mt-2 text-[13px] leading-relaxed text-bq-muted">{c.body}</p>
+                  <h3 className="font-satoshi text-[15px] font-bold text-white">{c.title}</h3>
+                  <p className="mt-2 text-[12px] leading-relaxed text-bq-muted">{c.body}</p>
                 </div>
               </div>
             </Reveal>
@@ -170,19 +168,25 @@ export function Trust() {
               <div
                 key={a.firm}
                 className={cn(
-                  "px-6 py-5",
+                  "px-6 py-[18px]",
                   i !== 0 && "border-l border-bq-border",
                   i === 2 && "border-l-0 sm:border-l",
                   i >= 2 && "border-t border-bq-border sm:border-t-0",
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-satoshi text-[15px] font-medium text-bq-text">{a.firm}</span>
-                  <span className="rounded-full border border-bq-border px-2 py-0.5 font-plex text-[9px] uppercase tracking-[1px] text-bq-muted">
+                  <span className="font-satoshi text-[13px] font-bold text-bq-dim">{a.firm}</span>
+                  <span className="rounded-full border border-bq-border px-2 py-0.5 font-satoshi text-[9px] text-bq-muted">
                     Audited
                   </span>
                 </div>
-                <p className="mt-2 font-plex text-[10px] text-bq-dim">Score: {a.score}</p>
+                <div className="mt-2.5 h-0.5 w-full rounded-full bg-bq-border-soft">
+                  <div
+                    className="h-0.5 rounded-full bg-white/20"
+                    style={{ width: `${parseInt(a.score, 10)}%` }}
+                  />
+                </div>
+                <p className="mt-2 font-satoshi text-[8px] text-bq-dim">Score: {a.score}</p>
               </div>
             ))}
           </div>
