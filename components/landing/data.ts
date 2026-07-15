@@ -23,13 +23,32 @@ export const HERO_STATS = [
   { value: "1.8%", label: "Peak Daily Yield" },
 ] as const;
 
-export const INTEGRATIONS = [
-  "Uniswap",
-  "Aave",
-  "Chainlink",
-  "Compound",
-  "1inch",
-  "Lido",
+// Partner / ecosystem logos. `w`/`h` are the files' intrinsic pixel sizes
+// (all wordmarks normalized to 270px tall) so next/image keeps aspect ratio
+// while the strip renders them at a fixed display height.
+export const PARTNERS = [
+  { src: "/logos/1.webp", w: 459, h: 270 },
+  { src: "/logos/5.webp", w: 1941, h: 270 },
+  { src: "/logos/4.webp", w: 285, h: 270 },
+  { src: "/logos/3.webp", w: 1272, h: 270 },
+  { src: "/logos/8.webp", w: 258, h: 270 },
+  { src: "/logos/6.webp", w: 873, h: 270 },
+  { src: "/logos/10.webp", w: 255, h: 270 },
+  { src: "/logos/9.webp", w: 1485, h: 270 },
+  { src: "/logos/19.webp", w: 264, h: 270 },
+  { src: "/logos/12.webp", w: 1851, h: 270 },
+  { src: "/logos/15.webp", w: 684, h: 270 },
+  { src: "/logos/2.webp", w: 693, h: 270 },
+  { src: "/logos/13.webp", w: 1092, h: 270 },
+  { src: "/logos/7.webp", w: 789, h: 270 },
+  { src: "/logos/14.webp", w: 1368, h: 270 },
+  { src: "/logos/11.webp", w: 930, h: 270 },
+  { src: "/logos/16.webp", w: 1851, h: 270 },
+  { src: "/logos/20.webp", w: 1503, h: 270 },
+  { src: "/logos/18.webp", w: 1524, h: 270 },
+  { src: "/logos/17.webp", w: 1869, h: 270 },
+  { src: "/logos/1.png", w: 500, h: 374 },
+  { src: "/logos/2.png", w: 1039, h: 184 },
 ] as const;
 
 export const INFRA_TAGS = [
