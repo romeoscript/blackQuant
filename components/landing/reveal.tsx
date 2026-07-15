@@ -37,8 +37,10 @@ export function Reveal({
       ref={ref}
       style={{ transitionDelay: `${delay}ms` }}
       className={cn(
-        "transition-all duration-700 ease-out will-change-transform",
-        shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+        "transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[transform,opacity] motion-reduce:transition-none",
+        shown
+          ? "translate-y-0 scale-100 opacity-100 blur-0"
+          : "translate-y-10 scale-[0.985] opacity-0 blur-[2px]",
         className,
       )}
     >

@@ -1,3 +1,4 @@
+import { ScrollProgress } from "@/components/landing/scroll-progress";
 import { Nav } from "@/components/landing/nav";
 import { Hero } from "@/components/landing/hero";
 import { Integrations } from "@/components/landing/integrations";
@@ -9,6 +10,7 @@ import { CtaFooter } from "@/components/landing/cta-footer";
 export default function Home() {
   return (
     <main className="min-h-screen bg-bq-bg font-satoshi text-white">
+      <ScrollProgress />
       <Nav />
       <Hero />
       <Integrations />
