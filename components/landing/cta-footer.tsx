@@ -1,10 +1,67 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { useActionState, useEffect } from "react";
+import { FileText, ArrowUpRight, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { joinLuminaryCircle, type JoinState } from "@/app/actions";
 import { Reveal } from "./reveal";
 import { CTA_STATS, FOOTER_COLUMNS, AUDITS, CHAINS } from "./data";
+
+function LuminaryForm() {
+  const [state, formAction, pending] = useActionState<JoinState, FormData>(
+    joinLuminaryCircle,
+    { ok: false, message: "" },
+  );
+
+  useEffect(() => {
+    if (state.ok) {
+      toast.success("Welcome to the Luminary Circle", { description: state.message });
+    }
+  }, [state.ok, state.message]);
+
+  if (state.ok) {
+    return (
+      <div className="mt-8 flex max-w-md items-center gap-3 rounded-2xl border border-bq-green/30 bg-bq-green/5 px-5 py-4">
+        <CheckCircle2 className="size-5 shrink-0 text-bq-green" />
+        <p className="text-[14px] text-bq-text">{state.message}</p>
+      </div>
+    );
+  }
+
+  return (
+    <form action={formAction} className="mt-8 max-w-md">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <input
+          type="email"
+          name="email"
+          required
+          autoComplete="email"
+          placeholder="you@wallet.eth"
+          aria-label="Email address"
+          aria-invalid={state.message ? true : undefined}
+          className="flex-1 rounded-full border border-bq-border bg-bq-panel/60 px-5 py-3.5 text-sm text-white placeholder:text-bq-dim focus:border-bq-green/50 focus:outline-none focus:ring-1 focus:ring-bq-green/30"
+        />
+        <button
+          type="submit"
+          disabled={pending}
+          className="flex items-center justify-center gap-2 rounded-full bg-bq-green px-7 py-3.5 text-sm font-semibold text-black transition-all hover:bg-bq-green/90 active:translate-y-px disabled:opacity-70"
+        >
+          {pending && <Loader2 className="size-4 animate-spin" />}
+          {pending ? "Joining…" : "Join the Circle"}
+        </button>
+      </div>
+      {state.message && (
+        <p role="alert" className="mt-2.5 text-[13px] text-red-400">
+          {state.message}
+        </p>
+      )}
+      <p className="mt-3 font-plex text-[11px] uppercase tracking-[1px] text-bq-dim">
+        Early access · Audit reports · Zero spam
+      </p>
+    </form>
+  );
+}
 
 export function CtaFooter() {
   const notify = (label: string) =>
@@ -34,23 +91,24 @@ export function CtaFooter() {
                 Join BlackQuant and start building long-term wealth through
                 institutional-grade MEV infrastructure.
               </p>
-              <div className="mt-9 flex flex-wrap gap-4">
+              <LuminaryForm />
+
+              <div className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-3">
                 <button
                   onClick={() =>
                     toast("Launch App", {
                       description: "Connect a wallet to enter the BlackQuant app.",
                     })
                   }
-                  className="rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition-transform hover:scale-[1.03] active:translate-y-px"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-white transition-colors hover:text-bq-green"
                 >
-                  Launch App
+                  Launch App <ArrowUpRight className="size-4" />
                 </button>
                 <button
                   onClick={() => notify("Read Docs")}
-                  className="flex items-center gap-2 rounded-full border border-bq-border bg-bq-panel/60 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/5"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-bq-muted transition-colors hover:text-white"
                 >
-                  <FileText className="size-4" />
-                  Read Docs
+                  <FileText className="size-4" /> Read Docs
                 </button>
               </div>
             </div>
