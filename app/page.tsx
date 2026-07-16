@@ -6,6 +6,7 @@ import { Infrastructure } from "@/components/landing/infrastructure";
 import { Performance } from "@/components/landing/performance";
 import { Trust } from "@/components/landing/trust";
 import { CtaFooter } from "@/components/landing/cta-footer";
+import { AssistantWidget } from "@/components/assistant/assistant-widget";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <Performance />
       <Trust />
       <CtaFooter />
+      <AssistantWidget />
     </main>
   );
 }

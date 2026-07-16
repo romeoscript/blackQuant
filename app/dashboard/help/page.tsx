@@ -1,6 +1,6 @@
 import { LifeBuoy, BookOpen, ShieldCheck } from "lucide-react";
 import { DashboardPageHeader } from "@/components/dashboard/page-header";
-import { AssistantChat } from "@/components/dashboard/help/assistant-chat";
+import { AssistantChat } from "@/components/assistant/assistant-chat";
 
 const LINKS = [
   { icon: BookOpen, title: "Knowledge Base", body: "Guides on strategies, funding, and payouts." },
@@ -14,7 +14,7 @@ export default function HelpPage() {
       <DashboardPageHeader title="Help Desk" />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <AssistantChat />
+        <AssistantChat className="h-[calc(100vh-220px)] min-h-[440px]" />
 
         <div className="space-y-4">
           {LINKS.map((l) => (

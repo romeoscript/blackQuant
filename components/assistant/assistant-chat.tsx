@@ -57,7 +57,13 @@ function setLast(list: Msg[], text: string): Msg[] {
   return copy;
 }
 
-export function AssistantChat() {
+export function AssistantChat({
+  className,
+  onClose,
+}: {
+  className?: string;
+  onClose?: () => void;
+}) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<string[]>([]);
@@ -127,7 +133,7 @@ export function AssistantChat() {
   const empty = messages.length === 0;
 
   return (
-    <div className="flex h-[calc(100vh-220px)] min-h-[440px] flex-col rounded-2xl border border-bq-border bg-bq-card">
+    <div className={cn("flex flex-col overflow-hidden rounded-2xl border border-bq-border bg-bq-card", className)}>
       <div className="flex items-center gap-3 border-b border-bq-border-soft px-5 py-4">
         <span className="flex size-9 items-center justify-center rounded-full bg-bq-mint/12 text-bq-mint">
           <Sparkles className="size-4" />
@@ -138,6 +144,15 @@ export function AssistantChat() {
             <span className="size-1.5 rounded-full bg-bq-mint" /> Online · text &amp; screenshots
           </p>
         </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Close assistant"
+            className="flex size-7 items-center justify-center rounded-lg text-bq-muted transition-colors hover:bg-bq-surface hover:text-white"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
 
       <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
