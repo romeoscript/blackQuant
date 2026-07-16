@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { env } from "@/lib/env";
 import { retrieve } from "@/lib/assistant/rag";
+import { getClientIp, rateLimit } from "@/lib/assistant/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -58,6 +59,14 @@ export async function POST(req: Request) {
   // NOTE: open endpoint for the demo. Gate behind auth() before production —
   // the fake login flow doesn't create a real session, so requiring one here
   // would break the assistant for demo users.
+  const limit = rateLimit(getClientIp(req));
+  if (!limit.ok) {
+    return Response.json(
+      { error: "You're sending messages too fast. Please wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } },
+    );
+  }
+
   if (!env.ASSISTANT_API_KEY) {
     return Response.json(
       { error: "The assistant isn't configured yet. Add ASSISTANT_API_KEY to your environment." },
