@@ -10,7 +10,10 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required"),
   AUTH_GITHUB_ID: optionalStr,
   AUTH_GITHUB_SECRET: optionalStr,
-  ANTHROPIC_API_KEY: optionalStr,
+  // Help Desk assistant — any OpenAI-compatible provider (DeepSeek by default).
+  ASSISTANT_API_KEY: optionalStr,
+  ASSISTANT_BASE_URL: optionalStr,
+  ASSISTANT_MODEL: optionalStr,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),

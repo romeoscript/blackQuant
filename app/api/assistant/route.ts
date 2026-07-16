@@ -1,8 +1,11 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { z } from "zod";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
+
+const DEFAULT_BASE_URL = "https://api.deepseek.com";
+const DEFAULT_MODEL = "deepseek-chat";
 
 const bodySchema = z.object({
   messages: z
@@ -36,9 +39,9 @@ export async function POST(req: Request) {
   // NOTE: open endpoint for the demo. Gate behind auth() before production —
   // the fake login flow doesn't create a real session, so requiring one here
   // would break the assistant for demo users.
-  if (!env.ANTHROPIC_API_KEY) {
+  if (!env.ASSISTANT_API_KEY) {
     return Response.json(
-      { error: "The assistant isn't configured yet. Add ANTHROPIC_API_KEY to your environment." },
+      { error: "The assistant isn't configured yet. Add ASSISTANT_API_KEY to your environment." },
       { status: 503 },
     );
   }
@@ -48,20 +51,26 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  // Any OpenAI-compatible provider (DeepSeek by default; override via env).
+  const client = new OpenAI({
+    apiKey: env.ASSISTANT_API_KEY,
+    baseURL: env.ASSISTANT_BASE_URL ?? DEFAULT_BASE_URL,
+  });
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        const message = client.messages.stream({
-          model: "claude-opus-4-8",
+        const completion = await client.chat.completions.create({
+          model: env.ASSISTANT_MODEL ?? DEFAULT_MODEL,
           max_tokens: 2048,
-          system: SYSTEM,
-          messages: parsed.data.messages,
+          stream: true,
+          messages: [{ role: "system", content: SYSTEM }, ...parsed.data.messages],
         });
-        message.on("text", (delta) => controller.enqueue(encoder.encode(delta)));
-        await message.finalMessage();
+        for await (const chunk of completion) {
+          const delta = chunk.choices[0]?.delta?.content;
+          if (delta) controller.enqueue(encoder.encode(delta));
+        }
       } catch {
         controller.enqueue(
           encoder.encode("\n\nSomething went wrong reaching the assistant. Please try again."),
