@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 // Default to a cheap, reliable vision model on OpenRouter so images work out of
 // the box. Swap any of these via env (see .env.example) with no code change.
 const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
-const DEFAULT_MODEL = "google/gemini-2.0-flash-001";
+const DEFAULT_MODEL = "google/gemini-2.5-flash";
 
 const textPart = z.object({ type: z.literal("text"), text: z.string().max(4000) });
 const imagePart = z.object({
@@ -95,7 +95,14 @@ export async function POST(req: Request) {
           const delta = chunk.choices[0]?.delta?.content;
           if (delta) controller.enqueue(encoder.encode(delta));
         }
-      } catch {
+      } catch (err) {
+        const detail =
+          err instanceof OpenAI.APIError
+            ? `${err.status ?? ""} ${err.message}`.trim()
+            : err instanceof Error
+              ? err.message
+              : "unknown error";
+        console.error("[assistant] request failed:", detail);
         controller.enqueue(
           encoder.encode("\n\nSomething went wrong reaching the assistant. Please try again."),
         );
