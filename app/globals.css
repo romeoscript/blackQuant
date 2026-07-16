@@ -91,6 +91,24 @@
   --ring: oklch(0.606 0.25 292.02);
 }
 
+.theme-midnight {
+  --primary: oklch(0.62 0.19 258);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.62 0.19 258);
+}
+
+.theme-crimson {
+  --primary: oklch(0.635 0.23 15);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.635 0.23 15);
+}
+
+.theme-gold {
+  --primary: oklch(0.82 0.16 82);
+  --primary-foreground: oklch(0.2 0 0);
+  --ring: oklch(0.82 0.16 82);
+}
+
 /* Expose CSS variables as Tailwind theme tokens (e.g. bg-background, text-muted). */
 @theme inline {
   --color-background: var(--background);
@@ -115,7 +133,9 @@
   --color-bq-card: #0b0b0b;
   --color-bq-border: #1f1f1f;
   --color-bq-border-soft: #151515;
+  --color-bq-surface: #1a1a1a;
   --color-bq-green: #4ade80;
+  --color-bq-mint: #00e5aa;
   --color-bq-blue: #3b82f6;
   --color-bq-heading: #f0f0f0;
   --color-bq-text: #c8c8c8;

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLenis } from "lenis/react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "./data";
 
@@ -16,11 +16,6 @@ export function Nav() {
 
   const goTo = (target: string) =>
     lenis?.scrollTo(`#${target}`, { offset: -80 });
-
-  const startTrading = () =>
-    toast("Start Trading", {
-      description: "Connect a wallet to launch the BlackQuant execution engine.",
-    });
 
   return (
     <header className="absolute inset-x-0 top-0 z-40">
@@ -68,12 +63,18 @@ export function Nav() {
               <Sun className="size-3.5" />
             </ThemeButton>
           </div>
-          <button
-            onClick={startTrading}
+          <Link
+            href="/login"
+            className="hidden text-[13px] text-bq-text/70 transition-colors hover:text-white sm:block"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/dashboard"
             className="rounded-full bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition-transform hover:scale-[1.03] active:translate-y-px"
           >
             Start Trading
-          </button>
+          </Link>
         </div>
       </nav>
     </header>
