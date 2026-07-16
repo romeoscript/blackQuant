@@ -155,7 +155,7 @@ export function AssistantChat({
         )}
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
             <span className="flex size-12 items-center justify-center rounded-2xl bg-bq-mint/12 text-bq-mint">
