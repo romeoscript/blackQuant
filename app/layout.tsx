@@ -4,8 +4,6 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { auth } from "@/auth";
 import { Providers } from "@/providers";
-import { ModeToggle } from "@/components/mode-toggle";
-import { ThemePicker } from "@/components/theme-picker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,13 +43,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${plexMono.variable} antialiased`}
       >
-        <Providers session={session}>
-          <div className="fixed top-4 right-4 z-50 flex gap-2">
-            <ThemePicker />
-            <ModeToggle />
-          </div>
-          {children}
-        </Providers>
+        <Providers session={session}>{children}</Providers>
       </body>
     </html>
   );
