@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { retrieve } from "@/lib/assistant/rag";
 
 export const runtime = "nodejs";
 
@@ -77,8 +78,32 @@ export async function POST(req: Request) {
   });
   const encoder = new TextEncoder();
 
+  // RAG: pull the most relevant knowledge-base chunks for the latest question
+  // and add them to the system prompt. Degrades gracefully if the index is
+  // empty or retrieval fails — the assistant still answers from SYSTEM.
+  const lastUser = [...parsed.data.messages].reverse().find((m) => m.role === "user");
+  const query =
+    typeof lastUser?.content === "string"
+      ? lastUser.content
+      : (lastUser?.content ?? [])
+          .filter((p): p is { type: "text"; text: string } => p.type === "text")
+          .map((p) => p.text)
+          .join(" ");
+
+  let system = SYSTEM;
+  try {
+    const hits = await retrieve(query);
+    if (hits.length) {
+      system +=
+        "\n\n# Knowledge base\nUse these BlackQuant docs to answer. Prefer them over general knowledge, and if they don't cover the question, say so.\n\n" +
+        hits.map((h) => `## ${h.source}\n${h.text}`).join("\n\n");
+    }
+  } catch (err) {
+    console.error("[assistant] retrieval failed:", err instanceof Error ? err.message : err);
+  }
+
   const messages = [
-    { role: "system", content: SYSTEM },
+    { role: "system", content: system },
     ...parsed.data.messages,
   ] as OpenAI.Chat.Completions.ChatCompletionMessageParam[];
 

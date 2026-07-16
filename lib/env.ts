@@ -14,6 +14,7 @@ const envSchema = z.object({
   ASSISTANT_API_KEY: optionalStr,
   ASSISTANT_BASE_URL: optionalStr,
   ASSISTANT_MODEL: optionalStr,
+  ASSISTANT_EMBED_MODEL: optionalStr,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
