@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { TRANSACTIONS, type Transaction } from "./data";
-import { Panel } from "./panel";
+import { Panel } from "@/components/dashboard/panel";
 
 const TABS = ["All", "BTC", "ETH", "USDT"] as const;
 

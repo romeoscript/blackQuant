@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { BALANCE_HISTORY } from "./data";
-import { Panel } from "./panel";
-import { AreaLineChart } from "./charts";
+import { Panel } from "@/components/dashboard/panel";
+import { AreaLineChart } from "@/components/dashboard/charts";
 
 const RANGES = { "12M": 12, "6M": 6, "1M": 3 } as const;
 type Range = keyof typeof RANGES;
@@ -37,7 +37,7 @@ export function BalanceHistoryCard() {
       </div>
 
       <div className="mt-5">
-        <AreaLineChart data={data} />
+        <AreaLineChart data={data.map((d) => ({ label: d.month, value: d.value }))} />
       </div>
     </Panel>
   );

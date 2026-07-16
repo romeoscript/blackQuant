@@ -116,14 +116,14 @@ export default function ControlCenter() {
       {/* overview */}
       <div>
         <p className="font-plex text-[11px] uppercase tracking-[1.5px] text-bq-dim">Overview</p>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           {OVERVIEW.map((c) => (
-            <div key={c.label} className="rounded-xl border border-bq-border bg-bq-surface p-5">
-              <div className="flex items-center justify-between">
-                <span className="font-plex text-[11px] uppercase tracking-[1px] text-bq-muted">
+            <div key={c.label} className="rounded-xl border border-bq-border bg-bq-surface p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-2">
+                <span className="min-w-0 font-plex text-[10px] uppercase tracking-[1px] text-bq-muted sm:text-[11px]">
                   {c.label}
                 </span>
-                <span className="flex size-8 items-center justify-center rounded-lg bg-bq-bg text-bq-muted">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bq-bg text-bq-muted">
                   <c.icon className="size-4" />
                 </span>
               </div>

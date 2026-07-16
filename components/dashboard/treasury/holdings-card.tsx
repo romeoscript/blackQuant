@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ASSETS, TOTAL_PORTFOLIO } from "./data";
-import { AssetBadge, PctChange, Panel, usd } from "./panel";
+import { AssetBadge, PctChange, Panel, usd } from "@/components/dashboard/panel";
 import { AddAssetDialog } from "./add-asset-dialog";
 
 function AllocationBar({ pct, color }: { pct: number; color: string }) {

@@ -1,20 +1,20 @@
-import { Wallet, ArrowUpRight, ArrowDownToLine, TrendingUp } from "lucide-react";
+import { Briefcase, Wallet, TrendingUp, Target } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STATS, type StatIcon } from "./data";
 import { Panel } from "@/components/dashboard/panel";
+import { POS_STATS, type PosStat } from "./data";
 
-const ICONS: Record<StatIcon, LucideIcon> = {
-  balance: Wallet,
-  withdraw: ArrowUpRight,
-  deposit: ArrowDownToLine,
-  withdrawn: TrendingUp,
+const ICONS: Record<PosStat["icon"], LucideIcon> = {
+  open: Briefcase,
+  capital: Wallet,
+  pnl: TrendingUp,
+  win: Target,
 };
 
-export function StatCards() {
+export function PositionsStats() {
   return (
     <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-      {STATS.map((s) => {
+      {POS_STATS.map((s) => {
         const Icon = ICONS[s.icon];
         return (
           <Panel key={s.label} className="p-5">
@@ -31,7 +31,9 @@ export function StatCards() {
                 <Icon className="size-4" />
               </span>
             </div>
-            <p className="mt-4 text-[26px] font-bold leading-none text-white">{s.value}</p>
+            <p className={cn("mt-4 text-[26px] font-bold leading-none", s.accent ? "text-bq-mint" : "text-white")}>
+              {s.value}
+            </p>
             <p className="mt-2 text-[12px] text-bq-dim">{s.note}</p>
           </Panel>
         );

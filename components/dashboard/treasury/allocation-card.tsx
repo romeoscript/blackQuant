@@ -1,6 +1,6 @@
 import { ASSETS, TRENDS } from "./data";
-import { Panel, PctChange, usd } from "./panel";
-import { DonutChart, Sparkline } from "./charts";
+import { Panel, PctChange, usd } from "@/components/dashboard/panel";
+import { DonutChart, Sparkline } from "@/components/dashboard/charts";
 
 export function AllocationCard() {
   return (

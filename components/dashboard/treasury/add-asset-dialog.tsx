@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { POPULAR_ASSETS } from "./data";
-import { AssetBadge, PctChange } from "./panel";
+import { AssetBadge, PctChange } from "@/components/dashboard/panel";
 
 export function AddAssetDialog({ trigger }: { trigger: React.ReactNode }) {
   const [open, setOpen] = useState(false);

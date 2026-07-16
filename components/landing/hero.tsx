@@ -3,6 +3,7 @@
 import { Play } from "lucide-react";
 import { useLenis } from "lenis/react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { HERO_STATS } from "./data";
 import { FlipWords } from "./flip-words";
 import { CountUp } from "./count-up";
@@ -45,6 +46,15 @@ export function Hero() {
             "radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05), transparent 55%)",
         }}
       />
+
+      {/* subtle vertical grid (Figma hero dividers) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 flex justify-center">
+        <div className="flex h-full w-full max-w-[1440px] items-stretch justify-between px-8 md:px-20">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <span key={i} className="w-px bg-white/[0.03]" />
+          ))}
+        </div>
+      </div>
 
       {/* drifting particles */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -135,14 +145,21 @@ export function Hero() {
         </div>
 
         <div
-          className="bq-in mt-10 grid w-full max-w-3xl grid-cols-2 gap-y-8 border-t border-bq-border pt-10 sm:grid-cols-4"
+          className="bq-in mt-10 grid w-full max-w-3xl grid-cols-2 gap-y-8 border-t border-bq-border pt-10 sm:grid-cols-4 sm:gap-y-0"
           style={{ animationDelay: "600ms" }}
         >
-          {HERO_STATS.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-1">
+          {HERO_STATS.map((stat, i) => (
+            <div
+              key={stat.label}
+              className={cn(
+                "flex flex-col items-center gap-1 sm:py-1",
+                i % 2 === 1 && "border-l border-bq-border",
+                i > 0 && "sm:border-l sm:border-bq-border",
+              )}
+            >
               <CountUp
                 value={stat.value}
-                className="font-satoshi text-3xl font-bold text-white"
+                className="font-satoshi text-[28px] font-black text-bq-heading"
               />
               <span className="text-[12px] text-bq-muted">{stat.label}</span>
             </div>
