@@ -10,6 +10,7 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required"),
   AUTH_GITHUB_ID: optionalStr,
   AUTH_GITHUB_SECRET: optionalStr,
+  ANTHROPIC_API_KEY: optionalStr,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
