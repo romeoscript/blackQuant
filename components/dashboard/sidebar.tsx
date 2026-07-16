@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoMark } from "@/components/logo";
 import {
   LayoutGrid,
   Wallet,
@@ -131,9 +132,7 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
 export function SidebarBrand() {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="flex size-8 items-center justify-center rounded-lg bg-white text-[15px] font-bold text-black">
-        B
-      </span>
+      <LogoMark />
       <span className="text-[18px] font-bold tracking-tight text-white">BlackQuant</span>
     </div>
   );

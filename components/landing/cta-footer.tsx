@@ -4,6 +4,7 @@ import { useActionState, useEffect } from "react";
 import { FileText, ArrowUpRight, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { LogoMark } from "@/components/logo";
 import { joinLuminaryCircle, type JoinState } from "@/app/actions";
 import { Reveal } from "./reveal";
 import { CountUp } from "./count-up";
@@ -139,9 +140,7 @@ export function CtaFooter() {
           <div className="grid gap-12 lg:grid-cols-[1.3fr_repeat(5,1fr)]">
             <div>
               <div className="flex items-center gap-3">
-                <span className="flex size-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-black">
-                  B
-                </span>
+                <LogoMark />
                 <span className="text-xl font-bold tracking-tight text-white">BlackQuant</span>
               </div>
               <p className="mt-5 max-w-xs text-[13px] leading-relaxed text-bq-muted">

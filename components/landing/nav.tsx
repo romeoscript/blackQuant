@@ -6,6 +6,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLenis } from "lenis/react";
 import { cn } from "@/lib/utils";
+import { LogoMark } from "@/components/logo";
 import { NAV_LINKS } from "./data";
 
 export function Nav() {
@@ -25,9 +26,7 @@ export function Nav() {
           className="flex items-center gap-3"
           aria-label="BlackQuant home"
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-black">
-            B
-          </span>
+          <LogoMark />
           <span className="text-xl font-bold tracking-tight text-white">
             BlackQuant
           </span>

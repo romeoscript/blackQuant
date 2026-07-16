@@ -4,15 +4,32 @@ import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
 
-const DEFAULT_BASE_URL = "https://api.deepseek.com";
-const DEFAULT_MODEL = "deepseek-chat";
+// Default to a cheap, reliable vision model on OpenRouter so images work out of
+// the box. Swap any of these via env (see .env.example) with no code change.
+const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
+const DEFAULT_MODEL = "google/gemini-2.0-flash-001";
+
+const textPart = z.object({ type: z.literal("text"), text: z.string().max(4000) });
+const imagePart = z.object({
+  type: z.literal("image_url"),
+  image_url: z.object({
+    // base64 data URL (from the client) or a plain https URL. ~4MB cap.
+    url: z
+      .string()
+      .max(4_000_000)
+      .refine((u) => u.startsWith("data:image/") || u.startsWith("https://"), "invalid image"),
+  }),
+});
 
 const bodySchema = z.object({
   messages: z
     .array(
       z.object({
         role: z.enum(["user", "assistant"]),
-        content: z.string().trim().min(1).max(4000),
+        content: z.union([
+          z.string().trim().min(1).max(4000),
+          z.array(z.union([textPart, imagePart])).min(1).max(6),
+        ]),
       }),
     )
     .min(1)
@@ -30,6 +47,7 @@ What BlackQuant offers:
 
 How to respond:
 - Be concise, friendly, and accurate. Prefer short paragraphs and bullet points.
+- Users may attach screenshots (e.g. an error, a chart, a failed transaction). Read the image and help with what it shows.
 - Only describe features that actually exist above; if you don't know something, say so and point the user to human support rather than inventing details.
 - Never give personalized investment or financial advice, price predictions, or tell users what to trade. If asked, explain you're a support assistant, not a licensed advisor.
 - For account-specific issues (billing, a stuck withdrawal, a locked account), tell the user to open a ticket with human support — you can't access their account.
@@ -51,12 +69,18 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  // Any OpenAI-compatible provider (DeepSeek by default; override via env).
+  // Any OpenAI-compatible provider (OpenRouter by default; override via env).
   const client = new OpenAI({
     apiKey: env.ASSISTANT_API_KEY,
     baseURL: env.ASSISTANT_BASE_URL ?? DEFAULT_BASE_URL,
+    defaultHeaders: { "X-Title": "BlackQuant Assistant" },
   });
   const encoder = new TextEncoder();
+
+  const messages = [
+    { role: "system", content: SYSTEM },
+    ...parsed.data.messages,
+  ] as OpenAI.Chat.Completions.ChatCompletionMessageParam[];
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -65,7 +89,7 @@ export async function POST(req: Request) {
           model: env.ASSISTANT_MODEL ?? DEFAULT_MODEL,
           max_tokens: 2048,
           stream: true,
-          messages: [{ role: "system", content: SYSTEM }, ...parsed.data.messages],
+          messages,
         });
         for await (const chunk of completion) {
           const delta = chunk.choices[0]?.delta?.content;

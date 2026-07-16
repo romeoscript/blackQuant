@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Hexagon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { LogoMark } from "@/components/logo";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,9 +33,7 @@ export function AuthShell({
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-bq-bg lg:hidden" />
 
         <Link href="/" className="relative z-10 flex w-fit items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-[24px] bg-[#121212]">
-            <Hexagon className="size-4 text-bq-heading" strokeWidth={2} />
-          </span>
+          <LogoMark className="size-9" />
           <span className="text-[15px] font-black tracking-[-0.375px] text-bq-heading">
             BlackQuant
           </span>
