@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { auth } from "@/auth";
 import { Providers } from "@/providers";
+import { BrandLoader } from "@/components/brand-loader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,6 +63,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${plexMono.variable} ${satoshi.variable} ${clashDisplay.variable} antialiased`}
       >
+        <BrandLoader />
         <Providers session={session}>{children}</Providers>
       </body>
     </html>

@@ -127,6 +127,10 @@ type GlobeData = { countries: object[]; coastlines: [number, number][][] };
 export function Globe({ className }: { className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  // Only true between "we've decided to build the globe" and "it's on screen".
+  // Kept separate from `ready` so the placeholder never spins on the paths that
+  // deliberately skip WebGL (phones, low-memory devices, Save-Data).
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -277,6 +281,7 @@ export function Globe({ className }: { className?: string }) {
     const start = () => {
       if (started || disposed) return;
       started = true;
+      setLoading(true);
       if (typeof window.requestIdleCallback === "function") {
         idleId = window.requestIdleCallback(() => init(), { timeout: 4000 });
       } else {
@@ -284,10 +289,12 @@ export function Globe({ className }: { className?: string }) {
       }
     };
 
-    const onLoaded = () => {
-      if (disposed) return;
-      // Only build once the globe is near enough to be worth paying for; users
-      // who never scroll past the hero copy never load three.js at all.
+    // three.js + three-globe is ~500 KB and ~1.5s of main-thread build on
+    // throttled hardware. The globe sits below the fold, so none of that should
+    // land in the initial page load: arm on the first real user interaction,
+    // then load once the globe is genuinely approaching the viewport.
+    const arm = () => {
+      if (disposed || gate) return;
       gate = new IntersectionObserver(
         ([entry]) => {
           if (!entry.isIntersecting) return;
@@ -295,17 +302,29 @@ export function Globe({ className }: { className?: string }) {
           gate = null;
           start();
         },
-        { rootMargin: "200px 0px" },
+        // Generous margin so the build is underway before it scrolls into view.
+        { rootMargin: "400px 0px" },
       );
       gate.observe(el);
     };
 
-    if (document.readyState === "complete") onLoaded();
-    else window.addEventListener("load", onLoaded, { once: true });
+    const INTERACTIONS = [
+      "scroll",
+      "pointerdown",
+      "keydown",
+      "touchstart",
+    ] as const;
+    const onInteract = () => {
+      INTERACTIONS.forEach((e) => window.removeEventListener(e, onInteract));
+      arm();
+    };
+    INTERACTIONS.forEach((e) =>
+      window.addEventListener(e, onInteract, { passive: true, once: true }),
+    );
 
     return () => {
       disposed = true;
-      window.removeEventListener("load", onLoaded);
+      INTERACTIONS.forEach((e) => window.removeEventListener(e, onInteract));
       if (idleId) window.cancelIdleCallback(idleId);
       if (timerId) window.clearTimeout(timerId);
       if (onResize) window.removeEventListener("resize", onResize);
@@ -337,6 +356,27 @@ export function Globe({ className }: { className?: string }) {
           background: "radial-gradient(circle, rgba(52,211,153,0.22), transparent 72%)",
         }}
       />
+
+      {/* Placeholder while three.js downloads and the scene is built, so the
+          hero reads as "loading" rather than as an empty hole. Pure CSS — it
+          must not add to the very payload it is covering for. */}
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-[12%] transition-opacity duration-700",
+          loading && !ready ? "opacity-100" : "opacity-0",
+        )}
+      >
+        <div className="absolute inset-0 rounded-full border border-bq-green/15" />
+        <div
+          className="absolute inset-0 rounded-full border border-transparent border-t-bq-green/50"
+          style={{ animation: "bq-spin-slow 2.4s linear infinite" }}
+        />
+        <div className="absolute inset-[14%] rounded-full border border-bq-green/10" />
+        <span className="absolute inset-x-0 bottom-[-8%] text-center font-plex text-[10px] uppercase tracking-[2px] text-bq-dim">
+          Initializing network
+        </span>
+      </div>
 
       <div
         ref={containerRef}

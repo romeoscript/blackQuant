@@ -176,6 +176,14 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Every app surface (landing and dashboard) sits on --color-bq-bg, but the
+   shadcn `--background` token defaults to white until next-themes applies its
+   class. Painting the root dark up front removes the white flash in the frame
+   before that lands; any light surface simply paints over it. */
+html {
+  background-color: var(--color-bq-bg);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -203,6 +211,20 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Failsafe for the boot overlay: it covers real content, so it must clear
+   itself even if React never hydrates (JS disabled, chunk 404, hydration
+   error). The component normally dismisses it well before this animation
+   ends; `forwards` guarantees it can never trap the page either way. */
+@keyframes bq-boot-release {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.bq-boot {
+  animation: bq-boot-release 0s linear 2.4s forwards;
 }
 @keyframes bq-float {
   0%,
