@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { Reveal } from "./reveal";
@@ -45,6 +45,28 @@ const COUNT = String(FEATURES.length).padStart(2, "0");
 
 export function Performance() {
   const stageRef = useRef<HTMLDivElement>(null);
+  // The four background clips are ~1.8 MB and sit far below the fold. Holding
+  // their `src` back until the section is approached keeps them out of the
+  // initial page load entirely, rather than relying on `preload="metadata"`
+  // (which browsers routinely over-fetch).
+  const [mediaReady, setMediaReady] = useState(false);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setMediaReady(true);
+          io.disconnect();
+        }
+      },
+      // Buffer roughly a screen ahead so the first clip is decoded on arrival.
+      { rootMargin: "800px 0px" },
+    );
+    io.observe(stage);
+    return () => io.disconnect();
+  }, []);
 
   useGSAP(
     () => {
@@ -248,7 +270,7 @@ export function Performance() {
               {/* left rail: AI video feed · progress track */}
               <div className="relative overflow-hidden border-r border-bq-border-soft bg-bq-panel">
                 {FEATURES.map((f) => (
-                  <VideoLayer key={f.index} feature={f} />
+                  <VideoLayer key={f.index} feature={f} ready={mediaReady} />
                 ))}
 
                 {/* progress track */}
@@ -373,16 +395,16 @@ function ContentLayer({ feature }: { feature: Feature }) {
 }
 
 /** Full-bleed AI clip for the rail, accent-tinted; layers crossfade in GSAP. */
-function VideoLayer({ feature }: { feature: Feature }) {
+function VideoLayer({ feature, ready }: { feature: Feature; ready: boolean }) {
   const a = ACCENT[feature.accent];
   return (
     <div data-bg-layer className="absolute inset-0 isolate">
       <video
-        src={VIDEO[feature.index]}
+        src={ready ? VIDEO[feature.index] : undefined}
         muted
         loop
         playsInline
-        preload="metadata"
+        preload={ready ? "auto" : "none"}
         aria-hidden
         className="absolute inset-0 h-full w-full object-cover"
         style={{ filter: "brightness(0.82) contrast(1.05) saturate(1.05)" }}

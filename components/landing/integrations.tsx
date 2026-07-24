@@ -2,6 +2,15 @@ import Image from "next/image";
 import { Reveal } from "./reveal";
 import { PARTNERS } from "./data";
 
+/**
+ * Rendered height of the strip (`md:h-7`). PARTNERS stores each file's
+ * intrinsic size, which is up to 1941px wide — handing that to next/image made
+ * it emit a srcset around the source resolution for a 28px-tall logo. Deriving
+ * the display box instead keeps the generated variants at the size actually
+ * painted.
+ */
+const LOGO_H = 28;
+
 export function Integrations() {
   return (
     <section className="border-y border-bq-border bg-bq-bg py-14">
@@ -19,8 +28,9 @@ export function Integrations() {
                 src={p.src}
                 alt=""
                 aria-hidden
-                width={p.w}
-                height={p.h}
+                width={Math.round((p.w / p.h) * LOGO_H)}
+                height={LOGO_H}
+                loading="lazy"
                 className="h-6 w-auto shrink-0 opacity-40 grayscale transition duration-300 hover:opacity-90 hover:grayscale-0 md:h-7"
               />
             ))}

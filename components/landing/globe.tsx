@@ -119,6 +119,11 @@ function OrbitingLabels() {
   );
 }
 
+/** Matches HEX_RES in scripts/build-globe-data.mjs. */
+const HEX_RES = 2;
+
+type GlobeData = { countries: object[]; coastlines: [number, number][][] };
+
 export function Globe({ className }: { className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -126,52 +131,44 @@ export function Globe({ className }: { className?: string }) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    // Skip the WebGL globe on phones — it's the single biggest main-thread cost
+    // and tanks mobile TBT/LCP. The CSS halo + orbiting labels carry the hero.
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
+    // Same reasoning for genuinely low-end machines and metered connections:
+    // the globe is decorative, so degrade to the CSS halo rather than spend a
+    // ~500 KB download and a WebGL render loop the device can't afford.
+    const nav = navigator as Navigator & {
+      deviceMemory?: number;
+      connection?: { saveData?: boolean };
+    };
+    if (nav.connection?.saveData || (nav.deviceMemory ?? 8) < 4) return;
 
     let world: { _destructor?: () => void } | null = null;
     let disposed = false;
     let onResize: (() => void) | null = null;
+    let onVisibility: (() => void) | null = null;
     let io: IntersectionObserver | null = null;
+    let gate: IntersectionObserver | null = null;
 
     const init = async () => {
-      const [{ default: Globe }, THREE, topojson, countriesTopo, landTopo, h3] =
-        await Promise.all([
-          import("globe.gl"),
-          import("three"),
-          import("topojson-client"),
-          import("world-atlas/countries-110m.json"),
-          import("world-atlas/land-110m.json"),
-          import("h3-js"),
-        ]);
+      // Geometry is precomputed at build time (scripts/build-globe-data.mjs) and
+      // served as a static asset, so the client pays a cheap native JSON.parse
+      // instead of compiling ~163 KB of topojson embedded in a JS chunk — and
+      // ships neither topojson-client nor the h3 validation pass.
+      const [{ default: Globe }, data] = await Promise.all([
+        import("globe.gl"),
+        fetch("/globe-data.json").then((r) => r.json() as Promise<GlobeData>),
+      ]);
       if (disposed || !containerRef.current) return;
 
-      const cTopo = (countriesTopo.default ?? countriesTopo) as unknown as {
-        objects: { countries: unknown };
-      };
-      const lTopo = (landTopo.default ?? landTopo) as unknown as {
-        objects: { land: unknown };
-      };
-      const HEX_RES = 3;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const allFeatures = (topojson.feature(cTopo as any, cTopo.objects.countries as any) as any)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .features as { geometry: any }[];
-      // Drop any polygon h3 can't hex-bin so a bad country never throws.
-      const countries = allFeatures.filter((f) => {
-        const g = f.geometry;
-        const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
-        try {
-          for (const poly of polys) h3.polygonToCells(poly, HEX_RES, true);
-          return true;
-        } catch {
-          return false;
-        }
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const land = (topojson.feature(lTopo as any, lTopo.objects.land as any) as any)
-        .features as object[];
-
+      const { countries, coastlines } = data;
       const size = el.clientWidth;
-      const g = new Globe(el, { animateIn: true })
+      // `animateIn` tweens the globe up from scale 0 on a wall-clock timer that
+      // only advances while the render loop runs. Because the loop is paused
+      // whenever the globe is off-screen, that intro could be frozen at scale 0
+      // and never recover. The container's own opacity transition already
+      // provides the entrance, so the tween is redundant as well as fragile.
+      const g = new Globe(el, { animateIn: false })
         .width(size)
         .height(size)
         .backgroundColor("rgba(0,0,0,0)")
@@ -184,12 +181,16 @@ export function Globe({ className }: { className?: string }) {
         .hexPolygonMargin(0.18)
         .hexPolygonUseDots(true)
         .hexPolygonColor(() => "rgba(110,240,170,0.98)")
-        // glowing coastline outlines
-        .polygonsData(land)
-        .polygonCapColor(() => "rgba(0,0,0,0)")
-        .polygonSideColor(() => "rgba(0,0,0,0)")
-        .polygonStrokeColor(() => "#5cf0a0")
-        .polygonAltitude(0.008)
+        // glowing coastline outlines — drawn as plain lines. The previous
+        // polygons layer tessellated every landmass into cap/side solids that
+        // were fully transparent, so all that geometry was built to be unseen.
+        .pathsData(coastlines)
+        .pathPointLat((p) => (p as number[])[0])
+        .pathPointLng((p) => (p as number[])[1])
+        .pathPointAlt(0.008)
+        .pathColor(() => "#5cf0a0")
+        .pathStroke(null) // null → cheap THREE.Line rather than a tube mesh
+        .pathTransitionDuration(0)
         // animated flying arcs (GitHub-globe style)
         .arcsData(ARCS)
         .arcColor(() => ["rgba(74,222,128,0)", "rgba(150,255,195,0.9)"])
@@ -201,15 +202,18 @@ export function Globe({ className }: { className?: string }) {
         .arcDashInitialGap((d: any) => d.gap)
         .arcDashAnimateTime(2600);
 
-      // dark navy globe surface — only the dots/coastlines should glow
-      const mat = g.globeMaterial() as {
-        color?: unknown;
-        emissive?: unknown;
+      // dark navy globe surface — only the dots/coastlines should glow.
+      // Mutating the existing Color instances avoids importing `three` just for
+      // its constructor (three is already pulled in transitively by globe.gl,
+      // but a direct import pins another module into this chunk's graph).
+      const mat = g.globeMaterial() as unknown as {
+        color: { set: (v: string) => void };
+        emissive: { set: (v: string) => void };
         emissiveIntensity?: number;
         shininess?: number;
       };
-      mat.color = new THREE.Color("#04100a");
-      mat.emissive = new THREE.Color("#031008");
+      mat.color.set("#04100a");
+      mat.emissive.set("#031008");
       mat.emissiveIntensity = 0.15;
       mat.shininess = 0.2;
 
@@ -217,9 +221,10 @@ export function Globe({ className }: { className?: string }) {
       // wash the whole canvas into an opaque rectangle). Glow comes from the
       // transparent atmosphere shell plus a CSS halo behind the canvas.
       g.renderer().setClearColor(0x000000, 0);
-      // Cap pixel ratio: full retina (2x) means 4x the fragments per frame on a
-      // ~960px canvas, which starves the main thread during scroll.
-      g.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      // Render at 1x. On a ~960px canvas retina (2x) quadruples the fragments
+      // shaded every frame, which is pure main-thread contention for a
+      // decorative element — the atmosphere/halo hide the aliasing anyway.
+      g.renderer().setPixelRatio(1);
 
       g.pointOfView({ lat: 12, lng: -55, altitude: 1.95 });
       const controls = g.controls();
@@ -237,32 +242,76 @@ export function Globe({ className }: { className?: string }) {
 
       // Stop the WebGL render loop while the globe is scrolled off-screen so it
       // isn't burning frames (and contending with scroll) below the fold.
+      let onScreen = true;
+      const sync = () => {
+        if (onScreen && !document.hidden) g.resumeAnimation();
+        else g.pauseAnimation();
+      };
       io = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) g.resumeAnimation();
-          else g.pauseAnimation();
+          onScreen = entry.isIntersecting;
+          sync();
         },
         { threshold: 0 },
       );
       io.observe(el);
 
+      // A backgrounded tab still runs the loop otherwise — rAF throttles but
+      // never stops, so the scene keeps re-rendering off-screen.
+      onVisibility = sync;
+      document.addEventListener("visibilitychange", onVisibility);
+
       world = g as unknown as typeof world;
       setReady(true);
     };
 
-    const hasIdle = typeof window.requestIdleCallback === "function";
-    const ric = hasIdle
-      ? window.requestIdleCallback(() => init(), { timeout: 2500 })
-      : window.setTimeout(() => init(), 200);
+    // Hold the globe until it is actually approaching the viewport, the page has
+    // finished loading, *and* the main thread has a genuinely idle moment. The
+    // previous scheduling ran on a `requestIdleCallback` with a 2.5s timeout
+    // regardless of position, forcing ~2s of WebGL setup into the middle of the
+    // load window — the single largest contributor to Total Blocking Time.
+    let idleId = 0;
+    let timerId = 0;
+    let started = false;
+
+    const start = () => {
+      if (started || disposed) return;
+      started = true;
+      if (typeof window.requestIdleCallback === "function") {
+        idleId = window.requestIdleCallback(() => init(), { timeout: 4000 });
+      } else {
+        timerId = window.setTimeout(() => init(), 400);
+      }
+    };
+
+    const onLoaded = () => {
+      if (disposed) return;
+      // Only build once the globe is near enough to be worth paying for; users
+      // who never scroll past the hero copy never load three.js at all.
+      gate = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          gate?.disconnect();
+          gate = null;
+          start();
+        },
+        { rootMargin: "200px 0px" },
+      );
+      gate.observe(el);
+    };
+
+    if (document.readyState === "complete") onLoaded();
+    else window.addEventListener("load", onLoaded, { once: true });
 
     return () => {
       disposed = true;
-      if (hasIdle) {
-        window.cancelIdleCallback(ric as number);
-      } else {
-        window.clearTimeout(ric as number);
-      }
+      window.removeEventListener("load", onLoaded);
+      if (idleId) window.cancelIdleCallback(idleId);
+      if (timerId) window.clearTimeout(timerId);
       if (onResize) window.removeEventListener("resize", onResize);
+      if (onVisibility)
+        document.removeEventListener("visibilitychange", onVisibility);
+      gate?.disconnect();
       io?.disconnect();
       world?._destructor?.();
       if (el) el.innerHTML = "";

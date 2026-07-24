@@ -1,7 +1,7 @@
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Reveal } from "./reveal";
-import { NetworkFlow } from "./network-flow";
+import { NetworkFlowLazy } from "./network-flow-lazy";
 import { LiveMetrics } from "./live-metrics";
 import { TRUST_METRICS, TRUST_CARDS, AUDITS } from "./data";
 
@@ -89,7 +89,7 @@ export function Trust() {
 
             <div className="grid gap-6 p-6 lg:grid-cols-[1fr_260px]">
               <div className="flex flex-col">
-                <NetworkFlow />
+                <NetworkFlowLazy />
                 <p className="mt-3 font-plex text-[11px] uppercase tracking-[1.5px] text-bq-text">
                   Execution Only · No Custody
                 </p>
