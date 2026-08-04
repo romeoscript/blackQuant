@@ -132,8 +132,13 @@ export function AssistantChat({
 
   const empty = messages.length === 0;
 
+  // data-lenis-prevent keeps the root Lenis smooth scroll from swallowing wheel
+  // and touch events over the panel, so the message list scrolls natively.
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-2xl border border-bq-border bg-bq-card", className)}>
+    <div
+      data-lenis-prevent
+      className={cn("flex flex-col overflow-hidden rounded-2xl border border-bq-border bg-bq-card", className)}
+    >
       <div className="flex items-center gap-3 border-b border-bq-border-soft px-5 py-4">
         <span className="flex size-9 items-center justify-center rounded-full bg-bq-mint/12 text-bq-mint">
           <Sparkles className="size-4" />
@@ -155,7 +160,7 @@ export function AssistantChat({
         )}
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 py-5">
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
             <span className="flex size-12 items-center justify-center rounded-2xl bg-bq-mint/12 text-bq-mint">
