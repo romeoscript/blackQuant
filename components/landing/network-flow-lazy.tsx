@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
+import { NETWORK_FLOW_HEIGHT } from "./data";
 
 /**
  * `@xyflow/react` (plus its stylesheet) is ~200 KB for what is a decorative,
@@ -35,10 +37,8 @@ export function NetworkFlowLazy() {
     return () => io.disconnect();
   }, []);
 
-  // The placeholder reserves the exact height NetworkFlow renders at, so the
-  // swap costs no layout shift.
   return (
-    <div ref={ref} className="h-[360px] w-full sm:h-[440px]">
+    <div ref={ref} className={cn("w-full", NETWORK_FLOW_HEIGHT)}>
       {show ? <NetworkFlow /> : null}
     </div>
   );

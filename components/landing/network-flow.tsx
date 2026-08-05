@@ -24,6 +24,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NETWORK_FLOW_HEIGHT } from "./data";
 
 type Tone = "green" | "red";
 type EntityData = {
@@ -185,7 +186,12 @@ function FitOnResize() {
 
 export function NetworkFlow() {
   return (
-    <div className="relative h-[360px] w-full overflow-hidden rounded-xl sm:h-[440px]">
+    <div
+      className={cn(
+        "relative w-full overflow-hidden rounded-xl",
+        NETWORK_FLOW_HEIGHT,
+      )}
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-10"

@@ -187,3 +187,11 @@ export const FOOTER_COLUMNS = [
 ] as const;
 
 export const CHAINS = ["ETH", "ARB", "BASE", "SOL"] as const;
+
+/**
+ * Height of the network diagram. Lives here rather than in network-flow.tsx so
+ * the lazy wrapper can reserve the exact same box without statically importing
+ * that module — which would pull @xyflow/react back into the eager bundle and
+ * defeat the code split.
+ */
+export const NETWORK_FLOW_HEIGHT = "h-[360px] sm:h-[440px]";
