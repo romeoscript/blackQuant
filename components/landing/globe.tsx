@@ -97,7 +97,10 @@ function OrbitingLabels() {
   }, []);
 
   return (
-    <div ref={wrapRef} className="pointer-events-none absolute inset-0">
+    // Hidden below sm, as in the design: the ring radius is 96% of the globe's
+    // own half-width, so on a phone the pills sit further out than the viewport
+    // is wide and clip against its edges.
+    <div ref={wrapRef} className="pointer-events-none absolute inset-0 max-sm:hidden">
       {RING_LABELS.map((d, i) => (
         <div
           key={d.name}
@@ -143,11 +146,12 @@ const INTERACTIONS = ["scroll", "pointerdown", "keydown", "touchstart"] as const
 
 /**
  * three.js + three-globe is ~500 KB and ~1.5s of main-thread build on throttled
- * hardware, for an element that is decorative and below the fold. Anything that
- * can't comfortably absorb that keeps the CSS halo instead.
+ * hardware, for an element that is decorative and below the fold. Viewport width
+ * is deliberately not a factor — the globe is part of the mobile design — so the
+ * remaining gates are about what the device can actually absorb: an explicit
+ * data-saver preference, and reported memory.
  */
 function supportsGlobe(): boolean {
-  if (!window.matchMedia("(min-width: 768px)").matches) return false;
   const nav = navigator as Navigator & {
     deviceMemory?: number;
     connection?: { saveData?: boolean };
@@ -405,8 +409,10 @@ export function Globe({ className }: { className?: string }) {
         style={{ opacity: ready ? 1 : 0, pointerEvents: "none" }}
       />
 
-      {/* country names orbiting around the globe */}
-      <OrbitingLabels />
+      {/* Country names orbit the globe, so they only make sense once there is
+          one — without this they hang in empty space on any device that gates
+          out of the WebGL build (data-saver, low reported memory). */}
+      {ready && <OrbitingLabels />}
     </div>
   );
 }
