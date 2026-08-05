@@ -59,7 +59,7 @@ export function AssetSelectCard({
                 "flex flex-col items-center gap-2 rounded-[14px] border py-[15px] transition-colors",
                 active
                   ? "border-bq-heading bg-bq-surface"
-                  : "border-bq-border hover:bg-white/[0.02]",
+                  : "border-bq-border hover:bg-bq-overlay/[0.02]",
               )}
             >
               <TintBadge symbol={asset.symbol} color={asset.color} />

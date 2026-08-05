@@ -18,7 +18,7 @@ export function EquityCurve() {
     <Panel className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-white">Equity Curve</h2>
+          <h2 className="text-[15px] font-semibold text-bq-heading">Equity Curve</h2>
           <p className="text-[12px] text-bq-dim">Portfolio value over time</p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
@@ -28,7 +28,7 @@ export function EquityCurve() {
               onClick={() => setRange(r)}
               className={cn(
                 "rounded-md px-3 py-1 text-[12px] font-medium transition-colors",
-                range === r ? "bg-bq-surface text-white" : "text-bq-muted hover:text-bq-text",
+                range === r ? "bg-bq-surface text-bq-heading" : "text-bq-muted hover:text-bq-text",
               )}
             >
               {r}
@@ -38,7 +38,7 @@ export function EquityCurve() {
       </div>
 
       <div className="mt-5">
-        <AreaLineChart data={data} color="#00e5aa" showLabels={false} />
+        <AreaLineChart data={data} color="var(--bq-mint)" showLabels={false} />
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-bq-border-soft pt-4">
@@ -59,7 +59,7 @@ function Metric({ label, value, valueClass }: { label: string; value: string; va
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[11px] text-bq-dim">{label}</span>
-      <span className={cn("text-[13px] font-semibold text-white tabular-nums", valueClass)}>{value}</span>
+      <span className={cn("text-[13px] font-semibold text-bq-heading tabular-nums", valueClass)}>{value}</span>
     </div>
   );
 }

@@ -63,7 +63,7 @@ export default function ReferralsPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <Card>
-          <h2 className="font-semibold text-white">Referral Earnings</h2>
+          <h2 className="font-semibold text-bq-heading">Referral Earnings</h2>
           <p className="text-[12px] text-bq-dim">Monthly commission income (USD) · Last 12 months</p>
           <div className="mt-5">
             <AreaLineChart data={EARNINGS} color="var(--primary)" height={200} />
@@ -75,7 +75,7 @@ export default function ReferralsPage() {
         </Card>
 
         <Card>
-          <h2 className="font-semibold text-white">Your Referral Link</h2>
+          <h2 className="font-semibold text-bq-heading">Your Referral Link</h2>
           <p className="text-[12px] text-bq-dim">Share and earn 5% on every active referral.</p>
           <div className="mt-4 flex items-center gap-2 rounded-lg border border-bq-border bg-bq-bg px-3 py-2.5">
             <span className="flex-1 truncate font-plex text-[12px] text-bq-text">{REF_LINK}</span>
@@ -92,7 +92,7 @@ export default function ReferralsPage() {
               <button
                 key={s.label}
                 onClick={() => (s.label === "Copy Link" ? copyLink() : notify(s.label))}
-                className="flex items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[12px] font-medium text-bq-text transition-colors hover:bg-white/[0.03]"
+                className="flex items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[12px] font-medium text-bq-text transition-colors hover:bg-bq-overlay/[0.03]"
               >
                 <s.icon className="size-3.5" /> {s.label}
               </button>
@@ -100,7 +100,7 @@ export default function ReferralsPage() {
           </div>
 
           <div className="mt-4 rounded-lg border border-bq-border bg-bq-bg p-4">
-            <p className="text-[13px] font-semibold text-white">Commission Tiers</p>
+            <p className="text-[13px] font-semibold text-bq-heading">Commission Tiers</p>
             <div className="mt-2 flex items-center justify-between text-[12px]">
               <span className="text-bq-muted">Tier 1 (Direct)</span>
               <span className="font-bold text-primary">5%</span>
@@ -116,7 +116,7 @@ export default function ReferralsPage() {
       <Card className="p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
           <div>
-            <h2 className="font-semibold text-white">My Downline</h2>
+            <h2 className="font-semibold text-bq-heading">My Downline</h2>
             <p className="text-[12px] text-bq-dim">5 referred users · 4 active</p>
           </div>
           <div className="flex items-center gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
@@ -126,7 +126,7 @@ export default function ReferralsPage() {
                 onClick={() => setFilter(f)}
                 className={cn(
                   "rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors",
-                  filter === f ? "bg-bq-surface text-white" : "text-bq-muted hover:text-bq-text",
+                  filter === f ? "bg-bq-surface text-bq-heading" : "text-bq-muted hover:text-bq-text",
                 )}
               >
                 {f}
@@ -152,14 +152,14 @@ export default function ReferralsPage() {
                       <span className="flex size-8 items-center justify-center rounded-full bg-bq-bg text-[11px] font-bold text-bq-text">
                         {d.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
                       </span>
-                      <span className="font-medium text-white">{d.name}</span>
+                      <span className="font-medium text-bq-heading">{d.name}</span>
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-bq-muted">{d.joined}</td>
                   <td className="px-5 py-3.5">
                     <StatPill tone={d.status === "Active" ? "green" : "neutral"}>{d.status}</StatPill>
                   </td>
-                  <td className="px-5 py-3.5 font-medium text-white">{d.earned}</td>
+                  <td className="px-5 py-3.5 font-medium text-bq-heading">{d.earned}</td>
                 </tr>
               ))}
             </tbody>

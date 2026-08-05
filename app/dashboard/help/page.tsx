@@ -22,7 +22,7 @@ export default function HelpPage() {
               <span className="flex size-9 items-center justify-center rounded-lg bg-bq-surface text-bq-mint">
                 <l.icon className="size-4" />
               </span>
-              <p className="mt-3 text-[14px] font-semibold text-white">{l.title}</p>
+              <p className="mt-3 text-[14px] font-semibold text-bq-heading">{l.title}</p>
               <p className="mt-1 text-[12px] leading-relaxed text-bq-dim">{l.body}</p>
             </div>
           ))}

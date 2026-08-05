@@ -17,13 +17,13 @@ export default async function DashboardSection({
       <span className="flex size-14 items-center justify-center rounded-2xl border border-bq-border bg-bq-surface text-bq-muted">
         <Construction className="size-6" />
       </span>
-      <h1 className="mt-5 text-xl font-bold text-white">{name}</h1>
+      <h1 className="mt-5 text-xl font-bold text-bq-heading">{name}</h1>
       <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-bq-muted">
         This section is coming soon. The Control Center is live — head back to keep exploring.
       </p>
       <Link
         href="/dashboard"
-        className="mt-6 flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-white/5"
+        className="mt-6 flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-overlay/5"
       >
         <ArrowLeft className="size-4" /> Back to Control Center
       </Link>

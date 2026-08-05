@@ -37,7 +37,7 @@ export function DonutChart({
         })}
       </svg>
       {label && (
-        <div className="absolute inset-0 flex items-center justify-center text-[15px] font-bold text-white">
+        <div className="absolute inset-0 flex items-center justify-center text-[15px] font-bold text-bq-heading">
           {label}
         </div>
       )}
@@ -73,7 +73,7 @@ export function Sparkline({
 export function AreaLineChart({
   data,
   height = 190,
-  color = "#ffffff",
+  color = "var(--bq-heading)",
   showLabels = true,
 }: {
   data: { label?: string; value: number }[];

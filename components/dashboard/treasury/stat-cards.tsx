@@ -31,7 +31,7 @@ export function StatCards() {
                 <Icon className="size-4" />
               </span>
             </div>
-            <p className="mt-4 text-[26px] font-bold leading-none text-white">{s.value}</p>
+            <p className="mt-4 text-[26px] font-bold leading-none text-bq-heading">{s.value}</p>
             <p className="mt-2 text-[12px] text-bq-dim">{s.note}</p>
           </Panel>
         );

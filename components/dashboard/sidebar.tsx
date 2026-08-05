@@ -77,7 +77,7 @@ function NavBadge({ text, tone }: NonNullable<Item["badge"]>) {
         "ml-auto shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold",
         tone === "live"
           ? "bg-bq-mint/15 text-bq-mint"
-          : "bg-[#ff3b5c]/15 text-[#ff6a83]",
+          : "bg-bq-loss/15 text-bq-loss-text",
       )}
     >
       {text}
@@ -106,10 +106,10 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
                       className={cn(
                         "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] transition-colors",
                         active
-                          ? "bg-bq-surface text-white"
+                          ? "bg-bq-surface text-bq-heading"
                           : item.danger
-                            ? "text-[#ff6a83] hover:bg-[#ff3b5c]/10"
-                            : "text-bq-muted hover:bg-white/[0.03] hover:text-bq-text",
+                            ? "text-bq-loss-text hover:bg-bq-loss/10"
+                            : "text-bq-muted hover:bg-bq-overlay/[0.03] hover:text-bq-text",
                       )}
                     >
                       <item.icon className="size-4 shrink-0" strokeWidth={1.8} />
@@ -133,7 +133,7 @@ export function SidebarBrand() {
   return (
     <div className="flex items-center gap-2.5">
       <LogoMark />
-      <span className="text-[18px] font-bold tracking-tight text-white">BlackQuant</span>
+      <span className="text-[18px] font-bold tracking-tight text-bq-heading">BlackQuant</span>
     </div>
   );
 }

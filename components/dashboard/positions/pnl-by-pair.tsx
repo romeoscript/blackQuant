@@ -7,7 +7,7 @@ export function PnlByPair() {
   return (
     <Panel className="flex flex-col p-5">
       <div>
-        <h2 className="text-[15px] font-semibold text-white">P&L by Pair</h2>
+        <h2 className="text-[15px] font-semibold text-bq-heading">P&L by Pair</h2>
         <p className="text-[12px] text-bq-dim">Contribution per asset</p>
       </div>
 
@@ -23,7 +23,7 @@ export function PnlByPair() {
             <div key={s.label} className="flex items-center gap-2 text-[12px]">
               <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
               <span className="flex-1 text-bq-text">{s.label}</span>
-              <span className="font-semibold text-white tabular-nums">{s.pct}%</span>
+              <span className="font-semibold text-bq-heading tabular-nums">{s.pct}%</span>
             </div>
           ))}
         </div>

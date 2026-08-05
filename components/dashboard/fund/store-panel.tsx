@@ -74,7 +74,7 @@ export function StorePanel() {
                 <span className="text-[15px] font-bold text-bq-heading">${item.price}</span>
                 <button
                   onClick={() => buy(item)}
-                  className="flex items-center gap-1.5 rounded-[10px] bg-bq-heading px-[13px] py-[7px] text-[11px] font-bold text-[#0c0c0c] transition-transform hover:scale-[1.03] active:translate-y-px"
+                  className="flex items-center gap-1.5 rounded-[10px] bg-bq-heading px-[13px] py-[7px] text-[11px] font-bold text-bq-on-fill transition-transform hover:scale-[1.03] active:translate-y-px"
                 >
                   <ShoppingCart className="size-3" /> Buy
                 </button>

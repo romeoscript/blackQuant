@@ -39,7 +39,7 @@ function StatusBadge({ status }: { status: Transaction["status"] }) {
         "rounded-full font-medium",
         status === "Completed"
           ? "bg-bq-mint/10 text-bq-mint"
-          : "bg-amber-500/10 text-amber-400",
+          : "bg-bq-warn/10 text-bq-warn-text",
       )}
     >
       {status}
@@ -58,7 +58,7 @@ export function TransactionsCard() {
       <Tabs value={tab} onValueChange={(v) => setTab(v as (typeof TABS)[number])}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-[15px] font-semibold text-white">Transaction History</h2>
+            <h2 className="text-[15px] font-semibold text-bq-heading">Transaction History</h2>
             <p className="text-[12px] text-bq-dim">
               Recent deposits and withdrawals across all assets
             </p>
@@ -69,7 +69,7 @@ export function TransactionsCard() {
                 <TabsTrigger
                   key={t}
                   value={t}
-                  className="rounded-md px-3 py-1 text-[12px] text-bq-muted data-[state=active]:bg-bq-surface data-[state=active]:text-white"
+                  className="rounded-md px-3 py-1 text-[12px] text-bq-muted data-[state=active]:bg-bq-surface data-[state=active]:text-bq-heading"
                 >
                   {t}
                 </TabsTrigger>
@@ -77,7 +77,7 @@ export function TransactionsCard() {
             </TabsList>
             <button
               onClick={() => toast("Transactions", { description: "Full history coming soon." })}
-              className="shrink-0 text-[12px] text-bq-muted transition-colors hover:text-white"
+              className="shrink-0 text-[12px] text-bq-muted transition-colors hover:text-bq-heading"
             >
               View all
             </button>
@@ -104,7 +104,7 @@ export function TransactionsCard() {
                     <div className="flex items-center gap-3">
                       <TxIcon incoming={t.incoming} />
                       <div>
-                        <p className="text-[13px] font-medium text-white">
+                        <p className="text-[13px] font-medium text-bq-heading">
                           {t.asset} {t.type}
                         </p>
                         <p className="text-[11px] text-bq-dim">{t.asset}</p>
@@ -114,7 +114,7 @@ export function TransactionsCard() {
                   <TableCell
                     className={cn(
                       "text-[13px] font-medium tabular-nums",
-                      t.incoming ? "text-bq-mint" : "text-white",
+                      t.incoming ? "text-bq-mint" : "text-bq-heading",
                     )}
                   >
                     {t.amount}
@@ -122,7 +122,7 @@ export function TransactionsCard() {
                   <TableCell
                     className={cn(
                       "text-[13px] tabular-nums",
-                      t.incoming ? "text-bq-mint" : "text-white",
+                      t.incoming ? "text-bq-mint" : "text-bq-heading",
                     )}
                   >
                     {t.usd}
@@ -134,7 +134,7 @@ export function TransactionsCard() {
                   <TableCell className="text-right">
                     <button
                       onClick={() => toast(`${t.asset} ${t.type}`, { description: t.date })}
-                      className="inline-flex items-center gap-0.5 text-[12px] text-bq-muted transition-colors hover:text-white"
+                      className="inline-flex items-center gap-0.5 text-[12px] text-bq-muted transition-colors hover:text-bq-heading"
                     >
                       Details <ChevronRight className="size-3.5" />
                     </button>
@@ -151,7 +151,7 @@ export function TransactionsCard() {
             <div key={i} className="flex items-center gap-3 border-b border-bq-border-soft py-3 last:border-0">
               <TxIcon incoming={t.incoming} />
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium text-white">
+                <p className="text-[13px] font-medium text-bq-heading">
                   {t.asset} {t.type}
                 </p>
                 <p className="text-[11px] text-bq-dim">
@@ -159,7 +159,7 @@ export function TransactionsCard() {
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <p className={cn("text-[12px] font-medium tabular-nums", t.incoming ? "text-bq-mint" : "text-white")}>
+                <p className={cn("text-[12px] font-medium tabular-nums", t.incoming ? "text-bq-mint" : "text-bq-heading")}>
                   {t.amount}
                 </p>
                 <StatusBadge status={t.status} />

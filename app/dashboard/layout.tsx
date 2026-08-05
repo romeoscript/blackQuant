@@ -34,7 +34,7 @@ export default function DashboardLayout({
               <SidebarBrand />
               <button
                 onClick={() => setOpen(false)}
-                className="flex size-8 items-center justify-center rounded-xl bg-bq-surface text-bq-muted transition-colors hover:text-white"
+                className="flex size-8 items-center justify-center rounded-xl bg-bq-surface text-bq-muted transition-colors hover:text-bq-heading"
                 aria-label="Close menu"
               >
                 <X className="size-4" />
@@ -46,7 +46,7 @@ export default function DashboardLayout({
                 YN
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[13px] font-bold text-white">YourNoCodeDev</p>
+                <p className="truncate text-[13px] font-bold text-bq-heading">YourNoCodeDev</p>
                 <p className="font-plex text-[11px] text-bq-dim">UID: 12532723525</p>
               </div>
             </div>

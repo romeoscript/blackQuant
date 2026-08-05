@@ -6,7 +6,7 @@ export function AllocationCard() {
   return (
     <Panel className="flex flex-col p-5">
       <div>
-        <h2 className="text-[15px] font-semibold text-white">Asset Allocation</h2>
+        <h2 className="text-[15px] font-semibold text-bq-heading">Asset Allocation</h2>
         <p className="text-[12px] text-bq-dim">By USD value</p>
       </div>
 
@@ -23,7 +23,7 @@ export function AllocationCard() {
               <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: a.color }} />
               <span className="flex-1 text-bq-text">{a.symbol}</span>
               <span className="text-bq-dim tabular-nums">{usd(a.value)}</span>
-              <span className="w-8 text-right font-semibold text-white tabular-nums">{a.allocation}%</span>
+              <span className="w-8 text-right font-semibold text-bq-heading tabular-nums">{a.allocation}%</span>
             </div>
           ))}
         </div>

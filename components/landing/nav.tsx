@@ -37,7 +37,7 @@ export function Nav() {
             <li key={link.target}>
               <button
                 onClick={() => goTo(link.target)}
-                className="text-[13px] text-bq-text/70 transition-colors hover:text-white"
+                className="text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading"
               >
                 {link.label}
               </button>
@@ -97,7 +97,7 @@ function ThemeButton({
       aria-label={label}
       className={cn(
         "flex size-7 items-center justify-center rounded-full transition-colors",
-        active ? "bg-white/10 text-white" : "text-bq-muted hover:text-white",
+        active ? "bg-bq-overlay/10 text-bq-heading" : "text-bq-muted hover:text-bq-heading",
       )}
     >
       {children}

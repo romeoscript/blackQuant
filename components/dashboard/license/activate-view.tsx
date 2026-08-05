@@ -20,7 +20,7 @@ function CheckDot({ featured }: { featured: boolean }) {
     <span
       className={cn(
         "flex size-4 shrink-0 items-center justify-center rounded-full",
-        featured ? "bg-white/20 text-bq-heading" : "bg-bq-surface text-bq-dim",
+        featured ? "bg-bq-overlay/20 text-bq-heading" : "bg-bq-surface text-bq-dim",
       )}
     >
       <Check className="size-2.5" strokeWidth={3} />
@@ -34,7 +34,7 @@ function ComparisonCell({ value, selected }: { value: string | boolean; selected
       <span
         className={cn(
           "mx-auto flex size-4 items-center justify-center rounded-full",
-          value ? "bg-bq-heading text-[#0c0c0c]" : "bg-bq-surface text-bq-dim",
+          value ? "bg-bq-heading text-bq-on-fill" : "bg-bq-surface text-bq-dim",
         )}
       >
         {value ? <Check className="size-2.5" strokeWidth={3} /> : <Minus className="size-2.5" strokeWidth={3} />}
@@ -78,15 +78,15 @@ export function ActivateView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-white/15 bg-white/5 px-5 py-3.5">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-bq-heading">
+      <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-bq-overlay/15 bg-bq-overlay/5 px-5 py-3.5">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-bq-overlay/10 text-bq-heading">
           <Zap className="size-3.5 fill-current" />
         </span>
         <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-bq-heading">
           Choose a plan below to unlock signals, positions, and the full BlackQuant trading suite.
           You can upgrade or cancel at any time.
         </p>
-        <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-bq-heading">Inactive</span>
+        <span className="rounded-full bg-bq-overlay/10 px-2.5 py-1 text-[11px] text-bq-heading">Inactive</span>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -103,7 +103,7 @@ export function ActivateView({
               onClick={() => onBilling(b)}
               className={cn(
                 "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] capitalize transition-colors",
-                billing === b ? "bg-white/[0.07] font-medium text-bq-heading" : "text-bq-dim",
+                billing === b ? "bg-bq-overlay/[0.07] font-medium text-bq-heading" : "text-bq-dim",
               )}
             >
               {b}
@@ -130,7 +130,7 @@ export function ActivateView({
                   className={cn(
                     "absolute right-4 top-4 rounded-lg px-2 py-0.5 text-[11px]",
                     p.badge === "Most Popular"
-                      ? "bg-bq-heading text-[#0c0c0c]"
+                      ? "bg-bq-heading text-bq-on-fill"
                       : "bg-bq-surface text-bq-dim",
                   )}
                 >
@@ -157,7 +157,7 @@ export function ActivateView({
                 className={cn(
                   "mt-4 flex items-center justify-center gap-2 rounded-[14px] py-2.5 text-[11px] font-bold transition-colors",
                   selected
-                    ? "bg-bq-heading text-[#0c0c0c]"
+                    ? "bg-bq-heading text-bq-on-fill"
                     : "border border-bq-border text-bq-heading hover:bg-bq-surface",
                 )}
               >
@@ -203,7 +203,7 @@ export function ActivateView({
           <p className="mt-0.5 text-[11px] text-bq-dim">Review before confirming.</p>
 
           <div className="mt-4 flex items-center gap-3 rounded-3xl border border-bq-heading bg-bq-surface/30 px-4 py-3.5">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-bq-heading">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-bq-overlay/10 text-bq-heading">
               <Zap className="size-3.5 fill-current" />
             </span>
             <div className="min-w-0 flex-1">
@@ -244,7 +244,7 @@ export function ActivateView({
 
           <button
             onClick={onActivate}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-bq-heading py-3 text-[11px] font-bold text-[#0c0c0c] transition-transform hover:scale-[1.01] active:translate-y-px"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-bq-heading py-3 text-[11px] font-bold text-bq-on-fill transition-transform hover:scale-[1.01] active:translate-y-px"
           >
             <Zap className="size-3.5 fill-current" /> Activate {plan.name} Plan
           </button>
@@ -264,7 +264,7 @@ export function ActivateView({
             </div>
             <Link
               href="/dashboard/fund"
-              className="mt-3.5 flex items-center gap-1.5 text-[11px] text-bq-dim transition-colors hover:text-white"
+              className="mt-3.5 flex items-center gap-1.5 text-[11px] text-bq-dim transition-colors hover:text-bq-heading"
             >
               <CirclePlus className="size-3" /> Fund account to add balance
             </Link>

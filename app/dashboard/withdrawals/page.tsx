@@ -76,19 +76,19 @@ export default function WithdrawalsPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <Card>
-          <h2 className="font-semibold text-white">Monthly Withdrawals</h2>
+          <h2 className="font-semibold text-bq-heading">Monthly Withdrawals</h2>
           <p className="text-[12px] text-bq-dim">Total withdrawn per month (USD) · Last 6 months</p>
           <BarChart data={MONTHLY} height={170} />
           <div className="mt-4 flex items-center justify-between border-t border-bq-border-soft pt-3 text-[11px] text-bq-dim">
             <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-white" /> Current month
+              <span className="size-2 rounded-full bg-bq-contrast" /> Current month
             </span>
             <span>6-month total: $2,080.00</span>
           </div>
         </Card>
 
         <Card>
-          <h2 className="font-semibold text-white">Request Withdrawal</h2>
+          <h2 className="font-semibold text-bq-heading">Request Withdrawal</h2>
           <p className="text-[12px] text-bq-dim">Funds arrive within 1–3 business days.</p>
 
           <label className="mt-4 block text-[12px] text-bq-muted">Amount (USD)</label>
@@ -99,7 +99,7 @@ export default function WithdrawalsPage() {
               onChange={(e) => setAmount(e.target.value)}
               inputMode="decimal"
               placeholder="0.00"
-              className="w-full bg-transparent py-2.5 text-sm text-white placeholder:text-bq-dim focus:outline-none"
+              className="w-full bg-transparent py-2.5 text-sm text-bq-heading placeholder:text-bq-dim focus:outline-none"
             />
             <button
               onClick={() => setAmount("0")}
@@ -118,14 +118,14 @@ export default function WithdrawalsPage() {
                 onClick={() => setMethod(m.id)}
                 className={cn(
                   "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
-                  method === m.id ? "border-primary bg-primary/5" : "border-bq-border hover:bg-white/[0.03]",
+                  method === m.id ? "border-primary bg-primary/5" : "border-bq-border hover:bg-bq-overlay/[0.03]",
                 )}
               >
                 <span className="flex size-8 items-center justify-center rounded-lg bg-bq-bg text-bq-muted">
                   <m.icon className="size-4" />
                 </span>
                 <span className="flex-1">
-                  <span className="block text-[13px] font-medium text-white">{m.name}</span>
+                  <span className="block text-[13px] font-medium text-bq-heading">{m.name}</span>
                   <span className="block text-[11px] text-bq-dim">{m.sub}</span>
                 </span>
                 <span
@@ -140,7 +140,7 @@ export default function WithdrawalsPage() {
 
           <button
             onClick={() => notify("Submit Request")}
-            className="mt-4 w-full rounded-lg bg-white py-2.5 text-[13px] font-semibold text-black transition-transform hover:scale-[1.01] active:translate-y-px"
+            className="mt-4 w-full rounded-lg bg-bq-contrast py-2.5 text-[13px] font-semibold text-bq-on-fill transition-transform hover:scale-[1.01] active:translate-y-px"
           >
             Submit Request
           </button>
@@ -150,7 +150,7 @@ export default function WithdrawalsPage() {
       <Card className="p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
           <div>
-            <h2 className="font-semibold text-white">Withdrawal History</h2>
+            <h2 className="font-semibold text-bq-heading">Withdrawal History</h2>
             <p className="text-[12px] text-bq-dim">6 records · 4 completed · 1 processing · 1 rejected</p>
           </div>
           <div className="flex items-center gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
@@ -160,7 +160,7 @@ export default function WithdrawalsPage() {
                 onClick={() => setFilter(f)}
                 className={cn(
                   "rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors",
-                  filter === f ? "bg-bq-surface text-white" : "text-bq-muted hover:text-bq-text",
+                  filter === f ? "bg-bq-surface text-bq-heading" : "text-bq-muted hover:text-bq-text",
                 )}
               >
                 {f}
@@ -183,9 +183,9 @@ export default function WithdrawalsPage() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.ref} className="border-b border-bq-border-soft last:border-0">
-                  <td className="px-5 py-3.5 font-medium text-white">{r.ref}</td>
+                  <td className="px-5 py-3.5 font-medium text-bq-heading">{r.ref}</td>
                   <td className="px-5 py-3.5 text-bq-muted">{r.date}</td>
-                  <td className="px-5 py-3.5 font-medium text-white">{r.amount}</td>
+                  <td className="px-5 py-3.5 font-medium text-bq-heading">{r.amount}</td>
                   <td className="px-5 py-3.5 text-bq-muted">{r.method}</td>
                   <td className="px-5 py-3.5 font-plex text-bq-muted">{r.wallet}</td>
                   <td className="px-5 py-3.5">

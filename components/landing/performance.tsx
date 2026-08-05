@@ -6,6 +6,15 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { Reveal } from "./reveal";
 import { FEATURES, type Feature } from "./data";
 
+/**
+ * GSAP interpolates colors numerically, so it cannot tween to a `var()`. Passing
+ * this as a function-based value defers the lookup to when the tween initialises
+ * rather than when the timeline is built, so a theme switch is picked up on the
+ * next scrub instead of baking in whichever theme was active on mount.
+ */
+const themeColor = (token: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+
 const ACCENT = {
   green: {
     hex: "#4ade80",
@@ -199,8 +208,8 @@ export function Performance() {
                 ticks[b],
                 {
                   scale: 1,
-                  backgroundColor: "#080808",
-                  borderColor: "#1f1f1f",
+                  backgroundColor: () => themeColor("--bq-bg"),
+                  borderColor: () => themeColor("--bq-border"),
                   boxShadow: "none",
                   duration: 0.3,
                 },
@@ -421,7 +430,7 @@ function VideoLayer({ feature, ready }: { feature: Feature; ready: boolean }) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(3,3,3,0.94) 0%, rgba(3,3,3,0.5) 42%, rgba(3,3,3,0.18) 70%, rgba(3,3,3,0.55) 100%)",
+            "linear-gradient(90deg, color-mix(in srgb, var(--bq-panel) 94%, transparent) 0%, color-mix(in srgb, var(--bq-panel) 50%, transparent) 42%, color-mix(in srgb, var(--bq-panel) 18%, transparent) 70%, color-mix(in srgb, var(--bq-panel) 55%, transparent) 100%)",
         }}
       />
       {/* accent glow */}
@@ -438,7 +447,7 @@ function VideoLayer({ feature, ready }: { feature: Feature; ready: boolean }) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(3,3,3,0.6) 0%, transparent 22%, transparent 78%, rgba(3,3,3,0.6) 100%)",
+            "linear-gradient(180deg, color-mix(in srgb, var(--bq-panel) 60%, transparent) 0%, transparent 22%, transparent 78%, color-mix(in srgb, var(--bq-panel) 60%, transparent) 100%)",
         }}
       />
 

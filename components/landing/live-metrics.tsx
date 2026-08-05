@@ -36,7 +36,7 @@ export function LiveMetrics() {
           <span className="text-bq-muted">{m.label}</span>
           <span
             className={`font-satoshi font-bold tabular-nums transition-colors duration-300 ${
-              m.live && bump ? "text-bq-green" : "text-white"
+              m.live && bump ? "text-bq-green" : "text-bq-heading"
             }`}
           >
             {m.value}

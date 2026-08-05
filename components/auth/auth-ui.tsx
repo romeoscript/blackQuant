@@ -19,7 +19,7 @@ export function AuthShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-bq-bg font-satoshi text-white lg:flex">
+    <div className="min-h-screen bg-bq-bg font-satoshi text-bq-heading lg:flex">
       <aside className="relative isolate flex flex-col justify-between gap-12 overflow-hidden p-8 pb-16 lg:w-[580px] lg:shrink-0 lg:p-10 lg:pb-10">
         <Image
           src="/auth/chart-bg.jpg"
@@ -32,13 +32,15 @@ export function AuthShell({
         <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(0,0,0,0.6),rgba(0,0,0,0.85))]" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-bq-bg lg:hidden" />
 
-        <Link href="/" className="relative z-10 flex w-fit items-center gap-3">
+        {/* The panel is a fixed dark photo under a fixed dark scrim, so its
+            content keeps the dark token values in either theme. Scoped to the
+            content rather than the <aside> so the mobile fade above still
+            resolves --bq-bg from the page theme it blends into. */}
+        <Link href="/" className="dark relative z-10 flex w-fit items-center gap-3 text-bq-heading">
           <LogoMark className="size-9" />
-          <span className="text-[15px] font-black tracking-[-0.375px] text-bq-heading">
-            BlackQuant
-          </span>
+          <span className="text-[15px] font-black tracking-[-0.375px]">BlackQuant</span>
         </Link>
-        <div className="relative z-10">{brand}</div>
+        <div className="dark relative z-10 text-bq-heading">{brand}</div>
       </aside>
 
       <main className="flex flex-1 items-center justify-center px-6 py-14 lg:px-16 lg:py-10">
@@ -106,7 +108,7 @@ export function Field({
           id={fieldId}
           name={name}
           className={cn(
-            "h-auto min-w-0 flex-1 rounded-none border-0 bg-transparent p-0 text-[13px] text-white shadow-none outline-none placeholder:text-bq-dim focus-visible:ring-0 md:text-[13px] dark:bg-transparent",
+            "h-auto min-w-0 flex-1 rounded-none border-0 bg-transparent p-0 text-[13px] text-bq-heading shadow-none outline-none placeholder:text-bq-dim focus-visible:ring-0 md:text-[13px] dark:bg-transparent",
             className,
           )}
           {...props}
@@ -125,7 +127,7 @@ export function PrimaryButton({
   return (
     <Button
       {...props}
-      className="h-auto w-full rounded-[14px] bg-bq-mint py-[14px] text-[13px] font-bold text-black hover:bg-bq-mint/90"
+      className="h-auto w-full rounded-[14px] bg-bq-mint py-[14px] text-[13px] font-bold text-bq-on-fill hover:bg-bq-mint/90"
     >
       <Icon className="size-[14px]" />
       {children}
@@ -154,7 +156,7 @@ export function GoogleButton() {
           description: "Google sign-in isn't connected in this preview yet.",
         })
       }
-      className="h-auto w-full gap-2 rounded-[14px] border-bq-border bg-bq-surface py-[15px] text-[11px] font-medium text-bq-heading hover:border-white/25 hover:bg-bq-surface dark:border-bq-border dark:bg-bq-surface dark:hover:bg-bq-surface"
+      className="h-auto w-full gap-2 rounded-[14px] border-bq-border bg-bq-surface py-[15px] text-[11px] font-medium text-bq-heading hover:border-bq-overlay/25 hover:bg-bq-surface dark:border-bq-border dark:bg-bq-surface dark:hover:bg-bq-surface"
     >
       <Image src="/auth/google.svg" alt="" width={13} height={13} className="size-[13px]" />
       Google

@@ -37,16 +37,16 @@ export default function LicensePage() {
     <div className="mx-auto max-w-[780px]">
       <Panel className="overflow-hidden">
         <div className="flex items-center gap-3 border-b border-bq-border px-5 pb-4 pt-7">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-[#232323] text-bq-heading">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-bq-surface text-bq-heading">
             <Settings className="size-3.5" />
           </span>
-          <h1 className="min-w-0 flex-1 text-xl font-bold text-white">
+          <h1 className="min-w-0 flex-1 text-xl font-bold text-bq-heading">
             {activated ? "License Activated" : "Activate License"}
           </h1>
           <button
             onClick={() => router.push("/dashboard")}
             aria-label="Close"
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-bq-surface text-bq-dim transition-colors hover:text-white"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-bq-surface text-bq-dim transition-colors hover:text-bq-heading"
           >
             <X className="size-3" />
           </button>

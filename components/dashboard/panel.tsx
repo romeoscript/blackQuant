@@ -26,7 +26,7 @@ export function AssetBadge({
     <span
       style={{ backgroundColor: color }}
       className={cn(
-        "flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white",
+        "flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-bq-heading",
         className,
       )}
     >
@@ -50,7 +50,7 @@ export function PctChange({
     <span
       className={cn(
         "inline-flex items-center gap-0.5 text-[12px] font-medium tabular-nums",
-        negative ? "text-red-400" : "text-bq-mint",
+        negative ? "text-bq-loss-text" : "text-bq-mint",
         className,
       )}
     >

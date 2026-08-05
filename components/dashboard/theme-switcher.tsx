@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 const PALETTES = [
-  { value: "emerald", label: "Default", dot: "bg-white" },
+  { value: "emerald", label: "Default", dot: "bg-bq-contrast" },
   { value: "midnight", label: "Midnight", dot: "bg-[#6366f1]" },
   { value: "crimson", label: "Crimson", dot: "bg-[#ef4444]" },
   { value: "gold", label: "Gold", dot: "bg-[#f59e0b]" },
@@ -49,8 +49,8 @@ export function ThemeSwitcher({ className, full = false }: { className?: string;
       full ? "flex-1 rounded-lg py-1.5" : "rounded-full px-2.5 py-1",
       on
         ? full
-          ? "bg-bq-bg font-semibold text-white"
-          : "bg-bq-surface text-white"
+          ? "bg-bq-bg font-semibold text-bq-heading"
+          : "bg-bq-surface text-bq-heading"
         : "text-bq-dim hover:text-bq-text",
     );
 

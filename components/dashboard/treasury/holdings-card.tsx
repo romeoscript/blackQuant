@@ -29,12 +29,12 @@ export function HoldingsCard() {
     <Panel className="flex flex-col p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-white">Crypto Holdings</h2>
+          <h2 className="text-[15px] font-semibold text-bq-heading">Crypto Holdings</h2>
           <p className="text-[12px] text-bq-dim">Your assets across all wallets</p>
         </div>
         <AddAssetDialog
           trigger={
-            <button className="flex shrink-0 items-center gap-1.5 rounded-lg border border-bq-border px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-bq-surface">
+            <button className="flex shrink-0 items-center gap-1.5 rounded-lg border border-bq-border px-3 py-1.5 text-[12px] font-medium text-bq-heading transition-colors hover:bg-bq-surface">
               <Plus className="size-3.5" /> Add Asset
             </button>
           }
@@ -60,17 +60,17 @@ export function HoldingsCard() {
                   <div className="flex items-center gap-3">
                     <AssetBadge symbol={a.symbol} color={a.color} />
                     <div>
-                      <p className="text-[13px] font-semibold text-white">{a.symbol}</p>
+                      <p className="text-[13px] font-semibold text-bq-heading">{a.symbol}</p>
                       <p className="text-[11px] text-bq-dim">{a.name}</p>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <p className="text-[13px] font-medium text-white tabular-nums">{a.holdings}</p>
+                  <p className="text-[13px] font-medium text-bq-heading tabular-nums">{a.holdings}</p>
                   <p className="text-[11px] text-bq-dim">{a.symbol}</p>
                 </TableCell>
                 <TableCell>
-                  <p className="text-[13px] font-medium text-white tabular-nums">{usd(a.value)}</p>
+                  <p className="text-[13px] font-medium text-bq-heading tabular-nums">{usd(a.value)}</p>
                   <p className="text-[11px] text-bq-dim">{a.symbol}</p>
                 </TableCell>
                 <TableCell>
@@ -92,8 +92,8 @@ export function HoldingsCard() {
             <AssetBadge symbol={a.symbol} color={a.color} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-[13px] font-semibold text-white">{a.symbol}</p>
-                <p className="text-[13px] font-medium text-white tabular-nums">{usd(a.value)}</p>
+                <p className="text-[13px] font-semibold text-bq-heading">{a.symbol}</p>
+                <p className="text-[13px] font-medium text-bq-heading tabular-nums">{usd(a.value)}</p>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[11px] text-bq-dim">{a.name}</p>
@@ -112,7 +112,7 @@ export function HoldingsCard() {
 
       <div className="mt-auto flex items-center justify-between border-t border-bq-border-soft pt-4">
         <span className="text-[12px] text-bq-dim">Total portfolio value</span>
-        <span className="text-[15px] font-bold text-white tabular-nums">{usd(TOTAL_PORTFOLIO)}</span>
+        <span className="text-[15px] font-bold text-bq-heading tabular-nums">{usd(TOTAL_PORTFOLIO)}</span>
       </div>
     </Panel>
   );

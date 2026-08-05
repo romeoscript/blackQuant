@@ -93,7 +93,7 @@ function UploadBox() {
         }}
       />
       <Upload className="size-5 text-bq-muted" />
-      <span className="max-w-[80%] truncate text-[13px] font-medium text-white">{name ?? "Click to upload"}</span>
+      <span className="max-w-[80%] truncate text-[13px] font-medium text-bq-heading">{name ?? "Click to upload"}</span>
       <span className="text-[11px] text-bq-dim">PNG, JPG or PDF · Max 10MB</span>
     </label>
   );
@@ -108,9 +108,9 @@ export default function VerificationPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-border bg-bq-surface px-4 py-3">
         <p className="flex items-center gap-2.5 text-[13px] text-bq-text">
-          <ScanFace className="size-4 shrink-0 text-[#ff6a83]" />
+          <ScanFace className="size-4 shrink-0 text-bq-loss-text" />
           <span>
-            <span className="font-semibold text-white">Your account is not verified</span>
+            <span className="font-semibold text-bq-heading">Your account is not verified</span>
             <span className="block text-bq-dim">
               Complete identity verification to unlock higher withdrawal limits and full platform access.
             </span>
@@ -126,7 +126,7 @@ export default function VerificationPage() {
               <ScanFace className="size-4" />
             </span>
             <div>
-              <h2 className="font-semibold text-white">Standard Verification — Step 1 of 2</h2>
+              <h2 className="font-semibold text-bq-heading">Standard Verification — Step 1 of 2</h2>
               <p className="text-[12px] text-bq-dim">Upload a valid government-issued photo ID.</p>
             </div>
           </div>
@@ -139,13 +139,13 @@ export default function VerificationPage() {
                 onClick={() => setDoc(d.id)}
                 className={cn(
                   "rounded-xl border p-4 text-center transition-colors",
-                  doc === d.id ? "border-primary bg-primary/5" : "border-bq-border hover:bg-white/[0.03]",
+                  doc === d.id ? "border-primary bg-primary/5" : "border-bq-border hover:bg-bq-overlay/[0.03]",
                 )}
               >
                 <span className="mx-auto flex size-9 items-center justify-center rounded-lg bg-bq-bg text-bq-muted">
                   <d.icon className="size-4" />
                 </span>
-                <p className="mt-2 text-[13px] font-medium text-white">{d.name}</p>
+                <p className="mt-2 text-[13px] font-medium text-bq-heading">{d.name}</p>
                 <p className="text-[11px] text-bq-dim">{d.sub}</p>
               </button>
             ))}
@@ -163,7 +163,7 @@ export default function VerificationPage() {
           </div>
 
           <div className="mt-5 rounded-xl border border-bq-border bg-bq-bg p-4">
-            <p className="text-[13px] font-semibold text-white">Document guidelines</p>
+            <p className="text-[13px] font-semibold text-bq-heading">Document guidelines</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {GUIDELINES.map((g) => (
                 <span key={g} className="flex items-center gap-2 text-[12px] text-bq-muted">
@@ -177,7 +177,7 @@ export default function VerificationPage() {
             <p className="text-[11px] text-bq-dim">Your data is encrypted and never shared with third parties.</p>
             <button
               onClick={() => notify("Submit Document")}
-              className="flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition-transform hover:scale-[1.02] active:translate-y-px"
+              className="flex items-center gap-2 rounded-lg bg-bq-contrast px-5 py-2.5 text-[13px] font-semibold text-bq-on-fill transition-transform hover:scale-[1.02] active:translate-y-px"
             >
               Submit Document <ArrowRight className="size-4" />
             </button>
@@ -186,7 +186,7 @@ export default function VerificationPage() {
 
         <div className="space-y-6">
           <Card>
-            <h3 className="font-semibold text-white">Verification Tiers</h3>
+            <h3 className="font-semibold text-bq-heading">Verification Tiers</h3>
             <p className="mt-1 text-[12px] text-bq-dim">Complete each tier to unlock higher limits.</p>
             <div className="mt-4 space-y-3">
               {TIERS.map((t) => (
@@ -204,7 +204,7 @@ export default function VerificationPage() {
                       ) : (
                         <Circle className={cn("size-4", t.tone === "green" ? "text-primary" : "text-bq-muted")} />
                       )}
-                      <span className="text-[13px] font-semibold text-white">{t.name}</span>
+                      <span className="text-[13px] font-semibold text-bq-heading">{t.name}</span>
                     </span>
                     <StatPill tone={t.tone}>{t.status}</StatPill>
                   </div>
@@ -228,7 +228,7 @@ export default function VerificationPage() {
 
           <Card>
             <EyeOff className="size-6 text-bq-muted" />
-            <h3 className="mt-3 font-semibold text-white">Your data stays private</h3>
+            <h3 className="mt-3 font-semibold text-bq-heading">Your data stays private</h3>
             <p className="mt-1 text-[12px] leading-relaxed text-bq-muted">
               Submitted documents are encrypted at rest, reviewed only by our compliance team, and deleted within 90
               days of account verification.

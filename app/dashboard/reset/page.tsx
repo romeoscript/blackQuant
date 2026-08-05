@@ -59,7 +59,7 @@ export default function ResetPage() {
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
           <Card>
-            <h2 className="font-semibold text-white">Verify your identity</h2>
+            <h2 className="font-semibold text-bq-heading">Verify your identity</h2>
             <p className="text-[12px] text-bq-dim">Confirm your current email address to proceed with the credential reset.</p>
 
             <label className="mt-4 block text-[12px] text-bq-muted">Registered email address</label>
@@ -96,7 +96,7 @@ export default function ResetPage() {
                     v[i] = e.target.value.replace(/\D/g, "").slice(-1);
                     setCode(v);
                   }}
-                  className="size-11 rounded-lg border border-bq-border bg-bq-bg text-center text-lg font-bold text-white focus:border-primary focus:outline-none"
+                  className="size-11 rounded-lg border border-bq-border bg-bq-bg text-center text-lg font-bold text-bq-heading focus:border-primary focus:outline-none"
                 />
               ))}
             </div>
@@ -105,7 +105,7 @@ export default function ResetPage() {
               <p className="text-[11px] text-bq-dim">Code expires in 09:47</p>
               <button
                 onClick={() => notify("Verify & Continue")}
-                className="flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition-transform hover:scale-[1.02] active:translate-y-px"
+                className="flex items-center gap-2 rounded-lg bg-bq-contrast px-5 py-2.5 text-[13px] font-semibold text-bq-on-fill transition-transform hover:scale-[1.02] active:translate-y-px"
               >
                 Verify &amp; Continue <ArrowRight className="size-4" />
               </button>
@@ -113,7 +113,7 @@ export default function ResetPage() {
           </Card>
 
           <Card>
-            <h3 className="font-semibold text-white">What will be reset</h3>
+            <h3 className="font-semibold text-bq-heading">What will be reset</h3>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {RESET_ITEMS.map((r) => (
                 <div key={r.label} className="flex items-center gap-3 rounded-lg border border-bq-border bg-bq-bg px-3 py-2.5">
@@ -129,7 +129,7 @@ export default function ResetPage() {
         <div className="space-y-6">
           <Card>
             <Shield className="size-6 text-primary" />
-            <h3 className="mt-3 font-semibold text-white">Strong credential tips</h3>
+            <h3 className="mt-3 font-semibold text-bq-heading">Strong credential tips</h3>
             <p className="mt-1 text-[12px] text-bq-muted">After verification, you&apos;ll set a new password. Make it count.</p>
             <ul className="mt-4 space-y-2.5">
               {TIPS.map((t) => (
@@ -141,7 +141,7 @@ export default function ResetPage() {
           </Card>
 
           <Card>
-            <h3 className="font-semibold text-white">Recent login activity</h3>
+            <h3 className="font-semibold text-bq-heading">Recent login activity</h3>
             <p className="mt-1 text-[12px] text-bq-dim">If you don&apos;t recognise these, reset immediately.</p>
             <ul className="mt-3 space-y-3">
               {LOGINS.map((l) => (
@@ -163,7 +163,7 @@ export default function ResetPage() {
 
           <button
             onClick={() => notify("Cancel reset")}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[13px] font-medium text-bq-muted transition-colors hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[13px] font-medium text-bq-muted transition-colors hover:bg-bq-overlay/5 hover:text-bq-heading"
           >
             <X className="size-4" /> Cancel reset
           </button>

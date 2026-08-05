@@ -26,7 +26,7 @@ function StatusBadge({ status }: { status: Position["status"] }) {
       className={cn(
         "rounded-full px-2 py-0.5 text-[10px] font-medium",
         status === "Active" && "bg-bq-surface text-bq-text",
-        status === "At Risk" && "bg-amber-500/10 text-amber-400",
+        status === "At Risk" && "bg-bq-warn/10 text-bq-warn-text",
         status === "Closed" && "bg-bq-surface text-bq-dim",
       )}
     >
@@ -38,7 +38,7 @@ function StatusBadge({ status }: { status: Position["status"] }) {
 function Pnl({ p }: { p: Position }) {
   const Icon = p.gain ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className={cn("inline-flex items-center gap-1 text-[13px] font-medium tabular-nums", p.gain ? "text-bq-mint" : "text-red-400")}>
+    <span className={cn("inline-flex items-center gap-1 text-[13px] font-medium tabular-nums", p.gain ? "text-bq-mint" : "text-bq-loss-text")}>
       <Icon className="size-3.5" /> {p.pnl} ({p.pnlPct})
     </span>
   );
@@ -53,7 +53,7 @@ export function PositionsTable() {
       <Tabs value={tab} onValueChange={(v) => setTab(v as (typeof TABS)[number])}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-[15px] font-semibold text-white">All Positions</h2>
+            <h2 className="text-[15px] font-semibold text-bq-heading">All Positions</h2>
             <p className="text-[12px] text-bq-dim">6 total · 4 open · 2 closed</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -62,7 +62,7 @@ export function PositionsTable() {
                 <TabsTrigger
                   key={t}
                   value={t}
-                  className="rounded-md px-3 py-1 text-[12px] text-bq-muted data-[state=active]:bg-bq-surface data-[state=active]:text-white"
+                  className="rounded-md px-3 py-1 text-[12px] text-bq-muted data-[state=active]:bg-bq-surface data-[state=active]:text-bq-heading"
                 >
                   {t}
                 </TabsTrigger>
@@ -70,7 +70,7 @@ export function PositionsTable() {
             </TabsList>
             <NewPositionDialog
               trigger={
-                <button className="flex items-center gap-1.5 rounded-lg border border-bq-border px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-bq-surface">
+                <button className="flex items-center gap-1.5 rounded-lg border border-bq-border px-3 py-1.5 text-[12px] font-medium text-bq-heading transition-colors hover:bg-bq-surface">
                   <Plus className="size-3.5" /> New Position
                 </button>
               }
@@ -97,11 +97,11 @@ export function PositionsTable() {
               {rows.map((p) => (
                 <TableRow key={p.id} className="border-bq-border-soft hover:bg-bq-surface/30">
                   <TableCell className="py-3.5">
-                    <p className="text-[13px] font-semibold text-white">{p.pair}</p>
+                    <p className="text-[13px] font-semibold text-bq-heading">{p.pair}</p>
                     <p className="text-[11px] text-bq-dim">{p.id}</p>
                   </TableCell>
-                  <TableCell className="text-[13px] font-semibold text-[#ff6a83]">{p.type}</TableCell>
-                  <TableCell className="text-[13px] text-white tabular-nums">{p.capital}</TableCell>
+                  <TableCell className="text-[13px] font-semibold text-bq-loss-text">{p.type}</TableCell>
+                  <TableCell className="text-[13px] text-bq-heading tabular-nums">{p.capital}</TableCell>
                   <TableCell className="text-[13px] text-bq-text tabular-nums">{p.entry}</TableCell>
                   <TableCell className="text-[13px] text-bq-text tabular-nums">{p.current}</TableCell>
                   <TableCell><Pnl p={p} /></TableCell>
@@ -109,7 +109,7 @@ export function PositionsTable() {
                   <TableCell className="text-right">
                     <button
                       onClick={() => toast(`${p.pair} · ${p.id}`, { description: `${p.type} · ${p.status}` })}
-                      className="inline-flex items-center gap-0.5 text-[12px] text-bq-muted transition-colors hover:text-white"
+                      className="inline-flex items-center gap-0.5 text-[12px] text-bq-muted transition-colors hover:text-bq-heading"
                     >
                       View <ChevronRight className="size-3.5" />
                     </button>
@@ -130,8 +130,8 @@ export function PositionsTable() {
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-[13px] font-semibold text-white">{p.pair}</p>
-                  <span className="text-[11px] font-semibold text-[#ff6a83]">{p.type}</span>
+                  <p className="text-[13px] font-semibold text-bq-heading">{p.pair}</p>
+                  <span className="text-[11px] font-semibold text-bq-loss-text">{p.type}</span>
                 </div>
                 <p className="text-[11px] text-bq-dim">{p.id} · {p.capital}</p>
               </div>

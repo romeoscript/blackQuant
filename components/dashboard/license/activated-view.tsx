@@ -91,13 +91,13 @@ export function ActivatedView({
         <div className="flex flex-col justify-between gap-6 lg:flex-row">
           <div className="flex items-start gap-6">
             <span className="flex size-[68px] shrink-0 items-center justify-center rounded-full bg-bq-mint/5">
-              <span className="flex size-10 items-center justify-center rounded-full bg-[#0f3128] text-bq-mint">
+              <span className="flex size-10 items-center justify-center rounded-full bg-bq-mint/15 text-bq-mint">
                 <TrendingUp className="size-4" />
               </span>
             </span>
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-xl font-bold text-white">{plan.name} Plan Activated!</h2>
+                <h2 className="text-xl font-bold text-bq-heading">{plan.name} Plan Activated!</h2>
                 <span className="rounded-full bg-bq-mint/15 px-2.5 py-1 text-[11px] text-bq-mint">
                   Active
                 </span>
@@ -110,7 +110,7 @@ export function ActivatedView({
           <div className="flex shrink-0 flex-col items-center gap-3">
             <Link
               href="/dashboard/signal-engine"
-              className="flex items-center gap-2 rounded-[14px] bg-bq-heading px-5 py-2.5 text-[11px] font-bold text-[#0c0c0c] transition-transform hover:scale-[1.02] active:translate-y-px"
+              className="flex items-center gap-2 rounded-[14px] bg-bq-heading px-5 py-2.5 text-[11px] font-bold text-bq-on-fill transition-transform hover:scale-[1.02] active:translate-y-px"
             >
               <Cpu className="size-3.5" /> Go to Signal Engine
             </Link>
@@ -120,7 +120,7 @@ export function ActivatedView({
                   description: `${plan.name} plan · ${planLine} · next billing ${nextBilling}.`,
                 })
               }
-              className="text-[11px] text-bq-dim transition-colors hover:text-white"
+              className="text-[11px] text-bq-dim transition-colors hover:text-bq-heading"
             >
               View subscription details
             </button>
@@ -185,7 +185,7 @@ export function ActivatedView({
           <ul className="mt-4 flex-1 space-y-2 border-t border-bq-border-soft pt-3.5">
             {plan.features.map((f) => (
               <li key={f.label} className="flex items-center gap-2.5 text-[11px] text-bq-heading">
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-bq-overlay/10">
                   <f.icon className="size-2.5" />
                 </span>
                 {f.label}
@@ -235,7 +235,7 @@ export function ActivatedView({
             </p>
             <button
               onClick={onCancel}
-              className="mt-3 flex items-center gap-1.5 text-[11px] text-bq-dim transition-colors hover:text-[#ff6a83]"
+              className="mt-3 flex items-center gap-1.5 text-[11px] text-bq-dim transition-colors hover:text-bq-loss-text"
             >
               <CircleX className="size-3" /> Cancel subscription
             </button>

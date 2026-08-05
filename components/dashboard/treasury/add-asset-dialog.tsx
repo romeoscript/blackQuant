@@ -45,14 +45,14 @@ export function AddAssetDialog({ trigger }: { trigger: React.ReactNode }) {
   }
 
   const inputCls =
-    "h-auto rounded-[12px] border-bq-border bg-bq-surface px-3.5 py-2.5 text-[13px] text-white shadow-none placeholder:text-bq-dim focus-visible:border-bq-mint focus-visible:ring-0 md:text-[13px] dark:bg-bq-surface";
+    "h-auto rounded-[12px] border-bq-border bg-bq-surface px-3.5 py-2.5 text-[13px] text-bq-heading shadow-none placeholder:text-bq-dim focus-visible:border-bq-mint focus-visible:ring-0 md:text-[13px] dark:bg-bq-surface";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-2xl border-bq-border bg-bq-card p-6 font-satoshi text-white sm:max-w-[440px]">
+      <DialogContent className="gap-5 rounded-2xl border-bq-border bg-bq-card p-6 font-satoshi text-bq-heading sm:max-w-[440px]">
         <DialogHeader className="gap-1">
-          <DialogTitle className="text-[18px] font-bold text-white">Add Asset</DialogTitle>
+          <DialogTitle className="text-[18px] font-bold text-bq-heading">Add Asset</DialogTitle>
           <DialogDescription className="text-[13px] text-bq-dim">
             Track a new crypto asset in your portfolio.
           </DialogDescription>
@@ -64,7 +64,7 @@ export function AddAssetDialog({ trigger }: { trigger: React.ReactNode }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search asset (e.g. BTC, Ethereum…)"
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-bq-dim"
+            className="min-w-0 flex-1 bg-transparent text-[13px] text-bq-heading outline-none placeholder:text-bq-dim"
           />
         </div>
 
@@ -83,7 +83,7 @@ export function AddAssetDialog({ trigger }: { trigger: React.ReactNode }) {
               >
                 <AssetBadge symbol={a.symbol} color={a.color} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold text-white">{a.symbol}</p>
+                  <p className="text-[13px] font-semibold text-bq-heading">{a.symbol}</p>
                   <p className="text-[11px] text-bq-dim">{a.name}</p>
                 </div>
                 <span className="text-[12px] text-bq-muted tabular-nums">{a.price}</span>
@@ -92,7 +92,7 @@ export function AddAssetDialog({ trigger }: { trigger: React.ReactNode }) {
                   type="button"
                   onClick={() => toast.success(`Added ${a.symbol} to your portfolio.`)}
                   aria-label={`Add ${a.symbol}`}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bq-surface text-white transition-colors hover:bg-white/10"
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bq-surface text-bq-heading transition-colors hover:bg-bq-overlay/10"
                 >
                   <Plus className="size-4" />
                 </button>
@@ -132,14 +132,14 @@ export function AddAssetDialog({ trigger }: { trigger: React.ReactNode }) {
           <DialogClose asChild>
             <Button
               variant="outline"
-              className="h-auto flex-1 rounded-[12px] border-bq-border bg-transparent py-3 text-[13px] font-semibold text-white hover:bg-bq-surface dark:border-bq-border dark:bg-transparent dark:hover:bg-bq-surface"
+              className="h-auto flex-1 rounded-[12px] border-bq-border bg-transparent py-3 text-[13px] font-semibold text-bq-heading hover:bg-bq-surface dark:border-bq-border dark:bg-transparent dark:hover:bg-bq-surface"
             >
               Cancel
             </Button>
           </DialogClose>
           <Button
             onClick={addToPortfolio}
-            className="h-auto flex-1 rounded-[12px] bg-white py-3 text-[13px] font-semibold text-black hover:bg-white/90"
+            className="h-auto flex-1 rounded-[12px] bg-bq-contrast py-3 text-[13px] font-semibold text-bq-on-fill hover:bg-bq-contrast/90"
           >
             <Plus className="size-4" />
             Add to Portfolio

@@ -22,7 +22,7 @@ export function DashboardPageHeader({
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-white">{title}</h1>
+        <h1 className="text-2xl font-bold text-bq-heading">{title}</h1>
         <p className="mt-1 flex items-center gap-1 text-[13px] text-bq-muted">
           BlackQuant <ChevronRight className="size-3.5" /> {title}
         </p>

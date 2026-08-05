@@ -13,7 +13,7 @@ export function RecentDepositsCard() {
         <h2 className="text-[13px] font-medium text-bq-heading">Recent Deposits</h2>
         <Link
           href="/dashboard/treasury"
-          className="text-[11px] text-bq-dim transition-colors hover:text-white"
+          className="text-[11px] text-bq-dim transition-colors hover:text-bq-heading"
         >
           View all
         </Link>

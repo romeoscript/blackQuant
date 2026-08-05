@@ -43,7 +43,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 opacity-[0.4]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05), transparent 55%)",
+            "radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--bq-overlay) 5%, transparent), transparent 55%)",
         }}
       />
 
@@ -51,7 +51,7 @@ export function Hero() {
       <div aria-hidden className="pointer-events-none absolute inset-0 flex justify-center">
         <div className="flex h-full w-full max-w-[1440px] items-stretch justify-between px-8 md:px-20">
           {Array.from({ length: 9 }).map((_, i) => (
-            <span key={i} className="w-px bg-white/[0.03]" />
+            <span key={i} className="w-px bg-bq-overlay/[0.03]" />
           ))}
         </div>
       </div>
@@ -61,7 +61,7 @@ export function Hero() {
         {PARTICLES.map((p, i) => (
           <span
             key={i}
-            className="absolute rounded-full bg-white"
+            className="absolute rounded-full bg-bq-overlay"
             style={{
               left: p.left,
               top: p.top,

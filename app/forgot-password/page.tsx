@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
 
         <Link
           href="/login"
-          className="flex items-center gap-2 text-[13px] text-bq-dim transition-colors hover:text-white"
+          className="flex items-center gap-2 text-[13px] text-bq-dim transition-colors hover:text-bq-heading"
         >
           <ArrowLeft className="size-[13px]" />
           Back to sign in
@@ -104,20 +104,20 @@ export default function ForgotPasswordPage() {
 function Brand() {
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-[28px] font-bold leading-[35px] text-white">
+      <h2 className="text-[28px] font-bold leading-[35px] text-bq-heading">
         It happens to everyone.
       </h2>
-      <p className="max-w-[360px] text-[13px] leading-[21px] text-white/60">
+      <p className="max-w-[360px] text-[13px] leading-[21px] text-bq-heading/60">
         Enter the email linked to your account and we&apos;ll send a secure reset
         link. Valid for 15 minutes.
       </p>
-      <div className="mt-3 flex items-center gap-3 rounded-[24px] border border-white/10 bg-white/5 px-[17px] py-[13px]">
+      <div className="mt-3 flex items-center gap-3 rounded-[24px] border border-bq-overlay/10 bg-bq-overlay/5 px-[17px] py-[13px]">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-[14px] bg-bq-mint/15">
           <ShieldCheck className="size-[14px] text-bq-mint" />
         </span>
         <div className="flex flex-col gap-0.5">
-          <p className="text-[11px] font-medium text-white">Secure reset process</p>
-          <p className="text-[11px] text-white/50">
+          <p className="text-[11px] font-medium text-bq-heading">Secure reset process</p>
+          <p className="text-[11px] text-bq-heading/50">
             Link expires in 15 min · Single use only
           </p>
         </div>

@@ -29,7 +29,7 @@ export default function FundAccountPage() {
     <div className="space-y-4 lg:space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white">Fund Account</h1>
+          <h1 className="text-2xl font-bold text-bq-heading">Fund Account</h1>
           <p className="mt-1 flex items-center gap-1 text-[13px] text-bq-muted">
             BlackQuant <ChevronRight className="size-3.5" />{" "}
             <span className="text-bq-text">Fund Account</span>
@@ -37,7 +37,7 @@ export default function FundAccountPage() {
         </div>
         <Link
           href="/dashboard/withdrawals"
-          className="flex items-center gap-2 rounded-full border border-bq-border px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-bq-surface"
+          className="flex items-center gap-2 rounded-full border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-surface"
         >
           <CircleArrowUp className="size-4" /> Withdraw Instead
         </Link>
@@ -51,7 +51,7 @@ export default function FundAccountPage() {
             className={cn(
               "-mb-px flex items-center gap-2 border-b-2 px-1 pb-3 text-[13px] font-medium transition-colors",
               tab === t.id
-                ? "border-white text-white"
+                ? "border-bq-heading text-bq-heading"
                 : "border-transparent text-bq-dim hover:text-bq-text",
             )}
           >

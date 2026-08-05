@@ -96,7 +96,7 @@ export default function SignUpPage() {
       type="button"
       onClick={() => setShowPw((v) => !v)}
       aria-label={showPw ? "Hide password" : "Show password"}
-      className="shrink-0 text-bq-dim transition-colors hover:text-white"
+      className="shrink-0 text-bq-dim transition-colors hover:text-bq-heading"
     >
       {showPw ? <EyeOff className="size-[13px]" /> : <Eye className="size-[13px]" />}
     </button>
@@ -187,7 +187,7 @@ export default function SignUpPage() {
               checked={agree}
               onCheckedChange={(v) => setAgree(v === true)}
               aria-label="Agree to Terms of Service and Privacy Policy"
-              className="mt-0.5 border-bq-border bg-bq-surface data-[state=checked]:border-bq-mint data-[state=checked]:bg-bq-mint data-[state=checked]:text-black dark:bg-bq-surface"
+              className="mt-0.5 border-bq-border bg-bq-surface data-[state=checked]:border-bq-mint data-[state=checked]:bg-bq-mint data-[state=checked]:text-bq-on-fill dark:bg-bq-surface"
             />
             <p className="text-[11px] leading-[17px] text-bq-dim">
               I agree to the <Legal label="Terms of Service" /> and{" "}
@@ -231,10 +231,10 @@ function Legal({ label }: { label: string }) {
 function Brand() {
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-[28px] font-bold leading-[35px] text-white">
+      <h2 className="text-[28px] font-bold leading-[35px] text-bq-heading">
         Start trading smarter today.
       </h2>
-      <p className="max-w-[360px] text-[13px] leading-[21px] text-white/60">
+      <p className="max-w-[360px] text-[13px] leading-[21px] text-bq-heading/60">
         Join 14,800+ traders using BlackQuant&apos;s systematic signal engine to
         capture consistent, data-validated edges across major pairs.
       </p>
@@ -247,7 +247,7 @@ function Brand() {
             <span className="flex size-6 shrink-0 items-center justify-center rounded-[14px] bg-bq-mint/15">
               <Icon className="size-[11px] text-bq-mint" />
             </span>
-            <span className="text-[11px] leading-[14px] text-white/70">{text}</span>
+            <span className="text-[11px] leading-[14px] text-bq-heading/70">{text}</span>
           </div>
         ))}
       </div>

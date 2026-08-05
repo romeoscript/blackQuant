@@ -49,7 +49,7 @@ const handleStyle: React.CSSProperties = {
 };
 
 function Corners({ tone }: { tone: Tone }) {
-  const c = tone === "green" ? "border-bq-green/70" : "border-red-500/70";
+  const c = tone === "green" ? "border-bq-green/70" : "border-bq-loss/70";
   return (
     <>
       <span className={cn("absolute left-0 top-0 size-2.5 border-l border-t", c)} />
@@ -74,7 +74,7 @@ function EntityNode({ data }: NodeProps<Node<EntityData>>) {
             "absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border",
             green
               ? "border-bq-green/60 bg-bq-green/[0.07] text-bq-green bq-verify"
-              : "border-dashed border-red-500/70 bg-red-500/10 text-red-400 bq-threat",
+              : "border-dashed border-bq-loss/70 bg-bq-loss/10 text-bq-loss-text bq-threat",
           )}
           style={{ width: size, height: size }}
         >
@@ -88,7 +88,7 @@ function EntityNode({ data }: NodeProps<Node<EntityData>>) {
             "absolute top-full mt-1.5 whitespace-nowrap rounded-md border px-2 py-1 font-plex text-[9px] uppercase tracking-[1.5px]",
             green
               ? "border-bq-green/30 bg-bq-green/5 text-bq-green"
-              : "border-red-500/30 bg-red-500/[0.07] text-red-400",
+              : "border-bq-loss/30 bg-bq-loss/[0.07] text-bq-loss-text",
           )}
         >
           {label}
@@ -221,7 +221,11 @@ export function NetworkFlow() {
         minZoom={0.1}
         maxZoom={2}
       >
-        <Background variant={BackgroundVariant.Lines} gap={42} color="rgba(255,255,255,0.035)" />
+        <Background
+          variant={BackgroundVariant.Lines}
+          gap={42}
+          color="color-mix(in srgb, var(--bq-overlay) 4%, transparent)"
+        />
         <FitOnResize />
       </ReactFlow>
     </div>

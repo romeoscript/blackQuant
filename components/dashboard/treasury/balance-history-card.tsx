@@ -17,7 +17,7 @@ export function BalanceHistoryCard() {
     <Panel className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-white">Balance History</h2>
+          <h2 className="text-[15px] font-semibold text-bq-heading">Balance History</h2>
           <p className="text-[12px] text-bq-dim">Total portfolio value over the last 12 months</p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
@@ -27,7 +27,7 @@ export function BalanceHistoryCard() {
               onClick={() => setRange(r)}
               className={cn(
                 "rounded-md px-3 py-1 text-[12px] font-medium transition-colors",
-                range === r ? "bg-bq-surface text-white" : "text-bq-muted hover:text-bq-text",
+                range === r ? "bg-bq-surface text-bq-heading" : "text-bq-muted hover:text-bq-text",
               )}
             >
               {r}

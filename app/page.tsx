@@ -10,7 +10,7 @@ import { AssistantWidget } from "@/components/assistant/assistant-widget";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-bq-bg font-satoshi text-white">
+    <main className="min-h-screen bg-bq-bg font-satoshi text-bq-heading">
       <ScrollProgress />
       <Nav />
       <Hero />

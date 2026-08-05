@@ -185,11 +185,11 @@ function PanelHead({
   return (
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-3">
-        <span className="flex size-10 items-center justify-center rounded-xl border border-bq-border bg-bq-card text-white">
+        <span className="flex size-10 items-center justify-center rounded-xl border border-bq-border bg-bq-card text-bq-heading">
           {icon}
         </span>
         <div>
-          <p className="font-satoshi text-[15px] font-bold text-white">{name}</p>
+          <p className="font-satoshi text-[15px] font-bold text-bq-heading">{name}</p>
           <p className="text-[12px] text-bq-muted">{sub}</p>
         </div>
       </div>
@@ -211,7 +211,7 @@ function StatRow({ items }: { items: { label: string; value: string }[] }) {
           <p className="font-plex text-[10px] uppercase tracking-[1px] text-bq-muted">
             {s.label}
           </p>
-          <p className="mt-1.5 font-satoshi text-2xl font-bold tabular-nums text-white">
+          <p className="mt-1.5 font-satoshi text-2xl font-bold tabular-nums text-bq-heading">
             {s.value}
           </p>
         </div>
@@ -240,15 +240,15 @@ function Sparkline({ points }: { points: number[] }) {
     <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="mt-3 h-12 w-full">
       <defs>
         <linearGradient id="bq-spark" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#4ade80" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#4ade80" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--bq-green)" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="var(--bq-green)" stopOpacity="0" />
         </linearGradient>
       </defs>
       <polygon points={area} fill="url(#bq-spark)" />
       <polyline
         points={line}
         fill="none"
-        stroke="#4ade80"
+        stroke="var(--bq-green)"
         strokeWidth="1.2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -260,8 +260,8 @@ function Sparkline({ points }: { points: number[] }) {
 
 function TradeRowItem({ t }: { t: LiveTrade }) {
   return (
-    <tr className={cn("text-[12px] text-bq-text", t.active && "bq-in bg-white/[0.03]")}>
-      <td className="py-2.5 font-medium text-white">{t.pair}</td>
+    <tr className={cn("text-[12px] text-bq-text", t.active && "bq-in bg-bq-overlay/[0.03]")}>
+      <td className="py-2.5 font-medium text-bq-heading">{t.pair}</td>
       <td className="py-2.5 text-bq-muted">{t.route}</td>
       <td className="py-2.5">
         <span className="rounded border border-bq-border px-1.5 py-0.5 font-plex text-[9px] text-bq-muted">
@@ -397,7 +397,7 @@ export function ArborPanel() {
           <p className="font-plex text-[10px] uppercase tracking-[1px] text-bq-muted">
             Activity Log
           </p>
-          <p className="font-satoshi text-lg font-bold tabular-nums text-white">
+          <p className="font-satoshi text-lg font-bold tabular-nums text-bq-heading">
             +${usd0(lastCycle)}
           </p>
         </div>

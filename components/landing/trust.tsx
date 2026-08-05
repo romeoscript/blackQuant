@@ -7,8 +7,8 @@ import { TRUST_METRICS, TRUST_CARDS, AUDITS } from "./data";
 
 const LEGEND = [
   { label: "Verified execution node", color: "bg-bq-green" },
-  { label: "Liquidity venue", color: "bg-white/70" },
-  { label: "Blocked MEV bot", color: "bg-red-500" },
+  { label: "Liquidity venue", color: "bg-bq-overlay/70" },
+  { label: "Blocked MEV bot", color: "bg-bq-loss" },
   { label: "Live · scanning", color: "bg-bq-green" },
 ];
 
@@ -56,7 +56,7 @@ export function Trust() {
                     i === 2 && "border-l-0 sm:border-l",
                   )}
                 >
-                  <p className="font-satoshi text-xl font-bold text-white">{m.value}</p>
+                  <p className="font-satoshi text-xl font-bold text-bq-heading">{m.value}</p>
                   <p className="mt-1 font-plex text-[9px] uppercase tracking-[1px] text-bq-muted">
                     {m.label}
                   </p>
@@ -153,7 +153,7 @@ export function Trust() {
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-satoshi text-[15px] font-bold text-white">{c.title}</h3>
+                  <h3 className="font-satoshi text-[15px] font-bold text-bq-heading">{c.title}</h3>
                   <p className="mt-2 text-[12px] leading-relaxed text-bq-muted">{c.body}</p>
                 </div>
               </div>
@@ -182,7 +182,7 @@ export function Trust() {
                 </div>
                 <div className="mt-2.5 h-0.5 w-full rounded-full bg-bq-border-soft">
                   <div
-                    className="h-0.5 rounded-full bg-white/20"
+                    className="h-0.5 rounded-full bg-bq-overlay/20"
                     style={{ width: `${parseInt(a.score, 10)}%` }}
                   />
                 </div>

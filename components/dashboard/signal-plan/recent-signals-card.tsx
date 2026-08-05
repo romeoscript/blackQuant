@@ -13,7 +13,7 @@ function StatusBadge({ status }: { status: SignalStatus }) {
         "rounded-full px-2 py-0.5 text-[10px] font-medium",
         status === "Active" && "bg-bq-mint/10 text-bq-mint",
         status === "Closed" && "bg-bq-surface text-bq-dim",
-        status === "Pending" && "bg-amber-500/10 text-amber-400",
+        status === "Pending" && "bg-bq-warn/10 text-bq-warn-text",
       )}
     >
       {status}
@@ -28,7 +28,7 @@ export function RecentSignalsCard() {
     <Panel className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-white">Recent Signals</h2>
+          <h2 className="text-[15px] font-semibold text-bq-heading">Recent Signals</h2>
           <p className="text-[12px] text-bq-dim">Latest automated trade signals</p>
         </div>
         <span className="flex items-center gap-1.5 rounded-full bg-bq-mint/12 px-2.5 py-1 text-[11px] font-medium text-bq-mint">
@@ -54,8 +54,8 @@ export function RecentSignalsCard() {
                 onClick={() => setOpen(true)}
                 className="cursor-pointer border-t border-bq-border-soft transition-colors hover:bg-bq-surface/30"
               >
-                <td className="py-3 font-semibold text-[#ff6a83]">{s.type}</td>
-                <td className="py-3 font-medium text-white">{s.pair}</td>
+                <td className="py-3 font-semibold text-bq-loss-text">{s.type}</td>
+                <td className="py-3 font-medium text-bq-heading">{s.pair}</td>
                 <td className="py-3 text-bq-text tabular-nums">{s.entry}</td>
                 <td className="py-3 text-bq-muted tabular-nums">{s.tpsl}</td>
                 <td className="py-3"><StatusBadge status={s.status} /></td>

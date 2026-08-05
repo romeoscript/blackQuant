@@ -12,7 +12,7 @@ function QrPattern({ address }: { address: string }) {
     (_, i) => (address.charCodeAt(i % address.length) * (i + 3)) % 5 < 2,
   );
   return (
-    <div className="flex w-28 shrink-0 flex-col items-center justify-center gap-2 rounded-[14px] bg-[#0c0c0c] p-3">
+    <div className="flex w-28 shrink-0 flex-col items-center justify-center gap-2 rounded-[14px] bg-bq-bg p-3">
       <div className="grid grid-cols-8 gap-1">
         {cells.map((on, i) => (
           <span
@@ -59,7 +59,7 @@ export function DepositAddressCard({ asset }: { asset: DepositAsset }) {
           </div>
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
             {STATS.map((s) => (
-              <div key={s.label} className="rounded-[14px] border border-bq-border bg-[#0c0c0c] p-[11px]">
+              <div key={s.label} className="rounded-[14px] border border-bq-border bg-bq-bg p-[11px]">
                 <p className="text-[10px] text-bq-dim">{s.label}</p>
                 <p className="mt-0.5 text-[12px] font-medium text-bq-heading">{asset[s.key]}</p>
               </div>
@@ -84,8 +84,8 @@ export function DepositAddressCard({ asset }: { asset: DepositAsset }) {
         </span>
       </div>
 
-      <div className="flex items-center gap-2.5 rounded-[14px] border border-[#ff3b5c]/15 bg-[#ff3b5c]/5 px-4 py-3">
-        <TriangleAlert className="size-3 shrink-0 text-[#ff6a83]" />
+      <div className="flex items-center gap-2.5 rounded-[14px] border border-bq-loss/15 bg-bq-loss/5 px-4 py-3">
+        <TriangleAlert className="size-3 shrink-0 text-bq-loss-text" />
         <p className="text-[11px] text-bq-dim">
           Only send {asset.symbol} to this address. Sending any other asset will result in permanent
           loss of funds.

@@ -43,9 +43,9 @@ export default function TwoFactorPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-border bg-bq-surface px-4 py-3">
         <p className="flex items-center gap-2.5 text-[13px] text-bq-text">
-          <ShieldOff className="size-4 shrink-0 text-[#ff6a83]" />
+          <ShieldOff className="size-4 shrink-0 text-bq-loss-text" />
           <span>
-            <span className="font-semibold text-white">Your account is not protected</span>
+            <span className="font-semibold text-bq-heading">Your account is not protected</span>
             <span className="block text-bq-dim">Enable Auth Guard to add a second layer of security to your account.</span>
           </span>
         </p>
@@ -58,7 +58,7 @@ export default function TwoFactorPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <Card>
-          <h2 className="font-semibold text-white">Choose your verification method</h2>
+          <h2 className="font-semibold text-bq-heading">Choose your verification method</h2>
           <p className="text-[12px] text-bq-dim">Select how you want to receive your one-time codes.</p>
           <div className="mt-4 space-y-2">
             {METHODS.map((m) => (
@@ -67,7 +67,7 @@ export default function TwoFactorPage() {
                 onClick={() => setMethod(m.id)}
                 className={cn(
                   "flex w-full items-start gap-3 rounded-lg border px-4 py-3.5 text-left transition-colors",
-                  method === m.id ? "border-primary bg-primary/5" : "border-bq-border hover:bg-white/[0.03]",
+                  method === m.id ? "border-primary bg-primary/5" : "border-bq-border hover:bg-bq-overlay/[0.03]",
                 )}
               >
                 <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-bq-bg text-bq-muted">
@@ -75,7 +75,7 @@ export default function TwoFactorPage() {
                 </span>
                 <span className="flex-1">
                   <span className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-white">{m.name}</span>
+                    <span className="text-[13px] font-semibold text-bq-heading">{m.name}</span>
                     {m.recommended && <StatPill tone="green">Recommended</StatPill>}
                   </span>
                   <span className="mt-0.5 block text-[12px] text-bq-dim">{m.sub}</span>
@@ -93,7 +93,7 @@ export default function TwoFactorPage() {
             <p className="text-[11px] text-bq-dim">You can change your method any time in Security settings.</p>
             <button
               onClick={() => notify("Continue")}
-              className="flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition-transform hover:scale-[1.02] active:translate-y-px"
+              className="flex items-center gap-2 rounded-lg bg-bq-contrast px-5 py-2.5 text-[13px] font-semibold text-bq-on-fill transition-transform hover:scale-[1.02] active:translate-y-px"
             >
               Continue <ArrowRight className="size-4" />
             </button>
@@ -103,7 +103,7 @@ export default function TwoFactorPage() {
         <div className="space-y-6">
           <Card>
             <Shield className="size-6 text-primary" />
-            <h3 className="mt-3 font-semibold text-white">Why enable Auth Guard?</h3>
+            <h3 className="mt-3 font-semibold text-bq-heading">Why enable Auth Guard?</h3>
             <p className="mt-1 text-[12px] leading-relaxed text-bq-muted">
               Auth Guard adds a second verification step each time you log in, making it significantly harder for
               attackers to access your account even if your password is compromised.
@@ -118,7 +118,7 @@ export default function TwoFactorPage() {
           </Card>
 
           <Card>
-            <h3 className="font-semibold text-white">What Auth Guard protects</h3>
+            <h3 className="font-semibold text-bq-heading">What Auth Guard protects</h3>
             <ul className="mt-3 space-y-2.5">
               {PROTECTS.map((p) => (
                 <li key={p} className="flex items-center gap-2.5 text-[13px] text-bq-muted">

@@ -31,7 +31,7 @@ export function PositionsStats() {
                 <Icon className="size-4" />
               </span>
             </div>
-            <p className={cn("mt-4 text-[26px] font-bold leading-none", s.accent ? "text-bq-mint" : "text-white")}>
+            <p className={cn("mt-4 text-[26px] font-bold leading-none", s.accent ? "text-bq-mint" : "text-bq-heading")}>
               {s.value}
             </p>
             <p className="mt-2 text-[12px] text-bq-dim">{s.note}</p>

@@ -58,13 +58,13 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-h-[92vh] gap-5 overflow-y-auto rounded-2xl border-bq-border bg-bq-card p-6 font-satoshi text-white sm:max-w-[520px]">
+      <DialogContent className="max-h-[92vh] gap-5 overflow-y-auto rounded-2xl border-bq-border bg-bq-card p-6 font-satoshi text-bq-heading sm:max-w-[520px]">
         <DialogHeader className="flex-row items-center gap-3 space-y-0">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bq-surface text-bq-mint">
             <Briefcase className="size-4" />
           </span>
           <div>
-            <DialogTitle className="text-[16px] font-bold text-white">New Position</DialogTitle>
+            <DialogTitle className="text-[16px] font-bold text-bq-heading">New Position</DialogTitle>
             <DialogDescription className="text-[12px] text-bq-dim">
               Open a new trade order
             </DialogDescription>
@@ -107,7 +107,7 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
           <Section label="Entry price (USDT)">
             <div className="flex items-center rounded-xl border border-bq-border bg-bq-surface px-3.5 py-2.5 text-[13px]">
               <span className="text-bq-dim">{orderType === "Market" ? "Market price" : `${orderType} price`}</span>
-              <span className="ml-auto font-medium text-white tabular-nums">${num(entry)}</span>
+              <span className="ml-auto font-medium text-bq-heading tabular-nums">${num(entry)}</span>
             </div>
           </Section>
           <Section label="Position size (USDT)">
@@ -116,7 +116,7 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
                 inputMode="decimal"
-                className="w-full min-w-0 bg-transparent font-medium text-white outline-none"
+                className="w-full min-w-0 bg-transparent font-medium text-bq-heading outline-none"
               />
               <span className="ml-2 shrink-0 text-bq-dim">USDT</span>
             </div>
@@ -139,7 +139,7 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
             ))}
           </div>
           <span className="text-[12px] text-bq-dim">
-            Available: <span className="font-medium text-white">$0.00</span>
+            Available: <span className="font-medium text-bq-heading">$0.00</span>
           </span>
         </div>
 
@@ -147,7 +147,7 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
           <Section label="Take profit (USDT)" labelClass="text-bq-mint">
             <PriceField value={tp} onChange={setTp} pct={tpPct} tone="mint" />
           </Section>
-          <Section label="Stop loss (USDT)" labelClass="text-red-400">
+          <Section label="Stop loss (USDT)" labelClass="text-bq-loss-text">
             <PriceField value={sl} onChange={setSl} pct={slPct} tone="red" />
           </Section>
         </div>
@@ -160,7 +160,7 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
             <Row k="Entry" v={`$${num(entry)} (${orderType})`} />
             <Row k="Size" v={`$${num(sizeNum)}`} />
             <Row k="Take Profit" v={`$${num(Number(tp))}`} vClass="text-bq-mint" />
-            <Row k="Stop Loss" v={`$${num(Number(sl))}`} vClass="text-red-400" />
+            <Row k="Stop Loss" v={`$${num(Number(sl))}`} vClass="text-bq-loss-text" />
             <Row k="Est. fee (0.1%)" v={`$${fee.toFixed(2)}`} />
           </dl>
         </div>
@@ -169,7 +169,7 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
           <DialogClose asChild>
             <Button
               variant="outline"
-              className="h-auto flex-1 rounded-xl border-bq-border bg-transparent py-3 text-[13px] font-semibold text-white hover:bg-bq-surface dark:border-bq-border dark:bg-transparent dark:hover:bg-bq-surface"
+              className="h-auto flex-1 rounded-xl border-bq-border bg-transparent py-3 text-[13px] font-semibold text-bq-heading hover:bg-bq-surface dark:border-bq-border dark:bg-transparent dark:hover:bg-bq-surface"
             >
               Cancel
             </Button>
@@ -177,8 +177,8 @@ export function NewPositionDialog({ trigger }: { trigger: React.ReactNode }) {
           <Button
             onClick={submit}
             className={cn(
-              "h-auto flex-[1.4] rounded-xl py-3 text-[13px] font-bold text-black",
-              direction === "BUY" ? "bg-bq-mint hover:bg-bq-mint/90" : "bg-red-400 text-white hover:bg-red-400/90",
+              "h-auto flex-[1.4] rounded-xl py-3 text-[13px] font-bold text-bq-on-fill",
+              direction === "BUY" ? "bg-bq-mint hover:bg-bq-mint/90" : "bg-bq-loss text-white hover:bg-bq-loss/90",
             )}
           >
             <Zap className="size-4" />
@@ -224,7 +224,7 @@ function Chip({
       onClick={onClick}
       className={cn(
         "rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors",
-        active ? "bg-white text-black" : "bg-bq-surface text-bq-muted hover:text-white",
+        active ? "bg-bq-contrast text-bq-on-fill" : "bg-bq-surface text-bq-muted hover:text-bq-heading",
       )}
     >
       {children}
@@ -253,10 +253,10 @@ function SegBtn({
       onClick={onClick}
       className={cn(
         "flex-1 rounded-lg px-2 py-1.5 text-[12px] font-semibold transition-colors",
-        !active && "text-bq-muted hover:text-white",
-        active && tone === "mint" && "bg-bq-mint text-black",
-        active && tone === "red" && "bg-red-400 text-white",
-        active && !tone && "bg-bq-card text-white",
+        !active && "text-bq-muted hover:text-bq-heading",
+        active && tone === "mint" && "bg-bq-mint text-bq-on-fill",
+        active && tone === "red" && "bg-bq-loss text-white",
+        active && !tone && "bg-bq-card text-bq-heading",
       )}
     >
       {children}
@@ -279,16 +279,16 @@ function PriceField({
     <div
       className={cn(
         "flex items-center rounded-xl border bg-bq-surface px-3.5 py-2.5 text-[13px]",
-        tone === "mint" ? "border-bq-mint/50" : "border-red-400/50",
+        tone === "mint" ? "border-bq-mint/50" : "border-bq-loss/50",
       )}
     >
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         inputMode="decimal"
-        className="w-full min-w-0 bg-transparent font-medium text-white outline-none"
+        className="w-full min-w-0 bg-transparent font-medium text-bq-heading outline-none"
       />
-      <span className={cn("ml-2 shrink-0 font-medium tabular-nums", tone === "mint" ? "text-bq-mint" : "text-red-400")}>
+      <span className={cn("ml-2 shrink-0 font-medium tabular-nums", tone === "mint" ? "text-bq-mint" : "text-bq-loss-text")}>
         {pct > 0 ? "+" : ""}
         {pct.toFixed(2)}%
       </span>
@@ -300,7 +300,7 @@ function Row({ k, v, vClass }: { k: string; v: string; vClass?: string }) {
   return (
     <div className="flex items-center justify-between">
       <dt className="text-bq-dim">{k}</dt>
-      <dd className={cn("font-medium text-white tabular-nums", vClass)}>{v}</dd>
+      <dd className={cn("font-medium text-bq-heading tabular-nums", vClass)}>{v}</dd>
     </div>
   );
 }
@@ -311,13 +311,13 @@ export function TradeHeaderActions() {
     <>
       <button
         onClick={() => toast("Fund", { description: "Funding flow coming soon." })}
-        className="flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-bq-surface"
+        className="flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-surface"
       >
         <CirclePlus className="size-4" /> Fund
       </button>
       <NewPositionDialog
         trigger={
-          <button className="flex items-center gap-2 rounded-lg bg-bq-mint px-4 py-2 text-[13px] font-semibold text-black transition hover:bg-bq-mint/90">
+          <button className="flex items-center gap-2 rounded-lg bg-bq-mint px-4 py-2 text-[13px] font-semibold text-bq-on-fill transition hover:bg-bq-mint/90">
             <CirclePlus className="size-4" /> New Position
           </button>
         }

@@ -11,7 +11,7 @@ const SIGNAL_BARS = Array.from({ length: 22 }, (_, i) => {
   const hour = i + 1;
   const label = i % 3 === 0 ? String(hour).padStart(2, "0") : "";
   if (hour === 22) return { label, value: 100, color: "var(--primary)" };
-  if (hour >= 20) return { label, value: 46, color: "#ffffff" };
+  if (hour >= 20) return { label, value: 46, color: "var(--bq-heading)" };
   return { label, value: 8 + ((i * 7) % 26), color: "rgba(255,255,255,0.08)" };
 });
 
@@ -66,7 +66,7 @@ export default function SignalEnginePage() {
         <Card>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-white">Signal Volume</h2>
+              <h2 className="font-semibold text-bq-heading">Signal Volume</h2>
               <p className="text-[12px] text-bq-dim">Signals generated per hour today</p>
             </div>
             <StatPill tone="green">Live</StatPill>
@@ -83,7 +83,7 @@ export default function SignalEnginePage() {
         </Card>
 
         <Card>
-          <h2 className="font-semibold text-white">Strategy Engine</h2>
+          <h2 className="font-semibold text-bq-heading">Strategy Engine</h2>
           <p className="text-[12px] text-bq-dim">Toggle and monitor active strategies.</p>
           <div className="mt-4 space-y-2">
             {STRATEGIES.map((s) => (
@@ -93,7 +93,7 @@ export default function SignalEnginePage() {
               >
                 <span className={cn("size-1.5 shrink-0 rounded-full", s.on ? "bg-primary" : "bg-bq-dim")} />
                 <div className="flex-1">
-                  <p className="text-[13px] font-medium text-white">{s.name}</p>
+                  <p className="text-[13px] font-medium text-bq-heading">{s.name}</p>
                   <p className="text-[11px] text-bq-dim">{s.stat}</p>
                 </div>
                 <Toggle defaultOn={s.on} />
@@ -102,7 +102,7 @@ export default function SignalEnginePage() {
           </div>
           <div className="mt-4 flex items-center justify-between border-t border-bq-border-soft pt-3 text-[12px]">
             <span className="text-bq-muted">Engine uptime</span>
-            <span className="font-bold text-white">99.8%</span>
+            <span className="font-bold text-bq-heading">99.8%</span>
           </div>
         </Card>
       </div>
@@ -110,7 +110,7 @@ export default function SignalEnginePage() {
       <Card className="p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
           <div>
-            <h2 className="font-semibold text-white">Live Signal Feed</h2>
+            <h2 className="font-semibold text-bq-heading">Live Signal Feed</h2>
             <p className="text-[12px] text-bq-dim">Most recent signals fired by the engine</p>
           </div>
           <div className="flex items-center gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
@@ -120,7 +120,7 @@ export default function SignalEnginePage() {
                 onClick={() => setFilter(f)}
                 className={cn(
                   "rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors",
-                  filter === f ? "bg-bq-surface text-white" : "text-bq-muted hover:text-bq-text",
+                  filter === f ? "bg-bq-surface text-bq-heading" : "text-bq-muted hover:text-bq-text",
                 )}
               >
                 {f}
@@ -146,9 +146,9 @@ export default function SignalEnginePage() {
               {rows.map((r, i) => (
                 <tr key={i} className="border-b border-bq-border-soft last:border-0">
                   <td className="px-5 py-3.5 font-plex text-bq-muted">{r.time}</td>
-                  <td className="px-5 py-3.5 font-medium text-white">{r.pair}</td>
+                  <td className="px-5 py-3.5 font-medium text-bq-heading">{r.pair}</td>
                   <td className="px-5 py-3.5">
-                    <span className={cn("font-bold", r.signal === "BUY" ? "text-primary" : "text-[#ff6a83]")}>
+                    <span className={cn("font-bold", r.signal === "BUY" ? "text-primary" : "text-bq-loss-text")}>
                       {r.signal}
                     </span>
                   </td>
@@ -160,9 +160,9 @@ export default function SignalEnginePage() {
                       <span className="tabular-nums text-bq-text">{r.conf}%</span>
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 tabular-nums text-white">{r.entry}</td>
+                  <td className="px-5 py-3.5 tabular-nums text-bq-heading">{r.entry}</td>
                   <td className="px-5 py-3.5 tabular-nums text-primary">{r.tp}</td>
-                  <td className="px-5 py-3.5 tabular-nums text-[#ff6a83]">{r.sl}</td>
+                  <td className="px-5 py-3.5 tabular-nums text-bq-loss-text">{r.sl}</td>
                   <td className="px-5 py-3.5">
                     <StatPill tone="neutral">{r.strat}</StatPill>
                   </td>

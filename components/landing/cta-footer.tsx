@@ -42,19 +42,19 @@ function LuminaryForm() {
           placeholder="you@wallet.eth"
           aria-label="Email address"
           aria-invalid={state.message ? true : undefined}
-          className="flex-1 rounded-full border border-bq-border bg-bq-panel/60 px-5 py-3.5 text-sm text-white placeholder:text-bq-dim focus:border-bq-green/50 focus:outline-none focus:ring-1 focus:ring-bq-green/30"
+          className="flex-1 rounded-full border border-bq-border bg-bq-panel/60 px-5 py-3.5 text-sm text-bq-heading placeholder:text-bq-dim focus:border-bq-green/50 focus:outline-none focus:ring-1 focus:ring-bq-green/30"
         />
         <button
           type="submit"
           disabled={pending}
-          className="flex items-center justify-center gap-2 rounded-full bg-bq-green px-7 py-3.5 text-sm font-semibold text-black transition-all hover:bg-bq-green/90 active:translate-y-px disabled:opacity-70"
+          className="flex items-center justify-center gap-2 rounded-full bg-bq-green px-7 py-3.5 text-sm font-semibold text-bq-on-fill transition-all hover:bg-bq-green/90 active:translate-y-px disabled:opacity-70"
         >
           {pending && <Loader2 className="size-4 animate-spin" />}
           {pending ? "Joining…" : "Join the Circle"}
         </button>
       </div>
       {state.message && (
-        <p role="alert" className="mt-2.5 text-[13px] text-red-400">
+        <p role="alert" className="mt-2.5 text-[13px] text-bq-loss-text">
           {state.message}
         </p>
       )}
@@ -173,7 +173,7 @@ export function CtaFooter() {
                     <li key={link}>
                       <button
                         onClick={() => notify(link)}
-                        className="text-[13px] text-bq-text/70 transition-colors hover:text-white"
+                        className="text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading"
                       >
                         {link}
                       </button>
@@ -188,7 +188,7 @@ export function CtaFooter() {
             <span>© 2025 BlackQuant · Non-Custodial · Elevation Hub</span>
             <div className="flex gap-6">
               {["Privacy", "Terms", "Cookie Policy"].map((l) => (
-                <button key={l} onClick={() => notify(l)} className="hover:text-white">
+                <button key={l} onClick={() => notify(l)} className="hover:text-bq-heading">
                   {l}
                 </button>
               ))}

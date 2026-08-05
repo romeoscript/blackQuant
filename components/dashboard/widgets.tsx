@@ -13,7 +13,7 @@ export function HeaderActions() {
     <>
       <button
         onClick={() => notify("Fund")}
-        className="flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-white/5"
+        className="flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-overlay/5"
       >
         <CircleDollarSign className="size-4" /> Fund
       </button>
@@ -52,7 +52,7 @@ export function SectionCard({
     <Card className={className}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-semibold text-white">{title}</h2>
+          <h2 className="font-semibold text-bq-heading">{title}</h2>
           {sub && <p className="text-[12px] text-bq-dim">{sub}</p>}
         </div>
         {action}
@@ -88,7 +88,7 @@ export function StatCard({
       <p
         className={cn(
           "mt-3 text-[26px] font-bold leading-none sm:text-[28px]",
-          green ? "text-primary" : "text-white",
+          green ? "text-primary" : "text-bq-heading",
         )}
       >
         {value}
@@ -102,10 +102,10 @@ type Tone = "green" | "red" | "amber" | "white" | "neutral";
 export function StatPill({ tone, children }: { tone: Tone; children: ReactNode }) {
   const cls: Record<Tone, string> = {
     green: "bg-bq-mint/15 text-bq-mint",
-    red: "bg-[#ff3b5c]/15 text-[#ff6a83]",
-    amber: "bg-amber-500/15 text-amber-400",
-    white: "bg-white/10 text-white",
-    neutral: "bg-white/[0.06] text-bq-muted",
+    red: "bg-bq-loss/15 text-bq-loss-text",
+    amber: "bg-bq-warn/15 text-bq-warn-text",
+    white: "bg-bq-overlay/10 text-bq-heading",
+    neutral: "bg-bq-overlay/[0.06] text-bq-muted",
   };
   return (
     <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium", cls[tone])}>
@@ -130,7 +130,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
           <span
             className={cn(
               "ml-2 whitespace-nowrap text-[13px]",
-              i === current ? "font-medium text-white" : "text-bq-dim",
+              i === current ? "font-medium text-bq-heading" : "text-bq-dim",
             )}
           >
             {s}
@@ -155,7 +155,7 @@ export function Toggle({ defaultOn = false }: { defaultOn?: boolean }) {
       className={cn("relative h-5 w-9 shrink-0 rounded-full transition-colors", on ? "bg-primary" : "bg-bq-border")}
     >
       <span
-        className={cn("absolute top-0.5 size-4 rounded-full bg-white transition-all", on ? "left-[18px]" : "left-0.5")}
+        className={cn("absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all", on ? "left-[18px]" : "left-0.5")}
       />
     </button>
   );
@@ -170,7 +170,7 @@ export function BarChart({ data, height = 150 }: { data: Bar[]; height?: number 
         <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
           {d.valueLabel && <span className="font-plex text-[10px] text-bq-dim">{d.valueLabel}</span>}
           <div
-            className={cn("w-full rounded-[4px]", d.highlight ? "bg-white" : "bg-white/[0.08]")}
+            className={cn("w-full rounded-[4px]", d.highlight ? "bg-bq-contrast" : "bg-bq-overlay/[0.08]")}
             style={{ height: `${Math.max((d.value / max) * height, 3)}px` }}
           />
           <span className="font-plex text-[10px] text-bq-dim">{d.label}</span>

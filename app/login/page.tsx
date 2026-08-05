@@ -90,7 +90,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
                 aria-label={showPw ? "Hide password" : "Show password"}
-                className="shrink-0 text-bq-dim transition-colors hover:text-white"
+                className="shrink-0 text-bq-dim transition-colors hover:text-bq-heading"
               >
                 {showPw ? (
                   <EyeOff className="size-[13px]" />
@@ -106,7 +106,7 @@ export default function LoginPage() {
               id="remember"
               checked={remember}
               onCheckedChange={(v) => setRemember(v === true)}
-              className="border-bq-border bg-bq-surface data-[state=checked]:border-bq-mint data-[state=checked]:bg-bq-mint data-[state=checked]:text-black dark:bg-bq-surface"
+              className="border-bq-border bg-bq-surface data-[state=checked]:border-bq-mint data-[state=checked]:bg-bq-mint data-[state=checked]:text-bq-on-fill dark:bg-bq-surface"
             />
             <label htmlFor="remember" className="text-[11px] text-bq-dim">
               Remember me for 30 days
@@ -135,10 +135,10 @@ export default function LoginPage() {
 function Brand() {
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-[28px] font-bold leading-[35px] text-white">
+      <h2 className="text-[28px] font-bold leading-[35px] text-bq-heading">
         Systematic edge. No guesswork.
       </h2>
-      <p className="max-w-[360px] text-[13px] leading-[21px] text-white/60">
+      <p className="max-w-[360px] text-[13px] leading-[21px] text-bq-heading/60">
         Institutional-grade signal intelligence for independent traders. Four live
         strategies, real-time feeds, full control.
       </p>
@@ -148,7 +148,7 @@ function Brand() {
             <span className="text-[18px] font-bold leading-[28px] text-bq-mint">
               {s.value}
             </span>
-            <span className="text-[11px] uppercase tracking-[1.1px] text-white/50">
+            <span className="text-[11px] uppercase tracking-[1.1px] text-bq-heading/50">
               {s.label}
             </span>
           </div>

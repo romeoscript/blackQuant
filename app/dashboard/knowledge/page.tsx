@@ -55,7 +55,7 @@ export default function KnowledgePage() {
       <DashboardPageHeader title="Knowledge Base" actions={<HeaderActions />} />
 
       <Card className="px-6 py-10 text-center">
-        <h2 className="text-2xl font-bold text-white">How can we help you?</h2>
+        <h2 className="text-2xl font-bold text-bq-heading">How can we help you?</h2>
         <p className="mt-2 text-[13px] text-bq-muted">Search our library of guides, tutorials, and FAQs.</p>
         <div className="mx-auto mt-6 flex max-w-xl items-center gap-2 rounded-lg border border-bq-border bg-bq-bg px-3">
           <Search className="size-4 text-bq-dim" />
@@ -63,7 +63,7 @@ export default function KnowledgePage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search articles…"
-            className="w-full bg-transparent py-2.5 text-sm text-white placeholder:text-bq-dim focus:outline-none"
+            className="w-full bg-transparent py-2.5 text-sm text-bq-heading placeholder:text-bq-dim focus:outline-none"
           />
           <kbd className="rounded border border-bq-border px-1.5 py-0.5 font-plex text-[10px] text-bq-dim">⌘K</kbd>
         </div>
@@ -72,7 +72,7 @@ export default function KnowledgePage() {
             <button
               key={t}
               onClick={() => setQuery(t)}
-              className="rounded-full border border-bq-border px-3 py-1 text-[12px] text-bq-muted transition-colors hover:bg-white/[0.03] hover:text-white"
+              className="rounded-full border border-bq-border px-3 py-1 text-[12px] text-bq-muted transition-colors hover:bg-bq-overlay/[0.03] hover:text-bq-heading"
             >
               {t}
             </button>
@@ -87,12 +87,12 @@ export default function KnowledgePage() {
             <button
               key={c.name}
               onClick={() => notify(c.name)}
-              className="rounded-xl border border-bq-border bg-bq-surface p-5 text-center transition-colors hover:border-primary/40 hover:bg-white/[0.02]"
+              className="rounded-xl border border-bq-border bg-bq-surface p-5 text-center transition-colors hover:border-primary/40 hover:bg-bq-overlay/[0.02]"
             >
               <span className="mx-auto flex size-10 items-center justify-center rounded-xl bg-bq-bg text-bq-muted">
                 <c.icon className="size-5" />
               </span>
-              <p className="mt-3 text-[13px] font-semibold text-white">{c.name}</p>
+              <p className="mt-3 text-[13px] font-semibold text-bq-heading">{c.name}</p>
               <p className="mt-1 text-[11px] text-bq-dim">{c.count} articles</p>
             </button>
           ))}
@@ -103,7 +103,7 @@ export default function KnowledgePage() {
         <Card>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-white">Popular Articles</h2>
+              <h2 className="font-semibold text-bq-heading">Popular Articles</h2>
               <p className="text-[12px] text-bq-dim">Most read guides this month</p>
             </div>
             <button onClick={() => notify("All articles")} className="text-[12px] text-primary hover:opacity-80">
@@ -134,7 +134,7 @@ export default function KnowledgePage() {
         </Card>
 
         <Card>
-          <h2 className="font-semibold text-white">Frequently Asked</h2>
+          <h2 className="font-semibold text-bq-heading">Frequently Asked</h2>
           <p className="text-[12px] text-bq-dim">Quick answers to common questions.</p>
           <div className="mt-3 divide-y divide-bq-border-soft">
             {FAQ.map((f, i) => (
@@ -143,7 +143,7 @@ export default function KnowledgePage() {
                   onClick={() => setOpen(open === i ? null : i)}
                   className="flex w-full items-center gap-3 text-left"
                 >
-                  <span className="flex-1 text-[13px] font-medium text-white">{f.q}</span>
+                  <span className="flex-1 text-[13px] font-medium text-bq-heading">{f.q}</span>
                   <ChevronDown
                     className={cn("size-4 shrink-0 text-bq-dim transition-transform", open === i && "rotate-180")}
                   />
@@ -154,7 +154,7 @@ export default function KnowledgePage() {
           </div>
           <button
             onClick={() => notify("Contact Support")}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-white/5"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-overlay/5"
           >
             <Headphones className="size-4" /> Contact Support
           </button>

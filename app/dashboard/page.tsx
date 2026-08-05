@@ -46,7 +46,7 @@ const TABS = ["Weekly", "Monthly", "All time"] as const;
 
 const ACTIVITY: { title: string; time: string; icon: LucideIcon; dot: string }[] = [
   { title: "Account created", time: "Just now", icon: UserPlus, dot: "bg-primary" },
-  { title: "2FA not configured", time: "2 mins ago", icon: ShieldOff, dot: "bg-[#ff3b5c]" },
+  { title: "2FA not configured", time: "2 mins ago", icon: ShieldOff, dot: "bg-bq-loss" },
   { title: "Verification pending", time: "5 mins ago", icon: Clock, dot: "bg-bq-dim" },
   { title: "No active subscription", time: "10 mins ago", icon: CircleX, dot: "bg-bq-dim" },
   { title: "Balance: $0.00", time: "15 mins ago", icon: Wallet, dot: "bg-bq-dim" },
@@ -71,7 +71,7 @@ export default function ControlCenter() {
       {/* header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Control Center</h1>
+          <h1 className="text-2xl font-bold text-bq-heading">Control Center</h1>
           <p className="mt-1 flex items-center gap-1 text-[13px] text-bq-muted">
             BlackQuant <ChevronRight className="size-3.5" /> Control Center
           </p>
@@ -85,7 +85,7 @@ export default function ControlCenter() {
           </span>
           <button
             onClick={() => notWired("Fund")}
-            className="flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-white/5"
+            className="flex items-center gap-2 rounded-lg border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-overlay/5"
           >
             <CircleDollarSign className="size-4" /> Fund
           </button>
@@ -99,15 +99,15 @@ export default function ControlCenter() {
       </div>
 
       {/* fund/subscription alert */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ff3b5c]/25 bg-[#ff3b5c]/[0.06] px-4 py-3">
-        <p className="flex items-center gap-2.5 text-[13px] text-[#ff8496]">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-loss/25 bg-bq-loss/[0.06] px-4 py-3">
+        <p className="flex items-center gap-2.5 text-[13px] text-bq-loss-strong">
           <CircleAlert className="size-4 shrink-0" />
           Please fund your account and activate a subscription to begin accessing the platform&apos;s
           features and services.
         </p>
         <button
           onClick={() => notWired("Fund Now")}
-          className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[#ff6a83] transition-colors hover:text-[#ff8496]"
+          className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-bq-loss-text transition-colors hover:text-bq-loss-strong"
         >
           Fund Now <ArrowRight className="size-3.5" />
         </button>
@@ -127,7 +127,7 @@ export default function ControlCenter() {
                   <c.icon className="size-4" />
                 </span>
               </div>
-              <p className="mt-3 text-[28px] font-bold leading-none text-white">{c.value}</p>
+              <p className="mt-3 text-[28px] font-bold leading-none text-bq-heading">{c.value}</p>
               <p className={cn("mt-2 text-[12px]", c.positive ? "text-primary" : "text-bq-dim")}>
                 {c.sub}
               </p>
@@ -142,7 +142,7 @@ export default function ControlCenter() {
         <div className="rounded-xl border border-bq-border bg-bq-surface p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-semibold text-white">Positions Report</h2>
+              <h2 className="font-semibold text-bq-heading">Positions Report</h2>
               <p className="text-[12px] text-bq-dim">0 Orders</p>
             </div>
             <div className="flex items-center gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
@@ -152,7 +152,7 @@ export default function ControlCenter() {
                   onClick={() => setTab(t)}
                   className={cn(
                     "rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors",
-                    tab === t ? "bg-bq-surface text-white" : "text-bq-muted hover:text-bq-text",
+                    tab === t ? "bg-bq-surface text-bq-heading" : "text-bq-muted hover:text-bq-text",
                   )}
                 >
                   {t}
@@ -165,7 +165,7 @@ export default function ControlCenter() {
             {REPORT_STATS.map((s) => (
               <div key={s.label} className="rounded-lg border border-bq-border bg-bq-bg p-4">
                 <p className="text-[11px] text-bq-dim">{s.label}</p>
-                <p className="mt-1.5 flex items-center gap-1.5 text-lg font-bold text-white">
+                <p className="mt-1.5 flex items-center gap-1.5 text-lg font-bold text-bq-heading">
                   <s.icon className="size-4 text-bq-muted" /> {s.value}
                 </p>
               </div>
@@ -173,7 +173,7 @@ export default function ControlCenter() {
           </div>
 
           <div className="mt-6">
-            <p className="text-[14px] font-semibold text-white">Weekly Performance: $0.00</p>
+            <p className="text-[14px] font-semibold text-bq-heading">Weekly Performance: $0.00</p>
             <p className="text-[12px] text-bq-dim">Gains &amp; activity across 2 weeks</p>
 
             <div className="mt-5">
@@ -181,7 +181,7 @@ export default function ControlCenter() {
                 {BARS.map((h, i) => (
                   <div
                     key={i}
-                    className={cn("flex-1 rounded-[3px]", i === PEAK ? "bg-white" : "bg-white/[0.09]")}
+                    className={cn("flex-1 rounded-[3px]", i === PEAK ? "bg-bq-contrast" : "bg-bq-overlay/[0.09]")}
                     style={{ height: `${h}%` }}
                   />
                 ))}
@@ -198,10 +198,10 @@ export default function ControlCenter() {
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-bq-dim">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-white" /> Peak day
+                  <span className="size-2 rounded-full bg-bq-contrast" /> Peak day
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-white/[0.12]" /> Regular activity
+                  <span className="size-2 rounded-full bg-bq-overlay/[0.12]" /> Regular activity
                 </span>
               </div>
               <span>$0.00 total this period</span>
@@ -213,8 +213,8 @@ export default function ControlCenter() {
         <div className="space-y-6">
           <div className="rounded-xl border border-bq-border bg-bq-surface p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-white">Subscription</h2>
-              <span className="rounded-md bg-[#ff3b5c]/15 px-2 py-0.5 text-[11px] font-medium text-[#ff6a83]">
+              <h2 className="font-semibold text-bq-heading">Subscription</h2>
+              <span className="rounded-md bg-bq-loss/15 px-2 py-0.5 text-[11px] font-medium text-bq-loss-text">
                 Inactive
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function ControlCenter() {
             </p>
             <button
               onClick={() => notWired("Activate License")}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-white/5"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-bq-border py-2.5 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-overlay/5"
             >
               <Sparkles className="size-4" /> Activate License
             </button>
@@ -231,7 +231,7 @@ export default function ControlCenter() {
 
           <div className="rounded-xl border border-bq-border bg-bq-surface p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-white">Recent Activity</h2>
+              <h2 className="font-semibold text-bq-heading">Recent Activity</h2>
               <button
                 onClick={() => notWired("Activity log")}
                 className="text-[12px] text-primary transition-opacity hover:opacity-80"
