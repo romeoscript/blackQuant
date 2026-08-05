@@ -11,6 +11,7 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
 const pick = <T,>(arr: readonly T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const clamp = (min: number, max: number, v: number) => Math.min(max, Math.max(min, v));
 const round1 = (n: number) => Math.round(n * 10) / 10;
+const round2 = (n: number) => Math.round(n * 100) / 100;
 const usd1 = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const usd0 = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -227,8 +228,12 @@ function Sparkline({ points }: { points: number[] }) {
   const max = Math.max(...points);
   const min = Math.min(...points);
   const range = max - min || 1;
+  // Round the emitted coordinates: Math.sin is not bit-identical across the
+  // Node and browser V8 builds, so the raw floats differed in the last ulp and
+  // React flagged the seeded first paint as a hydration mismatch. Two decimals
+  // is well under a device pixel at this viewBox.
   const line = points
-    .map((p, i) => `${(i / (points.length - 1)) * w},${h - ((p - min) / range) * h}`)
+    .map((p, i) => `${round2((i / (points.length - 1)) * w)},${round2(h - ((p - min) / range) * h)}`)
     .join(" ");
   const area = `0,${h} ${line} ${w},${h}`;
   return (
