@@ -132,8 +132,10 @@ export function AssistantChat({
 
   const empty = messages.length === 0;
 
-  // data-lenis-prevent keeps the root Lenis smooth scroll from swallowing wheel
-  // and touch events over the panel, so the message list scrolls natively.
+  // The panel is a floating overlay, so it swallows scroll whole rather than
+  // letting the page move behind it. Lenis' own nested-scroll handling can't do
+  // that alone: it defers only to a child that actually overflows, which leaves
+  // the header, the composer, and the empty state scrolling the page.
   return (
     <div
       data-lenis-prevent
@@ -144,7 +146,7 @@ export function AssistantChat({
           <Sparkles className="size-4" />
         </span>
         <div className="flex-1">
-          <p className="text-[14px] font-semibold text-white">BlackQuant Assistant</p>
+          <p className="text-[14px] font-semibold text-bq-heading">BlackQuant Assistant</p>
           <p className="flex items-center gap-1.5 text-[11px] text-bq-dim">
             <span className="size-1.5 rounded-full bg-bq-mint" /> Online · text &amp; screenshots
           </p>
@@ -153,7 +155,7 @@ export function AssistantChat({
           <button
             onClick={onClose}
             aria-label="Close assistant"
-            className="flex size-7 items-center justify-center rounded-lg text-bq-muted transition-colors hover:bg-bq-surface hover:text-white"
+            className="flex size-7 items-center justify-center rounded-lg text-bq-muted transition-colors hover:bg-bq-surface hover:text-bq-heading"
           >
             <X className="size-4" />
           </button>
@@ -167,7 +169,7 @@ export function AssistantChat({
               <Sparkles className="size-5" />
             </span>
             <div>
-              <p className="text-[15px] font-semibold text-white">How can I help?</p>
+              <p className="text-[15px] font-semibold text-bq-heading">How can I help?</p>
               <p className="mt-1 text-[13px] text-bq-dim">
                 Ask a question or attach a screenshot. I can&apos;t access your account or give financial advice.
               </p>
@@ -177,7 +179,7 @@ export function AssistantChat({
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="rounded-full border border-bq-border bg-bq-surface px-3 py-1.5 text-[12px] text-bq-text transition-colors hover:border-bq-mint/40 hover:text-white"
+                  className="rounded-full border border-bq-border bg-bq-surface px-3 py-1.5 text-[12px] text-bq-text transition-colors hover:border-bq-mint/40 hover:text-bq-heading"
                 >
                   {s}
                 </button>
@@ -221,7 +223,7 @@ export function AssistantChat({
             onClick={() => fileRef.current?.click()}
             disabled={attachments.length >= MAX_IMAGES}
             aria-label="Attach image"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-bq-muted transition-colors hover:bg-bq-bg hover:text-white disabled:opacity-40"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-bq-muted transition-colors hover:bg-bq-bg hover:text-bq-heading disabled:opacity-40"
           >
             <ImagePlus className="size-4" />
           </button>
@@ -254,13 +256,13 @@ export function AssistantChat({
             }}
             rows={1}
             placeholder="Ask the assistant, or paste a screenshot…"
-            className="max-h-32 min-h-[24px] flex-1 resize-none self-center bg-transparent text-[13px] text-white outline-none placeholder:text-bq-dim"
+            className="max-h-32 min-h-[24px] flex-1 resize-none self-center bg-transparent text-[13px] text-bq-heading outline-none placeholder:text-bq-dim"
           />
           <button
             type="submit"
             disabled={loading || (!input.trim() && attachments.length === 0)}
             aria-label="Send"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bq-mint text-black transition hover:bg-bq-mint/90 disabled:opacity-40"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bq-mint text-bq-on-fill transition hover:bg-bq-mint/90 disabled:opacity-40"
           >
             {loading ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
           </button>
@@ -298,7 +300,7 @@ function Bubble({ msg, loading }: { msg: Msg; loading: boolean }) {
           <div
             className={cn(
               "whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed",
-              isUser ? "bg-bq-surface text-white" : "bg-bq-bg text-bq-text",
+              isUser ? "bg-bq-surface text-bq-heading" : "bg-bq-bg text-bq-text",
             )}
           >
             {msg.text || <Loader2 className="size-4 animate-spin text-bq-dim" />}

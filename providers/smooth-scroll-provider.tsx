@@ -37,6 +37,12 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       options={{
         lerp: 0.1,
         smoothWheel: true,
+        // Off by default, which makes Lenis consume every wheel event and scroll
+        // the page even when the cursor is over a nested scroll container — the
+        // dashboard sidebar, the mobile drawer, tall dialogs. Enabling it lets
+        // those scroll natively; an `overscroll-contain` child additionally keeps
+        // the page still once the child hits its top or bottom.
+        allowNestedScroll: true,
         // GSAP's ticker drives the RAF loop (see LenisGsapSync).
         autoRaf: false,
       }}
