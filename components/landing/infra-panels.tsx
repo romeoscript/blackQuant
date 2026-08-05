@@ -274,11 +274,34 @@ function TradeRowItem({ t }: { t: LiveTrade }) {
   );
 }
 
+function TradeCardItem({ t }: { t: LiveTrade }) {
+  return (
+    <li
+      className={cn(
+        "flex items-start justify-between gap-3 rounded-xl bg-bq-overlay/[0.03] px-3.5 py-3",
+        t.active && "bq-in",
+      )}
+    >
+      <div className="min-w-0">
+        <p className="text-[14px] font-medium text-bq-heading">{t.pair}</p>
+        <p className="mt-0.5 truncate text-[12px] text-bq-muted">{t.route}</p>
+        <p className="mt-0.5 font-plex text-[11px] tabular-nums text-bq-dim">{t.latency}</p>
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-3">
+        <span className="rounded border border-bq-border px-1.5 py-0.5 font-plex text-[9px] text-bq-muted">
+          {t.type}
+        </span>
+        <span className="text-[13px] font-medium tabular-nums text-bq-green">{t.profit}</span>
+      </div>
+    </li>
+  );
+}
+
 function PoolRow({ pool }: { pool: Pool }) {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-medium text-white">{pool.name}</p>
+        <p className="text-[13px] font-medium text-bq-heading">{pool.name}</p>
         <div className="flex items-center gap-3 text-[13px] tabular-nums">
           <span className="text-bq-text">{pool.apy}</span>
           <span className="text-bq-muted">{pool.profit}</span>
@@ -326,7 +349,16 @@ export function NexusPanel() {
         </p>
       </div>
 
-      <table className="mt-3 w-full text-left">
+      {/* Five columns do not survive a 440px viewport, so below md the same
+          trades render as stacked cards. The column headings are dropped there
+          rather than kept as labels for a layout they no longer describe. */}
+      <ul className="mt-3 flex flex-col gap-2 md:hidden">
+        {trades.map((t) => (
+          <TradeCardItem key={t.id} t={t} />
+        ))}
+      </ul>
+
+      <table className="mt-3 w-full text-left max-md:hidden">
         <thead>
           <tr className="font-plex text-[9px] uppercase tracking-[1px] text-bq-dim">
             <th className="pb-2 font-normal">Pair</th>

@@ -244,14 +244,14 @@ export function Performance() {
   );
 
   return (
-    <section id="features" className="bg-bq-bg px-8 pt-28 md:px-16">
+    <section id="features" className="bg-bq-bg px-4 pt-14 sm:px-8 md:px-16 md:pt-28">
       <div className="mx-auto max-w-[1312px]">
-        <Reveal className="pb-4 text-center">
+        <Reveal className="pb-4 max-md:text-left md:text-center">
           <p className="font-plex text-[11px] uppercase tracking-[2px] text-bq-muted">
             The Engine
           </p>
           <h2 className="mt-4 font-satoshi text-4xl font-bold tracking-tight md:text-[52px]">
-            <span className="text-white">Built for </span>
+            <span className="text-bq-heading">Built for </span>
             <span className="text-bq-muted">Performance.</span>
           </h2>
         </Reveal>
@@ -508,13 +508,13 @@ function StackedFeature({ feature }: { feature: Feature }) {
   const a = ACCENT[feature.accent];
 
   return (
-    <div className="border-b border-bq-border">
-      <div className="flex items-center justify-between py-4 font-plex text-[10px] uppercase tracking-[1.5px]">
+    <div className="max-md:mb-4 max-md:overflow-hidden max-md:rounded-2xl max-md:border max-md:border-bq-border md:border-b md:border-bq-border">
+      <div className="flex items-center justify-between py-4 font-plex text-[10px] uppercase tracking-[1.5px] max-md:px-4">
         <div className="flex items-center gap-3">
           <span className={a.text}>{feature.index}</span>
           <span className="text-bq-dim">|</span>
           <span className="text-bq-muted">{feature.kicker}</span>
-          <span className={cn("size-1.5 rounded-full", a.bg, a.glow)} />
+          <span className={cn("size-1.5 rounded-full max-md:hidden", a.bg, a.glow)} />
         </div>
         <div className="flex items-center gap-4">
           <span className="hidden text-bq-text sm:inline">{feature.meta}</span>
@@ -524,17 +524,20 @@ function StackedFeature({ feature }: { feature: Feature }) {
               a.pill,
             )}
           >
-            <span className={cn("size-1.5 rounded-full", a.bg)} />
+            <span className={cn("size-1.5 rounded-full max-md:hidden", a.bg)} />
             <span className={a.text}>Live</span>
           </span>
-          <span className="text-bq-dim">
+          <span className="text-bq-dim max-md:hidden">
             {feature.index} / {COUNT}
           </span>
         </div>
       </div>
 
       <div className="grid gap-0 border-t border-bq-border-soft md:grid-cols-[1.4fr_1fr]">
-        <div className="relative hidden min-h-[420px] overflow-hidden border-r border-bq-border-soft bg-bq-panel md:block">
+        {/* The design shows the feature clip here on mobile too, but four
+            autoplaying videos on a phone is not worth the bytes — the accent
+            wash and ghost numeral stand in for it at the same aspect. */}
+        <div className="relative overflow-hidden bg-bq-panel max-md:aspect-[16/10] max-md:border-b max-md:border-bq-border-soft md:min-h-[420px] md:border-r md:border-bq-border-soft">
           <div
             aria-hidden
             className="absolute inset-0"
@@ -544,7 +547,7 @@ function StackedFeature({ feature }: { feature: Feature }) {
           />
           <span
             className={cn(
-              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-clash text-[clamp(120px,13vw,190px)] font-medium leading-none opacity-[0.1]",
+              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-clash font-medium leading-none opacity-[0.1] max-md:text-[110px] md:text-[clamp(120px,13vw,190px)]",
               a.text,
             )}
           >
@@ -552,17 +555,8 @@ function StackedFeature({ feature }: { feature: Feature }) {
           </span>
         </div>
 
-        <div className="relative flex flex-col justify-center px-2 py-12 md:px-14">
-          <span
-            className={cn(
-              "font-clash text-[80px] font-medium leading-none opacity-[0.08] md:hidden",
-              a.text,
-            )}
-          >
-            {feature.index}
-          </span>
-
-          <div className="mt-6 flex items-center gap-2.5 md:mt-0">
+        <div className="relative flex flex-col justify-center max-md:px-4 max-md:py-6 md:px-14 md:py-12">
+          <div className="flex items-center gap-2.5">
             <span className={cn("h-[1.5px] w-6 rounded-full", a.bg)} />
             <span
               className={cn(
@@ -574,15 +568,15 @@ function StackedFeature({ feature }: { feature: Feature }) {
             </span>
           </div>
 
-          <h3 className="mt-5 max-w-[360px] font-satoshi text-[32px] font-bold leading-[1.1] tracking-tight text-bq-heading">
+          <h3 className="mt-5 max-w-[360px] font-satoshi font-bold leading-[1.1] tracking-tight text-bq-heading max-md:text-[22px] md:text-[32px]">
             {feature.title}
           </h3>
 
-          <p className="mt-5 max-w-[380px] font-satoshi text-[14px] leading-[1.9] text-bq-dim">
+          <p className="mt-4 max-w-[380px] font-satoshi text-[14px] text-bq-dim max-md:leading-[1.7] md:mt-5 md:leading-[1.9]">
             {feature.body}
           </p>
 
-          <ul className="mt-6 space-y-4">
+          <ul className="mt-5 space-y-3 md:mt-6 md:space-y-4">
             {feature.bullets.map((b) => (
               <li key={b} className="flex items-center gap-3.5">
                 <span className={cn("size-[7px] rounded-[3.5px]", a.bg, a.glow)} />
@@ -591,7 +585,7 @@ function StackedFeature({ feature }: { feature: Feature }) {
             ))}
           </ul>
 
-          <div className="mt-12 max-w-[380px]">
+          <div className="mt-12 max-w-[380px] max-md:hidden">
             <div
               className="h-px w-full"
               style={{

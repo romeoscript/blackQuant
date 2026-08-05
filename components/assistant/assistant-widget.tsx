@@ -26,7 +26,9 @@ export function AssistantWidget() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close assistant" : "Chat with the assistant"}
-        className="fixed bottom-6 right-4 z-[60] flex size-14 items-center justify-center rounded-full bg-bq-mint text-black shadow-lg shadow-black/40 transition hover:scale-105 active:translate-y-px md:right-6"
+        // Below the z-50 modal layer: at z-[60] the launcher floated over the
+        // mobile nav drawer's scrim and covered its footer.
+        className="fixed bottom-6 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-bq-mint text-bq-on-fill shadow-lg shadow-black/40 transition hover:scale-105 active:translate-y-px md:right-6"
       >
         {open ? <X className="size-6" /> : <Sparkles className="size-6" />}
       </button>

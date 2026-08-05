@@ -73,34 +73,36 @@ export function Hero() {
         ))}
       </div>
 
-      <div className="relative mx-auto flex max-w-[1440px] flex-col items-center px-8 pt-24 text-center md:px-16">
+      <div className="relative mx-auto flex max-w-[1440px] flex-col items-center px-4 pt-12 text-center sm:px-8 sm:pt-24 md:px-16">
         <div
-          className="bq-in flex items-center gap-3 rounded-full border border-bq-border bg-bq-panel/70 px-4 py-2"
+          className="bq-in flex items-center gap-2 rounded-full border border-bq-border bg-bq-panel/70 px-3 py-1.5 sm:gap-3 sm:px-4 sm:py-2"
           style={{ animationDelay: "0ms" }}
         >
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-2 animate-ping rounded-full bg-bq-green opacity-60" />
-            <span className="relative inline-flex size-2 rounded-full bg-bq-green" />
+          <span className="relative flex size-1.5 sm:size-2">
+            <span className="absolute inline-flex size-1.5 animate-ping rounded-full bg-bq-green opacity-60 sm:size-2" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-bq-green sm:size-2" />
           </span>
-          <span className="font-plex text-[11px] uppercase tracking-[1.5px] text-bq-text/80">
+          {/* The strip is 49 characters and has to stay on one line inside a
+              440px frame, which caps the advance at ~6px per character. */}
+          <span className="font-plex text-[8px] uppercase tracking-[0.8px] text-bq-text/80 sm:text-[11px] sm:tracking-[1.5px]">
             Elevation Hub · Luminary Circle · Live on Mainnet
           </span>
-          <span className="rounded-full border border-bq-border px-2 py-0.5 font-plex text-[10px] text-bq-muted">
+          <span className="shrink-0 rounded-full border border-bq-border px-1.5 font-plex text-[8px] text-bq-muted sm:px-2 sm:py-0.5 sm:text-[10px]">
             V2.4
           </span>
         </div>
 
         <h1
-          className="bq-in mt-10 max-w-4xl font-satoshi text-5xl font-black leading-[1.08] tracking-tight text-white sm:text-6xl md:text-[76px]"
+          className="bq-in mt-4 max-w-4xl font-satoshi text-[32px] font-black leading-[1.2] tracking-tight text-bq-heading sm:mt-10 sm:text-6xl sm:leading-[1.08] md:text-[76px]"
           style={{ animationDelay: "120ms" }}
         >
           <span className="block">More than technology.</span>
-          <FlipWords words={FLIP_WORDS} className="text-bq-muted" />
+          <FlipWords words={FLIP_WORDS} className="text-bq-mint sm:text-bq-muted" />
           <span className="block">blockchain ecosystem.</span>
         </h1>
 
         <p
-          className="bq-in mt-8 max-w-xl font-satoshi text-[15px] leading-relaxed text-bq-muted"
+          className="bq-in mt-4 max-w-xl font-satoshi text-[13px] leading-[1.55] text-bq-muted sm:mt-8 sm:text-[15px] sm:leading-relaxed"
           style={{ animationDelay: "240ms" }}
         >
           An ecosystem where visionaries find clarity and long-term direction
@@ -109,7 +111,7 @@ export function Hero() {
         </p>
 
         <div
-          className="bq-in mt-10 flex flex-wrap items-center justify-center gap-4"
+          className="bq-in mt-7 flex flex-wrap items-center justify-center gap-3 sm:mt-10 sm:gap-4"
           style={{ animationDelay: "360ms" }}
         >
           <button
@@ -118,21 +120,21 @@ export function Hero() {
                 description: "Connect a wallet to launch the execution engine.",
               })
             }
-            className="rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition-transform hover:scale-[1.03] active:translate-y-px"
+            className="rounded-full bg-bq-contrast px-6 py-3 text-[13px] font-semibold text-bq-on-fill transition-transform hover:scale-[1.03] active:translate-y-px sm:px-7 sm:py-3.5 sm:text-sm"
           >
             Start Trading
           </button>
           <button
             onClick={() => lenis?.scrollTo("#infrastructure", { offset: -80 })}
-            className="flex items-center gap-2 rounded-full border border-bq-border bg-bq-panel/60 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/5"
+            className="flex items-center gap-2 rounded-full border border-bq-border bg-bq-panel/60 px-6 py-3 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-overlay/5 sm:px-7 sm:py-3.5 sm:text-sm"
           >
-            <Play className="size-3.5 fill-white" />
+            <Play className="size-3.5 fill-current" />
             View Bots
           </button>
         </div>
 
         <div
-          className="bq-in mt-14 flex items-center gap-4 font-plex text-[11px] uppercase tracking-[2px] text-bq-muted"
+          className="bq-in mt-5 flex items-center gap-3 font-plex text-[10px] uppercase tracking-[2px] text-bq-muted sm:mt-14 sm:gap-4 sm:text-[11px]"
           style={{ animationDelay: "480ms" }}
         >
           <span className="h-px w-8 bg-bq-border" />
@@ -145,21 +147,20 @@ export function Hero() {
         </div>
 
         <div
-          className="bq-in mt-10 grid w-full max-w-3xl grid-cols-2 gap-y-8 border-t border-bq-border pt-10 sm:grid-cols-4 sm:gap-y-0"
+          className="bq-in mt-7 grid w-full max-w-3xl grid-cols-2 gap-1 sm:mt-10 sm:grid-cols-4 sm:gap-0 sm:border-t sm:border-bq-border sm:pt-10"
           style={{ animationDelay: "600ms" }}
         >
           {HERO_STATS.map((stat, i) => (
             <div
               key={stat.label}
               className={cn(
-                "flex flex-col items-center gap-1 sm:py-1",
-                i % 2 === 1 && "border-l border-bq-border",
+                "flex flex-col items-center justify-center gap-1 max-sm:h-[71px] max-sm:rounded-xl max-sm:border max-sm:border-bq-border max-sm:bg-bq-card/60 sm:py-1",
                 i > 0 && "sm:border-l sm:border-bq-border",
               )}
             >
               <CountUp
                 value={stat.value}
-                className="font-satoshi text-[28px] font-black text-bq-heading"
+                className="font-satoshi text-[24px] font-black text-bq-heading sm:text-[28px]"
               />
               <span className="text-[12px] text-bq-muted">{stat.label}</span>
             </div>
@@ -168,7 +169,7 @@ export function Hero() {
       </div>
 
       {/* live WebGL globe with country callouts */}
-      <div className="relative mt-16 flex justify-center pb-24">
+      <div className="relative mt-8 flex justify-center pb-10 sm:mt-16 sm:pb-24">
         <Globe className="w-[min(96vw,960px)]" />
       </div>
     </section>

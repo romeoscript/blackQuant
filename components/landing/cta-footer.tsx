@@ -71,9 +71,9 @@ export function CtaFooter() {
 
   return (
     <>
-      <section id="community" className="bg-bq-bg px-8 pt-28 md:px-16">
+      <section id="community" className="bg-bq-bg px-4 pt-14 sm:px-8 md:px-16 md:pt-28">
         <Reveal className="mx-auto max-w-[1312px]">
-          <div className="grid gap-10 rounded-3xl border border-bq-border bg-gradient-to-b from-bq-card to-bq-panel p-10 md:grid-cols-[1.1fr_1fr] md:p-14">
+          <div className="grid gap-10 rounded-3xl border border-bq-border bg-gradient-to-b from-bq-card to-bq-panel p-5 md:grid-cols-[1.1fr_1fr] md:p-14">
             <div>
               <span className="flex w-fit items-center gap-2 rounded-full border border-bq-green/30 bg-bq-green/5 px-3.5 py-1.5">
                 <span className="size-1.5 rounded-full bg-bq-green" />
@@ -81,12 +81,12 @@ export function CtaFooter() {
                   Join the Luminary Circle
                 </span>
               </span>
-              <h2 className="mt-7 font-satoshi text-5xl font-bold leading-[1.05] tracking-tight md:text-[56px]">
-                <span className="text-white">Clarity.</span>
+              <h2 className="mt-7 font-satoshi text-[34px] font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-[56px]">
+                <span className="text-bq-heading">Clarity.</span>
                 <br />
                 <span className="text-bq-muted">Access.</span>
                 <br />
-                <span className="text-white">Empowerment.</span>
+                <span className="text-bq-heading">Empowerment.</span>
               </h2>
               <p className="mt-7 max-w-md font-satoshi text-[15px] leading-relaxed text-bq-muted">
                 Tools once reserved for the elite — open, auditable, and yours.
@@ -102,31 +102,36 @@ export function CtaFooter() {
                       description: "Connect a wallet to enter the BlackQuant app.",
                     })
                   }
-                  className="flex items-center gap-1.5 text-sm font-semibold text-white transition-colors hover:text-bq-green"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-bq-heading transition-colors hover:text-bq-green"
                 >
                   Launch App <ArrowUpRight className="size-4" />
                 </button>
                 <button
                   onClick={() => notify("Read Docs")}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-bq-muted transition-colors hover:text-white"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-bq-muted transition-colors hover:text-bq-heading"
                 >
                   <FileText className="size-4" /> Read Docs
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 self-center border-bq-border sm:border-l">
+            <div className="grid grid-cols-2 gap-1 self-center border-bq-border sm:grid-cols-1 sm:gap-0 sm:border-l">
               {CTA_STATS.map((s, i) => (
                 <div
                   key={s.label}
-                  className={cn("py-6 sm:pl-10", i !== 0 && "border-t border-bq-border")}
+                  className={cn(
+                    // Mobile cards lead with the number, so the source order
+                    // (label, then value) is reversed rather than duplicated.
+                    "max-sm:flex max-sm:flex-col-reverse max-sm:items-center max-sm:justify-center max-sm:gap-1 max-sm:rounded-xl max-sm:border max-sm:border-bq-border max-sm:bg-bq-card/60 max-sm:py-4 sm:py-6 sm:pl-10",
+                    i !== 0 && "sm:border-t sm:border-bq-border",
+                  )}
                 >
                   <p className="font-plex text-[10px] uppercase tracking-[1.5px] text-bq-muted">
                     {s.label}
                   </p>
                   <CountUp
                     value={s.value}
-                    className="mt-2 block font-satoshi text-3xl font-bold tabular-nums text-white"
+                    className="block font-satoshi font-bold tabular-nums text-bq-heading max-sm:text-2xl sm:mt-2 sm:text-3xl"
                   />
                 </div>
               ))}
@@ -135,13 +140,13 @@ export function CtaFooter() {
         </Reveal>
       </section>
 
-      <footer id="about" className="mt-24 border-t border-bq-border bg-bq-bg px-8 py-16 md:px-16">
+      <footer id="about" className="mt-14 border-t border-bq-border bg-bq-bg px-4 py-12 sm:px-8 md:mt-24 md:px-16 md:py-16">
         <div className="mx-auto max-w-[1312px]">
           <div className="grid gap-12 lg:grid-cols-[1.3fr_repeat(5,1fr)]">
             <div>
               <div className="flex items-center gap-3">
                 <LogoMark />
-                <span className="text-xl font-bold tracking-tight text-white">BlackQuant</span>
+                <span className="text-xl font-bold tracking-tight text-bq-heading">BlackQuant</span>
               </div>
               <p className="mt-5 max-w-xs text-[13px] leading-relaxed text-bq-muted">
                 A high-performance decentralized execution infrastructure.

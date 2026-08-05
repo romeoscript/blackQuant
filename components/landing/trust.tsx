@@ -24,7 +24,7 @@ const TICKER = [
 
 export function Trust() {
   return (
-    <section id="security" className="bg-bq-bg px-8 pt-28 md:px-16">
+    <section id="security" className="bg-bq-bg px-4 pt-14 sm:px-8 md:px-16 md:pt-28">
       <div className="mx-auto max-w-[1312px]">
         <Reveal className="grid gap-8 md:grid-cols-2 md:items-start">
           <div>
@@ -34,8 +34,8 @@ export function Trust() {
                 Security &amp; Trust
               </span>
             </span>
-            <h2 className="mt-6 font-satoshi text-5xl font-bold tracking-tight md:text-[64px]">
-              <span className="text-white">Trust is</span>
+            <h2 className="mt-6 font-satoshi text-[34px] font-bold tracking-tight sm:text-5xl md:text-[64px]">
+              <span className="text-bq-heading">Trust is</span>
               <br />
               <span className="text-bq-muted">Infrastructure.</span>
             </h2>

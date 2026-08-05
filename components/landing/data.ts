@@ -23,6 +23,20 @@ export const HERO_STATS = [
   { value: "1.8%", label: "Peak Daily Yield" },
 ] as const;
 
+/**
+ * Named protocols for the mobile integrations strip. The marquee's logo files
+ * carry no name metadata and there are twenty of them, so the design's
+ * shortlist is its own list rather than a projection of PARTNERS.
+ */
+export const DEFI_PARTNERS = [
+  "Uniswap",
+  "Aave",
+  "1inch",
+  "Chainlink",
+  "Lido",
+  "Compound",
+] as const;
+
 // Partner / ecosystem logos. `w`/`h` are the files' intrinsic pixel sizes
 // (all wordmarks normalized to 270px tall) so next/image keeps aspect ratio
 // while the strip renders them at a fixed display height.
