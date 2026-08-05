@@ -8,24 +8,24 @@ import { cn } from "@/lib/utils";
  * mounts ~30 of them; a per-instance observer means 30 separate observers all
  * delivering callbacks on the same scroll.
  */
-type Cb = () => void;
-const callbacks = new WeakMap<Element, Cb>();
-let observer: IntersectionObserver | null = null;
+const onReveal = new WeakMap<Element, () => void>();
+let sharedObserver: IntersectionObserver | null = null;
 
-function getObserver() {
-  if (observer) return observer;
-  observer = new IntersectionObserver(
+function getObserver(): IntersectionObserver {
+  if (sharedObserver) return sharedObserver;
+  const created = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
-        callbacks.get(entry.target)?.();
-        callbacks.delete(entry.target);
-        observer!.unobserve(entry.target);
+        onReveal.get(entry.target)?.();
+        onReveal.delete(entry.target);
+        created.unobserve(entry.target);
       }
     },
     { threshold: 0.15, rootMargin: "0px 0px -10% 0px" },
   );
-  return observer;
+  sharedObserver = created;
+  return created;
 }
 
 /** Fades + lifts children into view once, when scrolled near. */
@@ -45,10 +45,10 @@ export function Reveal({
     const el = ref.current;
     if (!el) return;
     const io = getObserver();
-    callbacks.set(el, () => setShown(true));
+    onReveal.set(el, () => setShown(true));
     io.observe(el);
     return () => {
-      callbacks.delete(el);
+      onReveal.delete(el);
       io.unobserve(el);
     };
   }, []);
