@@ -24,8 +24,12 @@ import { polygonToCells } from "h3-js";
 
 const require = createRequire(import.meta.url);
 
-/** Must match `hexPolygonResolution` in components/landing/globe.tsx. */
-const HEX_RES = 2;
+/**
+ * h3 resolution the country polygons are validated against. Emitted into the
+ * payload so the client binds `hexPolygonResolution` to the value the data was
+ * actually built for, rather than a second copy that can silently drift.
+ */
+const HEX_RESOLUTION = 2;
 /** ~1 km at the equator — far finer than a 110m-resolution source needs. */
 const PRECISION = 2;
 
@@ -61,7 +65,7 @@ const countries = allCountries.filter((f) => {
   const g = f.geometry;
   const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
   try {
-    for (const poly of polys) polygonToCells(poly, HEX_RES, true);
+    for (const poly of polys) polygonToCells(poly, HEX_RESOLUTION, true);
     return true;
   } catch {
     return false;
@@ -83,6 +87,7 @@ for (const f of land) {
 }
 
 const out = {
+  hexResolution: HEX_RESOLUTION,
   countries: countries.map(slim),
   coastlines,
 };
