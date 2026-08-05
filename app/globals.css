@@ -74,6 +74,88 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* BlackQuant brand ramp. Every app surface paints with these rather than the
+   shadcn tokens above, so they carry the light/dark switch for the whole UI.
+   The raw values live here — not in `@theme inline` — because a value written
+   directly into `@theme` is emitted once and cannot be overridden per theme;
+   only this `:root` / `.dark` pair can. `@theme inline` then maps each one
+   through `var()`, exactly as the shadcn tokens are mapped.
+
+   `panel` is recessed chrome (the sidebar, and translucent chips over the
+   page), `bg` is the page, `card` is a raised card, `surface` is an interactive
+   chip, input, or the dashboard's own card. The light ramp is not a mirror of
+   the dark one: raising a surface on a dark background means lightening it,
+   but on a light background a card goes white while a chip goes *greyer*, so
+   only `card` stays on the far side of `bg` in both. `panel` in particular has
+   to stay greyer than `bg` — as white it renders `bg-bq-panel/60` at 5/255
+   against the page, which is invisible. */
+:root {
+  --bq-bg: #f6f6f7;
+  --bq-panel: #e8e8ed;
+  --bq-card: #ffffff;
+  --bq-border: #e2e2e5;
+  --bq-border-soft: #e9e9ee;
+  --bq-surface: #eeeef3;
+  --bq-heading: #09090b;
+  --bq-text: #3f3f46;
+  --bq-muted: #71717a;
+  --bq-dim: #8b8b95;
+
+  /* Darkened against the dark-mode values so they stay legible as text on a
+     light background — #4ade80 on white is ~1.7:1. */
+  --bq-green: #0f7a37;
+  --bq-mint: #00795a;
+  --bq-blue: #2563eb;
+
+  /* Loss / alert. `loss` fills and borders (almost always with an alpha
+     modifier), `loss-text` is body copy and resting links, `loss-strong` is the
+     higher-emphasis tone those links hover to. */
+  --bq-loss: #e11d48;
+  --bq-loss-text: #be123c;
+  --bq-loss-strong: #9f1239;
+
+  --bq-warn: #d97706;
+  --bq-warn-text: #b45309;
+
+  /* `contrast` is the inverted CTA — a near-black button on light, white on
+     dark. `on-fill` is the text on any high-contrast fill, whether that is the
+     inverted CTA or a mint/green accent; both want the same foreground in a
+     given theme, so they share one token. `overlay` is the tint used with an
+     alpha modifier for hovers and hairlines — it has to flip, or
+     `bg-bq-overlay/5` lightens an already-white surface. */
+  --bq-contrast: #09090b;
+  --bq-on-fill: #ffffff;
+  --bq-overlay: #09090b;
+}
+
+.dark {
+  --bq-bg: #080808;
+  --bq-panel: #030303;
+  --bq-card: #0b0b0b;
+  --bq-border: #1f1f1f;
+  --bq-border-soft: #151515;
+  --bq-surface: #1a1a1a;
+  --bq-heading: #f0f0f0;
+  --bq-text: #c8c8c8;
+  --bq-muted: #666666;
+  --bq-dim: #555555;
+
+  --bq-green: #4ade80;
+  --bq-mint: #00e5aa;
+  --bq-blue: #3b82f6;
+
+  --bq-loss: #ff3b5c;
+  --bq-loss-text: #ff6a83;
+  --bq-loss-strong: #ff8496;
+
+  --bq-warn: #f59e0b;
+  --bq-warn-text: #fbbf24;
+
+  --bq-contrast: #ffffff;
+  --bq-on-fill: #000000;
+  --bq-overlay: #ffffff;
+}
+
 /* Color palettes: applied via a `theme-*` class on <html>, on top of light/dark.
    Design more at https://tweakcn.com and paste the tokens you want to vary. */
 .theme-emerald {
@@ -120,25 +202,33 @@
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
   --font-heading: var(--font-geist-sans);
 
-  /* BlackQuant landing fonts + brand palette (dark marketing surface).
+  /* BlackQuant landing fonts.
      Satoshi/Clash are self-hosted via next/font/local (see app/layout.tsx). */
   --font-satoshi: var(--font-satoshi-local), var(--font-geist-sans), sans-serif;
   --font-clash: var(--font-clash-local), var(--font-geist-sans), sans-serif;
   --font-plex: var(--font-plex-mono), ui-monospace, monospace;
 
-  --color-bq-bg: #080808;
-  --color-bq-panel: #030303;
-  --color-bq-card: #0b0b0b;
-  --color-bq-border: #1f1f1f;
-  --color-bq-border-soft: #151515;
-  --color-bq-surface: #1a1a1a;
-  --color-bq-green: #4ade80;
-  --color-bq-mint: #00e5aa;
-  --color-bq-blue: #3b82f6;
-  --color-bq-heading: #f0f0f0;
-  --color-bq-text: #c8c8c8;
-  --color-bq-muted: #666666;
-  --color-bq-dim: #555555;
+  --color-bq-bg: var(--bq-bg);
+  --color-bq-panel: var(--bq-panel);
+  --color-bq-card: var(--bq-card);
+  --color-bq-border: var(--bq-border);
+  --color-bq-border-soft: var(--bq-border-soft);
+  --color-bq-surface: var(--bq-surface);
+  --color-bq-green: var(--bq-green);
+  --color-bq-mint: var(--bq-mint);
+  --color-bq-blue: var(--bq-blue);
+  --color-bq-heading: var(--bq-heading);
+  --color-bq-text: var(--bq-text);
+  --color-bq-muted: var(--bq-muted);
+  --color-bq-dim: var(--bq-dim);
+  --color-bq-loss: var(--bq-loss);
+  --color-bq-loss-text: var(--bq-loss-text);
+  --color-bq-loss-strong: var(--bq-loss-strong);
+  --color-bq-warn: var(--bq-warn);
+  --color-bq-warn-text: var(--bq-warn-text);
+  --color-bq-contrast: var(--bq-contrast);
+  --color-bq-on-fill: var(--bq-on-fill);
+  --color-bq-overlay: var(--bq-overlay);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -176,12 +266,13 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Every app surface (landing and dashboard) sits on --color-bq-bg, but the
-   shadcn `--background` token defaults to white until next-themes applies its
-   class. Painting the root dark up front removes the white flash in the frame
-   before that lands; any light surface simply paints over it. */
+/* Every app surface (landing and dashboard) sits on --bq-bg, while the shadcn
+   `--background` token is only used by a handful of ui/ primitives. Painting
+   the root with the brand token keeps the frame behind the app matching it in
+   both themes — next-themes' blocking script sets `.dark` before first paint,
+   so this resolves to the right value rather than flashing the other one. */
 html {
-  background-color: var(--color-bq-bg);
+  background-color: var(--bq-bg);
 }
 
 @layer base {
