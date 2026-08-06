@@ -1,24 +1,17 @@
-"use client";
-
 import Link from "next/link";
-import { toast } from "sonner";
 import { LogoMark } from "@/components/logo";
+import { PlaceholderLink } from "./placeholder-link";
 import { AUDITS, CHAINS, FOOTER_COLUMNS, FOOTER_LINK_HREFS, LEGAL_LINKS } from "./data";
+
+const LINK_CLASS = "text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading";
 
 /**
  * Site-wide footer. Extracted from the landing page's CTA block so marketing
- * pages outside `/` can mount it without dragging the Luminary Circle form
- * along with it.
+ * pages outside `/` can mount it without the Luminary Circle form.
  */
 export function SiteFooter() {
-  const notify = (label: string) =>
-    toast(label, { description: "This destination isn't wired up in the demo yet." });
-
   return (
-    <footer
-      id="about"
-      className="mt-14 border-t border-bq-border bg-bq-bg px-4 py-12 sm:px-8 md:mt-24 md:px-16 md:py-16"
-    >
+    <footer className="mt-14 border-t border-bq-border bg-bq-bg px-4 py-12 sm:px-8 md:mt-24 md:px-16 md:py-16">
       <div className="mx-auto max-w-[1312px]">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_repeat(5,1fr)]">
           <div>
@@ -54,18 +47,14 @@ export function SiteFooter() {
               <ul className="mt-5 space-y-3">
                 {col.links.map((link) => {
                   const href = FOOTER_LINK_HREFS[link];
-                  const className =
-                    "text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading";
                   return (
                     <li key={link}>
                       {href ? (
-                        <Link href={href} className={className}>
+                        <Link href={href} className={LINK_CLASS}>
                           {link}
                         </Link>
                       ) : (
-                        <button onClick={() => notify(link)} className={className}>
-                          {link}
-                        </button>
+                        <PlaceholderLink label={link} className={LINK_CLASS} />
                       )}
                     </li>
                   );
@@ -84,13 +73,7 @@ export function SiteFooter() {
                   {label}
                 </Link>
               ) : (
-                <button
-                  key={label}
-                  onClick={() => notify(label)}
-                  className="hover:text-bq-heading"
-                >
-                  {label}
-                </button>
+                <PlaceholderLink key={label} label={label} className="hover:text-bq-heading" />
               ),
             )}
           </div>
