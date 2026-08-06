@@ -17,7 +17,7 @@ const envSchema = z.object({
   AUTH_URL: optionalStr,
   // Transactional email. Without a key, mail is logged instead of sent.
   RESEND_API_KEY: optionalStr,
-  MAIL_FROM: z.string().default("BlackQuant <onboarding@resend.dev>"),
+  RESEND_FROM: optionalStr,
   // Help Desk assistant — any OpenAI-compatible provider (DeepSeek by default).
   ASSISTANT_API_KEY: optionalStr,
   ASSISTANT_BASE_URL: optionalStr,
@@ -28,7 +28,33 @@ const envSchema = z.object({
     .default("development"),
 });
 
-const parsed = envSchema.safeParse(process.env);
+/** The two shapes Resend accepts: `email@example.com` or `Name <email@example.com>`. */
+const MAIL_FROM_PATTERN =
+  /^(?:[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+|[^<>]+<[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+>)$/;
+
+const parsed = envSchema
+  // Checked at boot rather than at send time: a missing or malformed sender
+  // otherwise surfaces as a 422 the first time someone resets their password,
+  // and a stray quote left by dotenv is invisible in the value itself.
+  .superRefine((v, ctx) => {
+    if (!v.RESEND_API_KEY) return;
+    if (!v.RESEND_FROM) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["RESEND_FROM"],
+        message: "RESEND_FROM is required when RESEND_API_KEY is set",
+      });
+      return;
+    }
+    if (!MAIL_FROM_PATTERN.test(v.RESEND_FROM)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["RESEND_FROM"],
+        message: `RESEND_FROM must be "email@example.com" or "Name <email@example.com>" — got ${JSON.stringify(v.RESEND_FROM)}`,
+      });
+    }
+  })
+  .safeParse(process.env);
 
 if (!parsed.success) {
   const issues = parsed.error.issues

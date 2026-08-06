@@ -33,7 +33,7 @@ export async function sendMail({ to, subject, body }: Mail): Promise<void> {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: env.MAIL_FROM, to, subject, text: body }),
+    body: JSON.stringify({ from: env.RESEND_FROM, to, subject, text: body }),
   });
 
   if (!response.ok) {
