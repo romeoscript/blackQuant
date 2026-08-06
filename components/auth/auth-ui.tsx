@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/logo";
-import { toast } from "sonner";
+import { signIn } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,21 +146,28 @@ export function Divider({ label }: { label: string }) {
   );
 }
 
-/** Google OAuth isn't wired to a provider in this build — surfaces a toast. */
+/**
+ * Starts the Google OAuth round-trip. The provider is only registered when
+ * AUTH_GOOGLE_ID is set (see auth.config.ts), so callers gate on that rather
+ * than letting the button fail after the click.
+ */
 export function GoogleButton() {
+  const [pending, setPending] = useState(false);
+
   return (
     <Button
       type="button"
       variant="outline"
-      onClick={() =>
-        toast("Continue with Google", {
-          description: "Google sign-in isn't connected in this preview yet.",
-        })
-      }
+      disabled={pending}
+      onClick={() => {
+        setPending(true);
+        // Full-page navigation to the provider; no need to reset `pending`.
+        void signIn("google", { redirectTo: "/dashboard" });
+      }}
       className="h-auto w-full gap-2 rounded-[14px] border-bq-border bg-bq-surface py-[15px] text-[11px] font-medium text-bq-heading hover:border-bq-overlay/25 hover:bg-bq-surface dark:border-bq-border dark:bg-bq-surface dark:hover:bg-bq-surface"
     >
       <Image src="/auth/google.svg" alt="" width={13} height={13} className="size-[13px]" />
-      Google
+      {pending ? "Redirecting…" : "Google"}
     </Button>
   );
 }

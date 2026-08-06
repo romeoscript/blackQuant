@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import {
   Mail,
@@ -11,33 +11,29 @@ import {
   ArrowLeft,
   ShieldCheck,
 } from "lucide-react";
-import { toast } from "sonner";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 import {
   AuthShell,
   Field,
   PrimaryButton,
   FormHeader,
 } from "@/components/auth/auth-ui";
+import { requestPasswordReset, type AuthState } from "@/app/auth-actions";
 
 const emailSchema = z.email();
 
 export default function ForgotPasswordPage() {
+  const [state, formAction, pending] = useActionState<AuthState, FormData>(
+    requestPasswordReset,
+    { ok: false, message: "" },
+  );
   const [email, setEmail] = useState("");
   const valid = emailSchema.safeParse(email).success;
 
-  function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!valid) {
-      toast.error("Enter a valid email address");
-      return;
-    }
-    toast.success("Reset link sent — check your inbox.");
-  }
-
   return (
     <AuthShell brand={<Brand />}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-7">
+      <form action={formAction} className="flex flex-col gap-7">
         <span className="flex size-14 items-center justify-center rounded-[16px] border border-bq-border bg-bq-surface">
           <KeyRound className="size-6 text-bq-heading" />
         </span>
@@ -67,8 +63,20 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <PrimaryButton icon={Send} type="submit">
-          Send Reset Link
+        {state.message && (
+          <p
+            role="status"
+            className={cn(
+              "-mt-3 text-[13px]",
+              state.ok ? "text-bq-mint" : "text-bq-loss-text",
+            )}
+          >
+            {state.message}
+          </p>
+        )}
+
+        <PrimaryButton icon={Send} type="submit" disabled={!valid || pending}>
+          {pending ? "Sending…" : "Send Reset Link"}
         </PrimaryButton>
 
         <div className="rounded-[24px] border border-bq-border bg-bq-surface p-4">
@@ -80,9 +88,9 @@ export default function ForgotPasswordPage() {
             before resending.
           </p>
           <button
-            type="button"
-            onClick={() => toast("Resending reset link…")}
-            className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-bq-mint hover:underline"
+            type="submit"
+            disabled={!valid || pending}
+            className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-bq-mint hover:underline disabled:opacity-50"
           >
             <RotateCw className="size-[11px]" />
             Resend email

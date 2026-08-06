@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { LogoMark } from "@/components/logo";
 import {
   LayoutGrid,
@@ -31,6 +32,8 @@ type Item = {
   badge?: { text: string; tone: "live" | "danger" };
   chevron?: boolean;
   danger?: boolean;
+  /** Ends the session instead of navigating. */
+  endsSession?: boolean;
 };
 type Section = { title: string; items: Item[] };
 
@@ -65,7 +68,7 @@ const SECTIONS: Section[] = [
     title: "Others",
     items: [
       { label: "Help Desk", icon: Headset, href: "/dashboard/help" },
-      { label: "Sign Out", icon: LogOut, href: "/login", danger: true },
+      { label: "Sign Out", icon: LogOut, href: "/login", danger: true, endsSession: true },
     ],
   },
 ];
@@ -98,27 +101,42 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const active = pathname === item.href;
+                const className = cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] transition-colors",
+                  active
+                    ? "bg-bq-surface text-bq-heading"
+                    : item.danger
+                      ? "text-bq-loss-text hover:bg-bq-loss/10"
+                      : "text-bq-muted hover:bg-bq-overlay/[0.03] hover:text-bq-text",
+                );
+                const content = (
+                  <>
+                    <item.icon className="size-4 shrink-0" strokeWidth={1.8} />
+                    <span className="flex-1 truncate">{item.label}</span>
+                    {item.badge && <NavBadge {...item.badge} />}
+                    {!item.badge && item.chevron && (
+                      <ChevronRight className="size-3.5 shrink-0 text-bq-dim" />
+                    )}
+                  </>
+                );
                 return (
                   <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      onClick={onNavigate}
-                      className={cn(
-                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] transition-colors",
-                        active
-                          ? "bg-bq-surface text-bq-heading"
-                          : item.danger
-                            ? "text-bq-loss-text hover:bg-bq-loss/10"
-                            : "text-bq-muted hover:bg-bq-overlay/[0.03] hover:text-bq-text",
-                      )}
-                    >
-                      <item.icon className="size-4 shrink-0" strokeWidth={1.8} />
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {item.badge && <NavBadge {...item.badge} />}
-                      {!item.badge && item.chevron && (
-                        <ChevronRight className="size-3.5 shrink-0 text-bq-dim" />
-                      )}
-                    </Link>
+                    {item.endsSession ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onNavigate?.();
+                          void signOut({ redirectTo: item.href });
+                        }}
+                        className={className}
+                      >
+                        {content}
+                      </button>
+                    ) : (
+                      <Link href={item.href} onClick={onNavigate} className={className}>
+                        {content}
+                      </Link>
+                    )}
                   </li>
                 );
               })}
