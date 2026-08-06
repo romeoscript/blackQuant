@@ -82,6 +82,8 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
           />
 
           <div className="flex items-center gap-2.5 py-1">
+            {/* Radix renders no native control, so the state is posted here. */}
+            <input type="hidden" name="remember" value={String(remember)} />
             <Checkbox
               id="remember"
               checked={remember}

@@ -18,7 +18,10 @@ const MIN_PASSWORD_LENGTH = 8;
 
 const passwordField = z
   .string()
-  .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+  .min(
+    MIN_PASSWORD_LENGTH,
+    `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+  );
 
 const signUpSchema = z
   .object({
@@ -52,7 +55,8 @@ const readForm = (formData: FormData, key: string) =>
   String(formData.get(key) ?? "");
 
 const isUniqueViolation = (error: unknown) =>
-  error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+  error instanceof Prisma.PrismaClientKnownRequestError &&
+  error.code === "P2002";
 
 /**
  * Last resort for a database call that failed in a way the flow does not model
@@ -100,16 +104,20 @@ export async function signUp(
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
-      return { ok: false, message: "An account with that email already exists." };
+      return {
+        ok: false,
+        message: "An account with that email already exists.",
+      };
     }
     return unexpected("sign-up", error);
   }
 
-  return signInWithPassword(
+  return signInWithPassword({
     email,
     password,
-    "Your account is ready, but signing in failed. Try logging in.",
-  );
+    failureMessage:
+      "Your account is ready, but signing in failed. Try logging in.",
+  });
 }
 
 /** Signs an existing account in. Redirects to the dashboard on success. */
@@ -128,12 +136,13 @@ export async function logIn(
     });
   if (!parsed.success) return { ok: false, message: firstIssue(parsed.error) };
 
-  return signInWithPassword(
-    parsed.data.email.trim().toLowerCase(),
-    parsed.data.password,
+  return signInWithPassword({
+    email: parsed.data.email.trim().toLowerCase(),
+    password: parsed.data.password,
     // Deliberately does not distinguish unknown address from wrong password.
-    "Invalid email or password.",
-  );
+    failureMessage: "Invalid email or password.",
+    remember: readForm(formData, "remember") === "true",
+  });
 }
 
 /**
@@ -149,7 +158,9 @@ export async function requestPasswordReset(
     message: "If that email is registered, a reset link is on its way.",
   };
 
-  const parsed = z.email().safeParse(readForm(formData, "email").trim().toLowerCase());
+  const parsed = z
+    .email()
+    .safeParse(readForm(formData, "email").trim().toLowerCase());
   if (!parsed.success) {
     return { ok: false, message: "Enter a valid email address." };
   }
@@ -226,7 +237,10 @@ export async function resetPassword(
     // One transaction so a token can never be spent without the password
     // changing, and every other outstanding grant dies with it.
     await prisma.$transaction([
-      prisma.user.update({ where: { id: grant.userId }, data: { passwordHash } }),
+      prisma.user.update({
+        where: { id: grant.userId },
+        data: { passwordHash },
+      }),
       prisma.passwordResetToken.update({
         where: { id: grant.id },
         data: { usedAt: new Date() },
@@ -239,24 +253,37 @@ export async function resetPassword(
     return unexpected("password-reset", error);
   }
 
-  return signInWithPassword(
+  return signInWithPassword({
     email,
-    parsed.data.password,
-    "Your password was changed, but signing in failed. Try logging in.",
-  );
+    password: parsed.data.password,
+    failureMessage:
+      "Your password was changed, but signing in failed. Try logging in.",
+  });
 }
 
 /**
  * `signIn` reports failure by throwing, and signals its post-login redirect the
  * same way — so framework errors must pass straight through.
  */
-async function signInWithPassword(
-  email: string,
-  password: string,
-  failureMessage: string,
-): Promise<AuthState> {
+async function signInWithPassword({
+  email,
+  password,
+  failureMessage,
+  remember = false,
+}: {
+  email: string;
+  password: string;
+  failureMessage: string;
+  /** Only the login form offers the choice; the rest take the short session. */
+  remember?: boolean;
+}): Promise<AuthState> {
   try {
-    await signIn("credentials", { email, password, redirectTo: "/dashboard" });
+    await signIn("credentials", {
+      email,
+      password,
+      remember: String(remember),
+      redirectTo: "/dashboard",
+    });
     return { ok: true, message: "" };
   } catch (error) {
     // Rethrows Next's internal control-flow errors (the post-login redirect);

@@ -9,20 +9,22 @@ import authConfig from "./auth.config";
 const signInSchema = z.object({
   email: z.email(),
   password: z.string().min(1),
+  // Arrives as a string because credentials cross the wire as form values.
+  // Must accept "false" as well as "true": a literal("true") schema rejects the
+  // unchecked case outright, which fails the whole sign-in.
+  remember: z.enum(["true", "false"]).optional(),
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
-  // Credentials cannot use the database strategy — Auth.js only writes a
-  // Session row for adapter-backed sign-ins — so the whole app runs on JWTs.
-  session: { strategy: "jwt" },
   providers: [
     ...authConfig.providers,
     credentials({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        remember: { label: "Remember me", type: "checkbox" },
       },
       async authorize(raw) {
         const parsed = signInSchema.safeParse(raw);
@@ -55,6 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           image: user.image,
+          rememberMe: parsed.data.remember === "true",
         };
       },
     }),
