@@ -10,6 +10,14 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required"),
   AUTH_GITHUB_ID: optionalStr,
   AUTH_GITHUB_SECRET: optionalStr,
+  AUTH_GOOGLE_ID: optionalStr,
+  AUTH_GOOGLE_SECRET: optionalStr,
+  // Absolute origin used to build links in outgoing mail. Auth.js sets
+  // AUTH_URL/NEXTAUTH_URL in most deploys; fall back to localhost in dev.
+  AUTH_URL: optionalStr,
+  // Transactional email. Without a key, mail is logged instead of sent.
+  RESEND_API_KEY: optionalStr,
+  MAIL_FROM: z.string().default("BlackQuant <onboarding@resend.dev>"),
   // Help Desk assistant — any OpenAI-compatible provider (DeepSeek by default).
   ASSISTANT_API_KEY: optionalStr,
   ASSISTANT_BASE_URL: optionalStr,

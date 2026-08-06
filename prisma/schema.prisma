@@ -19,8 +19,11 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  /// Null for accounts created purely through an OAuth provider.
+  passwordHash  String?
   accounts      Account[]
   sessions      Session[]
+  passwordResets PasswordResetToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -66,3 +69,28 @@ model Subscriber {
   updatedAt DateTime @updatedAt
 }
 
+
+/// Required by the Auth.js Prisma adapter. Unused today — no email provider is
+/// configured — but the adapter contract expects the table to exist.
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+/// Single-use password reset grant. Only the SHA-256 of the token is stored, so
+/// a database leak cannot be replayed against the reset endpoint.
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  tokenHash String    @unique
+  userId    Int
+  expiresAt DateTime
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
