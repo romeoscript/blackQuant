@@ -10,6 +10,7 @@
     "not dead"
   ],
   "scripts": {
+    "predev": "prisma generate",
     "dev": "next dev --turbopack",
     "prebuild": "npm run build:globe",
     "build": "next build",
