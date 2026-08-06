@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLenis } from "lenis/react";
@@ -17,8 +18,11 @@ import {
 } from "@/components/ui/sheet";
 import { NAV_LINKS } from "./data";
 
+type NavLink = (typeof NAV_LINKS)[number];
+
 export function Nav() {
   const lenis = useLenis();
+  const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   // next-themes resolves the theme from its pre-hydration script, so
   // `resolvedTheme` is already set on the client's first render while the
@@ -48,29 +52,43 @@ export function Nav() {
     goTo(target);
   };
 
+  // Section anchors only exist on the landing page, so off it they have to
+  // become real navigations back to it. `href` entries always navigate.
+  const onLanding = pathname === "/";
+
   return (
     <header className="absolute inset-x-0 top-0 z-40">
       <nav className="mx-auto flex h-[87px] max-w-[1440px] items-center justify-between px-6 md:px-16">
-        <button
-          onClick={() => lenis?.scrollTo(0)}
-          className="flex items-center gap-3"
-          aria-label="BlackQuant home"
-        >
-          <LogoMark />
-          <span className="text-xl font-bold tracking-tight text-bq-heading">
-            BlackQuant
-          </span>
-        </button>
+        {onLanding ? (
+          <button
+            onClick={() => lenis?.scrollTo(0)}
+            className="flex items-center gap-3"
+            aria-label="BlackQuant home"
+          >
+            <LogoMark />
+            <span className="text-xl font-bold tracking-tight text-bq-heading">
+              BlackQuant
+            </span>
+          </button>
+        ) : (
+          <Link href="/" className="flex items-center gap-3" aria-label="BlackQuant home">
+            <LogoMark />
+            <span className="text-xl font-bold tracking-tight text-bq-heading">
+              BlackQuant
+            </span>
+          </Link>
+        )}
 
         <ul className="hidden items-center gap-8 lg:flex">
           {NAV_LINKS.map((link) => (
-            <li key={link.target}>
-              <button
-                onClick={() => goTo(link.target)}
+            <li key={link.label}>
+              <NavItem
+                link={link}
+                onLanding={onLanding}
+                onScroll={goTo}
+                onNavigate={() => setMenuOpen(false)}
                 className="text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading"
-              >
-                {link.label}
-              </button>
+              />
             </li>
           ))}
         </ul>
@@ -118,13 +136,14 @@ export function Nav() {
 
             <nav className="flex flex-col gap-0.5 p-3">
               {NAV_LINKS.map((link) => (
-                <button
-                  key={link.target}
-                  onClick={() => closeThenGoTo(link.target)}
+                <NavItem
+                  key={link.label}
+                  link={link}
+                  onLanding={onLanding}
+                  onScroll={closeThenGoTo}
+                  onNavigate={() => setMenuOpen(false)}
                   className="rounded-lg px-3 py-3 text-left text-[15px] text-bq-text transition-colors hover:bg-bq-overlay/5 hover:text-bq-heading"
-                >
-                  {link.label}
-                </button>
+                />
               ))}
             </nav>
 
@@ -156,6 +175,38 @@ export function Nav() {
         </Sheet>
       </nav>
     </header>
+  );
+}
+
+/** Renders a nav entry as a scroll trigger or a real link, per `NAV_LINKS`. */
+function NavItem({
+  link,
+  onLanding,
+  onScroll,
+  onNavigate,
+  className,
+}: {
+  link: NavLink;
+  onLanding: boolean;
+  onScroll: (target: string) => void;
+  onNavigate: () => void;
+  className: string;
+}) {
+  if ("href" in link || !onLanding) {
+    return (
+      <Link
+        href={"href" in link ? link.href : `/#${link.target}`}
+        onClick={onNavigate}
+        className={className}
+      >
+        {link.label}
+      </Link>
+    );
+  }
+  return (
+    <button onClick={() => onScroll(link.target)} className={className}>
+      {link.label}
+    </button>
   );
 }
 

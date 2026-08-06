@@ -1,0 +1,249 @@
+import { Ban, FileText, Lock, TriangleAlert } from "lucide-react";
+import type { LegalDoc } from "./types";
+
+export const TERMS: LegalDoc = {
+  badge: { icon: FileText, label: "Legal terms & conditions" },
+  title: "Terms & Conditions",
+  subtitle:
+    "By using BlackQuant, you agree to these terms. We believe in transparency and fair dealing. Read through to understand your rights and responsibilities.",
+  updated: "Last updated: January 2025 · Governed by Singapore law",
+  sections: [
+    {
+      title: "1. Acceptance of Terms",
+      body: "By accessing and using BlackQuant, you agree to be bound by these Terms & Conditions. If you do not agree to any part of these terms, you may not use the platform. BlackQuant reserves the right to modify these terms at any time. Continued use of the platform following any changes constitutes acceptance of the new terms.",
+    },
+    {
+      title: "2. Eligibility & Account Registration",
+      cards: [
+        {
+          title: "Age & Capacity",
+          body: "You must be at least 18 years old and have the legal capacity to enter into binding agreements. By registering, you represent and warrant that all information provided is accurate, complete, and truthful.",
+        },
+        {
+          title: "Account Responsibility",
+          body: "You are solely responsible for maintaining the confidentiality of your account credentials. You agree to notify BlackQuant immediately of any unauthorized access or security breaches. BlackQuant is not liable for unauthorized access due to negligence on your part.",
+        },
+        {
+          title: "Restricted Jurisdictions",
+          body: "BlackQuant is not available to residents of certain jurisdictions (e.g., USA, Iran, North Korea). You must verify local regulatory compliance before using the platform.",
+        },
+      ],
+    },
+    {
+      title: "3. Use License & Restrictions",
+      cards: [
+        {
+          title: "Grant of License",
+          body: "BlackQuant grants you a limited, non-exclusive, non-transferable license to access and use the platform for lawful purposes. You may not reverse-engineer, decompile, or attempt to access underlying code or infrastructure.",
+        },
+        {
+          title: "Prohibited Conduct",
+          body: "You agree not to: (a) engage in market manipulation or wash trading, (b) use automated scraping or bots without permission, (c) engage in phishing or social engineering attacks, (d) use the platform for illegal activities, (e) harass or abuse other users.",
+        },
+        {
+          title: "Trading Conduct",
+          body: "All trades are conducted at your own risk. You acknowledge that trading involves substantial risk of loss. BlackQuant is not responsible for losses arising from your trading decisions, even if signals are provided.",
+        },
+      ],
+    },
+    {
+      title: "4. Intellectual Property Rights",
+      cards: [
+        {
+          title: "Platform IP",
+          body: "All content, features, and functionality on BlackQuant (including the user interface, algorithms, and signal generation logic) are the exclusive property of BlackQuant or its licensors.",
+        },
+        {
+          title: "User Content",
+          body: "You retain ownership of any content you upload or create. However, you grant BlackQuant a worldwide, royalty-free license to use, modify, and distribute such content for platform operation and improvement.",
+        },
+        {
+          title: "No Infringement",
+          body: "You warrant that any content you upload does not infringe on third-party intellectual property rights. You agree to indemnify BlackQuant against any claims arising from your uploaded content.",
+        },
+      ],
+    },
+    {
+      title: "5. Payment & Billing",
+      cards: [
+        {
+          title: "Subscription Fees",
+          body: "BlackQuant subscription plans are billed monthly or annually, depending on your chosen plan. All fees are displayed before purchase.",
+        },
+        {
+          title: "Billing Disputes",
+          body: "If you believe you've been charged incorrectly, contact BlackQuant within 30 days of the charge. Requests after 30 days may not be honored.",
+        },
+        {
+          title: "Cancellation",
+          body: "You can cancel your subscription anytime. Cancellations take effect at the end of your current billing cycle. No refunds are provided for partial months.",
+        },
+        {
+          title: "Refund Policy",
+          body: "Refunds are provided within 14 days of purchase if the platform was inaccessible or fundamentally broken. No refunds for change of mind or lost trades.",
+        },
+      ],
+    },
+    {
+      title: "6. Disclaimers & Risk Acknowledgment",
+      cards: [
+        {
+          title: "No Financial Advice",
+          body: "BlackQuant does not provide financial advice. Signals are generated by algorithms and are not recommendations to buy, sell, or hold any asset. You are solely responsible for your investment decisions.",
+        },
+        {
+          title: "Trading Risks",
+          body: "Trading crypto, forex, and financial instruments carries substantial risk of loss. Signals, even with high win rates, do not guarantee profits. You can lose 100% of your capital.",
+        },
+        {
+          title: "Past Performance",
+          body: "Backtested results and historical performance do not guarantee future results. Market conditions change, and strategies may underperform or fail unexpectedly.",
+        },
+        {
+          title: "Technology Risks",
+          body: "BlackQuant operates on a best-effort basis. We do not guarantee 100% uptime, instant signal delivery, or error-free operation. System failures, outages, and delays may occur.",
+        },
+      ],
+    },
+    {
+      title: "7. Limitation of Liability",
+      cards: [
+        {
+          title: "Liability Cap",
+          body: "TO THE MAXIMUM EXTENT PERMITTED BY LAW: BlackQuant's total liability for any claim arising out of or relating to these terms shall not exceed the subscription fees paid by you in the 12 months preceding the claim.",
+        },
+        {
+          title: "Exclusions",
+          body: "In no event shall BlackQuant be liable for: (a) indirect, incidental, special, or consequential damages, (b) loss of profits or revenue, (c) loss of data or trading opportunities, (d) third-party claims.",
+        },
+        {
+          title: "Sole Remedy",
+          body: "Your sole and exclusive remedy for any dispute is to cease use of the platform and seek refund through proper channels.",
+        },
+      ],
+    },
+    {
+      title: "8. Indemnification",
+      body: "You agree to indemnify, defend, and hold harmless BlackQuant, its directors, employees, and agents from any claims, damages, losses, or expenses arising out of: (a) your use of the platform, (b) your violation of these terms, (c) your infringement of third- party rights, (d) trading losses or disputes.",
+    },
+    {
+      title: "9. Regulatory Compliance & AML/KYC",
+      cards: [
+        {
+          title: "KYC Requirements",
+          body: "BlackQuant may require identity verification, proof of address, and source of funds documentation. Failure to comply may result in account suspension or termination.",
+        },
+        {
+          title: "AML Screening",
+          body: "BlackQuant screens all users against sanctions lists and beneficial ownership databases. Accounts linked to sanctioned entities will be terminated immediately.",
+        },
+        {
+          title: "Tax Reporting",
+          body: "You are responsible for reporting all trading income and gains to relevant tax authorities. BlackQuant may provide transaction records for tax purposes.",
+        },
+      ],
+    },
+    {
+      title: "10. Termination",
+      cards: [
+        {
+          title: "Termination by You",
+          body: "You can terminate your account anytime by submitting a request in account settings. Your data will be retained according to our Privacy Policy.",
+        },
+        {
+          title: "Termination by BlackQuant",
+          body: "BlackQuant may terminate your account for: (a) violation of these terms, (b) suspected fraud or illegal activity, (c) regulatory requirements, (d) non-compliance with KYC/AML.",
+        },
+        {
+          title: "Effect of Termination",
+          body: "Upon termination, your access to the platform ceases immediately. Unpaid fees remain due. No refund will be provided.",
+        },
+      ],
+    },
+    {
+      title: "11. Dispute Resolution & Arbitration",
+      cards: [
+        {
+          title: "Governing Law",
+          body: "These terms are governed by the laws of Singapore, without regard to conflict of law principles.",
+        },
+        {
+          title: "Arbitration",
+          body: "Any dispute shall be resolved through binding arbitration under the rules of the Singapore International Arbitration Centre (SIAC). Arbitration shall be conducted in English.",
+        },
+        {
+          title: "No Class Actions",
+          body: "You agree that disputes shall be pursued individually, not on a class-action basis. Class actions or collective proceedings are prohibited.",
+        },
+      ],
+    },
+    {
+      title: "12. Modifications & Updates",
+      body: "BlackQuant reserves the right to modify, suspend, or discontinue any feature of the platform at any time without notice. BlackQuant is not liable for any interruption or loss of access resulting from these changes.",
+    },
+    {
+      title: "13. Third-Party Services & Links",
+      body: "BlackQuant may integrate with third-party services (payment processors, exchanges, analytics). BlackQuant is not responsible for third-party conduct, outages, or security breaches. Your use of third-party services is governed by their terms and privacy policies.",
+    },
+    {
+      title: "14. Contact & Support",
+      body: "For questions about these terms, contact BlackQuant via Help Desk (in-platform) or email legal@blackquant.io. Formal notices may also be sent to our registered office in Singapore.",
+    },
+  ],
+  highlights: {
+    heading: "Important Notices",
+    tone: "warn",
+    cards: [
+      {
+        icon: TriangleAlert,
+        title: "Trading Risk",
+        body: "Crypto trading carries substantial risk. You can lose 100% of your capital. Never risk more than you can afford to lose.",
+      },
+      {
+        icon: Ban,
+        title: "Not Financial Advice",
+        body: "BlackQuant signals are algorithmic and not financial recommendations. You alone are responsible for all investment decisions.",
+      },
+      {
+        icon: Lock,
+        title: "Your Responsibility",
+        body: "You are responsible for account security, tax reporting, and compliance with local regulations.",
+      },
+    ],
+  },
+  faq: {
+    heading: "Quick Reference",
+    items: [
+      {
+        question: "Can I use BlackQuant if I'm under 18?",
+        answer: "No. You must be 18+ to use the platform.",
+      },
+      {
+        question: "What happens if I violate the terms?",
+        answer: "Your account may be suspended or terminated. Outstanding fees remain due.",
+      },
+      {
+        question: "Can I trade on margin?",
+        answer: "BlackQuant only supports spot trading. Margin/leverage trading is not available.",
+      },
+      {
+        question: "What's your refund policy?",
+        answer: "Refunds available within 14 days if the platform was inaccessible. No refunds for losses or change of mind.",
+      },
+      {
+        question: "Who owns my data?",
+        answer: "You retain ownership of your data. See our Privacy Policy for full details on data handling.",
+      },
+      {
+        question: "Can I sue BlackQuant?",
+        answer: "Any disputes go to binding arbitration under Singapore law, not court.",
+      },
+    ],
+  },
+  cta: {
+    title: "Questions About These Terms?",
+    body: "Our legal team is available to clarify any terms. Contact us via Help Desk or email legal@blackquant.io.",
+    emailLabel: "Email Legal Team",
+    email: "legal@blackquant.io",
+  },
+};

@@ -56,6 +56,10 @@ export function Reveal({
   return (
     <div
       ref={ref}
+      // Exposed so descendants can stagger off the same trigger — needed where
+      // the markup can't take a Reveal wrapper of its own, e.g. inside a grid
+      // whose children must stay <li>. Pair with `group` on the same element.
+      data-revealed={shown || undefined}
       style={{ transitionDelay: `${delay}ms` }}
       className={cn(
         // Only opacity and transform are animated — both composite on the GPU.

@@ -8,12 +8,16 @@ import {
   BadgeCheck,
 } from "lucide-react";
 
+/**
+ * `target` links scroll to a landing-page section (and become `/#target` when
+ * the nav is mounted on another route); `href` links navigate outright.
+ */
 export const NAV_LINKS = [
   { label: "Infrastructure", target: "infrastructure" },
   { label: "Features", target: "features" },
   { label: "Security", target: "security" },
   { label: "Community", target: "community" },
-  { label: "About Us", target: "about" },
+  { label: "About Us", href: "/about" },
 ] as const;
 
 export const HERO_STATS = [
@@ -199,6 +203,18 @@ export const FOOTER_COLUMNS = [
   { heading: "Company", links: ["About", "Blog", "Careers", "Press Kit", "Contact"] },
   { heading: "Community", links: ["Twitter / X", "Discord", "Telegram", "LinkedIn", "Mirror"] },
 ] as const;
+
+/** Footer links that resolve to a real route; everything else toasts. */
+export const FOOTER_LINK_HREFS: Record<string, string> = {
+  About: "/about",
+};
+
+/** Footer legal row. A missing `href` has no page yet and toasts instead. */
+export const LEGAL_LINKS: readonly { label: string; href?: string }[] = [
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
+  { label: "Cookie Policy" },
+];
 
 export const CHAINS = ["ETH", "ARB", "BASE", "SOL"] as const;
 

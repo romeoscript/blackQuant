@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { Reveal } from "./reveal";
@@ -46,6 +52,21 @@ const VIDEO: Record<string, string> = {
   "04": "/videos/feature-04-ai.mp4",
 };
 
+/**
+ * The one condition under which the pinned rail replaces the stacked cards.
+ * GSAP matches on it to swap the markup; React reads it to decide which of the
+ * two layouts gets video sources, because the hidden one still fetches them —
+ * without this the page pulls all eight clips (~3.6 MB) on every device.
+ */
+const PINNED_QUERY = "(min-width: 768px) and (prefers-reduced-motion: no-preference)";
+const subscribePinned = (onChange: () => void) => {
+  const mq = window.matchMedia(PINNED_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+const isPinnedNow = () => window.matchMedia(PINNED_QUERY).matches;
+const isPinnedOnServer = () => false;
+
 /** Scroll distance (in viewport heights) each feature occupies while pinned. */
 const SEGMENT = 1;
 /** Extra scroll so the last feature rests on screen before the section releases. */
@@ -59,6 +80,7 @@ export function Performance() {
   // initial page load entirely, rather than relying on `preload="metadata"`
   // (which browsers routinely over-fetch).
   const [mediaReady, setMediaReady] = useState(false);
+  const pinned = useSyncExternalStore(subscribePinned, isPinnedNow, isPinnedOnServer);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -85,7 +107,7 @@ export function Performance() {
       const mm = gsap.matchMedia();
 
       mm.add(
-        "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+        PINNED_QUERY,
         () => {
           // Reveal the pinned markup and hide the stacked fallback.
           stage.setAttribute("data-pinned", "");
@@ -261,7 +283,7 @@ export function Performance() {
           <div className="group-data-pinned:hidden">
             {FEATURES.map((f) => (
               <Reveal key={f.index}>
-                <StackedFeature feature={f} />
+                <StackedFeature feature={f} ready={mediaReady && !pinned} />
               </Reveal>
             ))}
           </div>
@@ -279,7 +301,7 @@ export function Performance() {
               {/* left rail: AI video feed · progress track */}
               <div className="relative overflow-hidden border-r border-bq-border-soft bg-bq-panel">
                 {FEATURES.map((f) => (
-                  <VideoLayer key={f.index} feature={f} ready={mediaReady} />
+                  <VideoLayer key={f.index} feature={f} ready={mediaReady && pinned} />
                 ))}
 
                 {/* progress track */}
@@ -504,7 +526,72 @@ function MetaRow({ feature }: { feature: Feature }) {
 }
 
 /** Original stacked block — used for mobile / reduced-motion / pre-hydration. */
-function StackedFeature({ feature }: { feature: Feature }) {
+/**
+ * The stacked card's clip. Unlike the pinned rail, nothing here drives playback
+ * — GSAP's matchMedia only runs from 768px up — so each clip starts and stops
+ * itself. It plays only while on screen: four of them decoding at once is what
+ * makes the section stutter on a phone.
+ */
+function StackedMedia({ feature, ready }: { feature: Feature; ready: boolean }) {
+  const a = ACCENT[feature.accent];
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Keyed on `ready` so the observer is re-created once the source lands: it
+  // fires immediately with the element's current intersection, which is what
+  // starts a clip that was already on screen while it was still src-less.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !ready) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Rejects when the autoplay policy blocks it, or when a pause
+          // interrupts a pending play. Neither is actionable — the decoded
+          // frame stays on screen either way.
+          el.play().catch(() => {});
+        } else {
+          el.pause();
+        }
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ready]);
+
+  return (
+    <>
+      <video
+        ref={videoRef}
+        src={ready ? VIDEO[feature.index] : undefined}
+        muted
+        loop
+        playsInline
+        preload={ready ? "auto" : "none"}
+        aria-hidden
+        className="absolute inset-0 size-full object-cover"
+        style={{ filter: "brightness(0.82) contrast(1.05) saturate(1.05)" }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ backgroundColor: a.hex, mixBlendMode: "soft-light", opacity: 0.4 }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, color-mix(in srgb, var(--bq-panel) 55%, transparent) 0%, transparent 30%, transparent 70%, color-mix(in srgb, var(--bq-panel) 55%, transparent) 100%)",
+        }}
+      />
+    </>
+  );
+}
+
+function StackedFeature({ feature, ready }: { feature: Feature; ready: boolean }) {
   const a = ACCENT[feature.accent];
 
   return (
@@ -534,10 +621,8 @@ function StackedFeature({ feature }: { feature: Feature }) {
       </div>
 
       <div className="grid gap-0 border-t border-bq-border-soft md:grid-cols-[1.4fr_1fr]">
-        {/* The design shows the feature clip here on mobile too, but four
-            autoplaying videos on a phone is not worth the bytes — the accent
-            wash and ghost numeral stand in for it at the same aspect. */}
         <div className="relative overflow-hidden bg-bq-panel max-md:aspect-[16/10] max-md:border-b max-md:border-bq-border-soft md:min-h-[420px] md:border-r md:border-bq-border-soft">
+          <StackedMedia feature={feature} ready={ready} />
           <div
             aria-hidden
             className="absolute inset-0"
@@ -547,7 +632,7 @@ function StackedFeature({ feature }: { feature: Feature }) {
           />
           <span
             className={cn(
-              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-clash font-medium leading-none opacity-[0.1] max-md:text-[110px] md:text-[clamp(120px,13vw,190px)]",
+              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-clash font-medium leading-none opacity-[0.14] max-md:text-[110px] md:text-[clamp(120px,13vw,190px)]",
               a.text,
             )}
           >
