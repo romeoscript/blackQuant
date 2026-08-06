@@ -6,6 +6,7 @@ import "./globals.css";
 import { auth } from "@/auth";
 import { Providers } from "@/providers";
 import { BrandLoader } from "@/components/brand-loader";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,6 +66,7 @@ export default async function RootLayout({
       >
         <BrandLoader />
         <Providers session={session}>{children}</Providers>
+        <Script src="https://widget.swiftagents.org/dist/widget-ui.js" data-company-id="857422c8-e0b5-42c5-8796-7edba408f6bf" data-api-key="swa_live_d7adbad1416fa119f0b1fa55299441ca2e1631c441f9534f589a7fc33e7c04f3" defer></Script>
       </body>
     </html>
   );
