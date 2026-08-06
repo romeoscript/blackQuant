@@ -13,6 +13,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import type { CtaAction } from "@/components/landing/contact-cta";
 
 export const ABOUT_STATS = [
   { value: "14,800+", label: "Active Traders", delta: "+34% YoY" },
@@ -140,14 +141,7 @@ export const ABOUT_FAQ = [
   },
 ] as const;
 
-export const CONTACT_ACTIONS: readonly {
-  icon: LucideIcon;
-  /** Rendered only from `sm` up, so mobile gets the design's shorter label. */
-  prefix: string;
-  label: string;
-  href: string;
-  primary?: boolean;
-}[] = [
+export const CONTACT_ACTIONS: readonly CtaAction[] = [
   {
     icon: BookOpen,
     prefix: "Browse ",

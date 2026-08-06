@@ -52,25 +52,24 @@ export function SiteFooter() {
                 {col.heading}
               </p>
               <ul className="mt-5 space-y-3">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    {FOOTER_LINK_HREFS[link] ? (
-                      <Link
-                        href={FOOTER_LINK_HREFS[link]}
-                        className="text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading"
-                      >
-                        {link}
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => notify(link)}
-                        className="text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading"
-                      >
-                        {link}
-                      </button>
-                    )}
-                  </li>
-                ))}
+                {col.links.map((link) => {
+                  const href = FOOTER_LINK_HREFS[link];
+                  const className =
+                    "text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading";
+                  return (
+                    <li key={link}>
+                      {href ? (
+                        <Link href={href} className={className}>
+                          {link}
+                        </Link>
+                      ) : (
+                        <button onClick={() => notify(link)} className={className}>
+                          {link}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

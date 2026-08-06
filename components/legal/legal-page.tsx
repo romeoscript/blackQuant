@@ -1,21 +1,42 @@
-import Link from "next/link";
 import { CircleQuestionMark, Headset, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/landing/reveal";
 import { ScrollProgress } from "@/components/landing/scroll-progress";
 import { Nav } from "@/components/landing/nav";
 import { SiteFooter } from "@/components/landing/site-footer";
+import { ContactCta, type CtaAction } from "@/components/landing/contact-cta";
 import { AssistantWidget } from "@/components/assistant/assistant-widget";
 import type { LegalDoc } from "./types";
 
-/** Shared outer padding — the clause column is narrower than the bands below it. */
+/** Outer padding shared by every band — the clause column is narrower than the rest. */
 const PAD = "px-6 sm:px-8 md:px-16";
 
-function BandHeading({ children }: { children: React.ReactNode }) {
+/** Gap between each card's entrance, in ms. */
+const HIGHLIGHT_STAGGER = 90;
+const FAQ_STAGGER = 70;
+
+/** Identical on both documents, so it stays out of the per-doc data. */
+const HELP_DESK_ACTION: CtaAction = {
+  icon: Headset,
+  prefix: "Open ",
+  label: "Help Desk",
+  href: "/dashboard/help",
+  primary: true,
+};
+
+export function LegalPage({ doc }: { doc: LegalDoc }) {
   return (
-    <h2 className="font-satoshi text-[17px] font-bold tracking-tight text-bq-heading md:text-[26px]">
-      {children}
-    </h2>
+    <main className="min-h-screen bg-bq-bg font-satoshi text-bq-heading">
+      <ScrollProgress />
+      <Nav />
+      <Hero doc={doc} />
+      <Clauses sections={doc.sections} />
+      <Highlights highlights={doc.highlights} />
+      <Faq faq={doc.faq} />
+      <Contact cta={doc.cta} />
+      <SiteFooter />
+      <AssistantWidget />
+    </main>
   );
 }
 
@@ -52,9 +73,7 @@ function Clauses({ sections }: { sections: LegalDoc["sections"] }) {
       <div className="mx-auto flex max-w-[768px] flex-col gap-8 md:gap-10">
         {sections.map((section) => (
           <Reveal key={section.title}>
-            <h2 className="font-satoshi text-[17px] font-bold tracking-tight text-bq-heading md:text-[26px]">
-              {section.title}
-            </h2>
+            <BandHeading>{section.title}</BandHeading>
             <span className="mt-2 block h-0.5 w-12 rounded-full bg-bq-green" />
 
             {section.body && (
@@ -84,34 +103,36 @@ function Clauses({ sections }: { sections: LegalDoc["sections"] }) {
 }
 
 function Highlights({ highlights }: { highlights: LegalDoc["highlights"] }) {
-  const warn = highlights.tone === "warn";
+  const isWarning = highlights.tone === "warn";
+  const glow = isWarning
+    ? "color-mix(in srgb, var(--bq-loss) 5%, transparent)"
+    : "color-mix(in srgb, var(--bq-green) 5%, transparent)";
+
   return (
-    <section
-      className={cn("border-t border-bq-border bg-bq-overlay/[0.01] py-12 md:py-16", PAD)}
-    >
+    <section className={cn("border-t border-bq-border bg-bq-overlay/[0.01] py-12 md:py-16", PAD)}>
       <div className="mx-auto max-w-[896px]">
         <BandHeading>{highlights.heading}</BandHeading>
         <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-3 md:gap-6">
           {highlights.cards.map(({ icon: Icon, title, body }, i) => (
-            <Reveal key={title} delay={i * 90} className="h-full">
-              <div className="relative h-full overflow-hidden rounded-2xl border border-bq-border bg-bq-card p-5 md:p-6">
+            <Reveal key={title} delay={i * HIGHLIGHT_STAGGER} className="h-full">
+              <BandCard>
                 <div
                   aria-hidden
                   className="pointer-events-none absolute inset-0"
                   style={{
-                    backgroundImage: `radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--bq-${
-                      warn ? "loss" : "green"
-                    }) 5%, transparent), transparent 70%)`,
+                    backgroundImage: `radial-gradient(circle at 100% 0%, ${glow}, transparent 70%)`,
                   }}
                 />
                 <div className="relative">
-                  <Icon className={cn("size-6", warn ? "text-bq-warn-text" : "text-bq-green")} />
+                  <Icon
+                    className={cn("size-6", isWarning ? "text-bq-warn-text" : "text-bq-green")}
+                  />
                   <h3 className="mt-2 font-satoshi text-[15px] font-bold text-bq-heading">
                     {title}
                   </h3>
                   <p className="mt-1.5 text-[11px] leading-[1.63] text-bq-muted">{body}</p>
                 </div>
-              </div>
+              </BandCard>
             </Reveal>
           ))}
         </div>
@@ -127,8 +148,8 @@ function Faq({ faq }: { faq: LegalDoc["faq"] }) {
         <BandHeading>{faq.heading}</BandHeading>
         <div className="mt-6 grid gap-2.5 md:mt-8 md:grid-cols-2">
           {faq.items.map(({ question, answer }, i) => (
-            <Reveal key={question} delay={i * 70} className="h-full">
-              <div className="h-full rounded-2xl border border-bq-border bg-bq-card p-5 md:p-6">
+            <Reveal key={question} delay={i * FAQ_STAGGER} className="h-full">
+              <BandCard>
                 <span className="flex size-6 items-center justify-center rounded-[14px] border border-bq-green/15 bg-bq-green/[0.08]">
                   <CircleQuestionMark className="size-3 text-bq-green" />
                 </span>
@@ -136,7 +157,7 @@ function Faq({ faq }: { faq: LegalDoc["faq"] }) {
                   {question}
                 </h3>
                 <p className="mt-1.5 text-[11px] leading-[1.63] text-bq-muted">{answer}</p>
-              </div>
+              </BandCard>
             </Reveal>
           ))}
         </div>
@@ -145,67 +166,35 @@ function Faq({ faq }: { faq: LegalDoc["faq"] }) {
   );
 }
 
-function ContactCta({ cta }: { cta: LegalDoc["cta"] }) {
+function Contact({ cta }: { cta: LegalDoc["cta"] }) {
   return (
     <section className={cn("bg-bq-bg py-10", PAD)}>
       <Reveal className="mx-auto max-w-[1040px]">
-        <div className="relative overflow-hidden rounded-2xl border border-bq-border bg-bq-card p-5 md:p-8">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(ellipse 60% 80% at 0% 50%, color-mix(in srgb, var(--bq-green) 5%, transparent), transparent 70%)",
-            }}
-          />
-          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-8">
-            <div>
-              <h2 className="font-satoshi text-[17px] font-bold tracking-tight text-bq-heading md:text-[21px]">
-                {cta.title}
-              </h2>
-              <p className="mt-1.5 max-w-[540px] text-[11px] leading-[1.43] text-bq-muted md:text-[13px]">
-                {cta.body}
-              </p>
-            </div>
-
-            <div className="flex shrink-0 flex-col gap-2 md:flex-row md:items-center md:gap-3">
-              <a
-                href={`mailto:${cta.email}`}
-                className="flex items-center justify-center gap-2 rounded-full border border-bq-overlay/[0.12] bg-bq-surface px-5 py-2.5 text-[13px] font-bold text-bq-text transition-transform hover:text-bq-heading active:translate-y-px"
-              >
-                <Mail className="size-3.5 shrink-0" />
-                {cta.emailLabel}
-              </a>
-              <Link
-                href="/dashboard/help"
-                className="flex items-center justify-center gap-2 rounded-full bg-bq-green px-5 py-2.5 text-[13px] font-bold text-bq-on-fill transition-transform hover:bg-bq-green/90 active:translate-y-px"
-              >
-                <Headset className="size-3.5 shrink-0" />
-                {/* One flex child, or the row gap lands between prefix and label. */}
-                <span>
-                  <span className="hidden sm:inline">Open </span>Help Desk
-                </span>
-              </Link>
-            </div>
-          </div>
-        </div>
+        <ContactCta
+          title={cta.title}
+          body={cta.body}
+          actions={[
+            { icon: Mail, label: cta.emailLabel, href: `mailto:${cta.email}` },
+            HELP_DESK_ACTION,
+          ]}
+        />
       </Reveal>
     </section>
   );
 }
 
-export function LegalPage({ doc }: { doc: LegalDoc }) {
+function BandHeading({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-bq-bg font-satoshi text-bq-heading">
-      <ScrollProgress />
-      <Nav />
-      <Hero doc={doc} />
-      <Clauses sections={doc.sections} />
-      <Highlights highlights={doc.highlights} />
-      <Faq faq={doc.faq} />
-      <ContactCta cta={doc.cta} />
-      <SiteFooter />
-      <AssistantWidget />
-    </main>
+    <h2 className="font-satoshi text-[17px] font-bold tracking-tight text-bq-heading md:text-[26px]">
+      {children}
+    </h2>
+  );
+}
+
+function BandCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative h-full overflow-hidden rounded-2xl border border-bq-border bg-bq-card p-5 md:p-6">
+      {children}
+    </div>
   );
 }

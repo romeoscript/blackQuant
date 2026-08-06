@@ -205,7 +205,7 @@ export const FOOTER_COLUMNS = [
 ] as const;
 
 /** Footer links that resolve to a real route; everything else toasts. */
-export const FOOTER_LINK_HREFS: Record<string, string> = {
+export const FOOTER_LINK_HREFS: Record<string, string | undefined> = {
   About: "/about",
 };
 
