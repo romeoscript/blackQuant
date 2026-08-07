@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, ShieldCheck } from "lucide-react";
 import { logIn } from "@/app/auth-actions";
 import {
   AuthShell,
@@ -12,6 +12,7 @@ import {
   PrimaryButton,
   FormHeader,
 } from "@/components/auth/auth-ui";
+import { useAuthRedirect } from "@/hooks/use-auth-redirect";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AuthState } from "@/app/auth-actions";
 
@@ -26,6 +27,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     logIn,
     { ok: false, message: "" },
   );
+  useAuthRedirect(state.ok);
   const [remember, setRemember] = useState(true);
   const [showPw, setShowPw] = useState(false);
 
@@ -80,6 +82,20 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               </button>
             }
           />
+
+          {state.needsTwoFactor && (
+            <Field
+              label="Authentication code"
+              name="twoFactor"
+              type="text"
+              icon={ShieldCheck}
+              placeholder="6-digit code or recovery code"
+              autoComplete="one-time-code"
+              inputMode="numeric"
+              autoFocus
+              required
+            />
+          )}
 
           <div className="flex items-center gap-2.5 py-1">
             {/* Radix renders no native control, so the state is posted here. */}

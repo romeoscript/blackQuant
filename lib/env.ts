@@ -23,6 +23,14 @@ const envSchema = z.object({
   ASSISTANT_BASE_URL: optionalStr,
   ASSISTANT_MODEL: optionalStr,
   ASSISTANT_EMBED_MODEL: optionalStr,
+  // Private object storage for KYC documents. Any S3-compatible endpoint —
+  // AWS S3, Cloudflare R2, Backblaze B2, MinIO. Without a bucket configured,
+  // uploads fall back to a local directory that is development-only.
+  S3_ENDPOINT: optionalStr,
+  S3_REGION: optionalStr,
+  S3_BUCKET: optionalStr,
+  S3_ACCESS_KEY_ID: optionalStr,
+  S3_SECRET_ACCESS_KEY: optionalStr,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),

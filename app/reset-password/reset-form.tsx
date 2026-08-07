@@ -2,7 +2,14 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { Lock, Eye, EyeOff, KeyRound, ShieldCheck, ArrowLeft } from "lucide-react";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  KeyRound,
+  ShieldCheck,
+  ArrowLeft,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   AuthShell,
@@ -10,6 +17,7 @@ import {
   PrimaryButton,
   FormHeader,
 } from "@/components/auth/auth-ui";
+import { useAuthRedirect } from "@/hooks/use-auth-redirect";
 import { resetPassword, type AuthState } from "@/app/auth-actions";
 
 const STRENGTH = ["Weak", "Weak", "Fair", "Good", "Strong"] as const;
@@ -29,6 +37,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
     resetPassword,
     { ok: false, message: "" },
   );
+  useAuthRedirect(state.ok);
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const score = scorePassword(password);
@@ -40,7 +49,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
       aria-label={showPw ? "Hide password" : "Show password"}
       className="shrink-0 text-bq-dim transition-colors hover:text-bq-heading"
     >
-      {showPw ? <EyeOff className="size-[13px]" /> : <Eye className="size-[13px]" />}
+      {showPw ? (
+        <EyeOff className="size-[13px]" />
+      ) : (
+        <Eye className="size-[13px]" />
+      )}
     </button>
   );
 
@@ -85,7 +98,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
                     )}
                   />
                 ))}
-                <span className="pl-2 text-[11px] text-bq-mint">{STRENGTH[score]}</span>
+                <span className="pl-2 text-[11px] text-bq-mint">
+                  {STRENGTH[score]}
+                </span>
               </div>
             )}
           </div>
@@ -168,7 +183,9 @@ function Brand() {
           <ShieldCheck className="size-[14px] text-bq-mint" />
         </span>
         <div className="flex flex-col gap-0.5">
-          <p className="text-[11px] font-medium text-bq-heading">Secure reset process</p>
+          <p className="text-[11px] font-medium text-bq-heading">
+            Secure reset process
+          </p>
           <p className="text-[11px] text-bq-heading/50">
             Link expires in 15 min · Single use only
           </p>

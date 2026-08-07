@@ -22,6 +22,7 @@ import {
   PrimaryButton,
   FormHeader,
 } from "@/components/auth/auth-ui";
+import { useAuthRedirect } from "@/hooks/use-auth-redirect";
 import { Checkbox } from "@/components/ui/checkbox";
 import { signUp, type AuthState } from "@/app/auth-actions";
 
@@ -48,6 +49,7 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
     signUp,
     { ok: false, message: "" },
   );
+  useAuthRedirect(state.ok);
   // Only the password is controlled — the strength meter needs to read it.
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useUser } from "@/hooks/use-user";
+import { userIdentity } from "@/lib/user-display";
 import { DashboardSidebar, SidebarBrand } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { ThemeSwitcher } from "@/components/dashboard/theme-switcher";
@@ -12,6 +14,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
+  const { displayName, initials, uid } = userIdentity(user);
 
   return (
     <div className="min-h-screen bg-bq-bg font-satoshi text-bq-text">
@@ -43,11 +47,11 @@ export default function DashboardLayout({
 
             <div className="flex items-center gap-2.5 border-b border-bq-border px-4 py-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[13px] font-bold text-primary">
-                YN
+                {initials}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[13px] font-bold text-bq-heading">YourNoCodeDev</p>
-                <p className="font-plex text-[11px] text-bq-dim">UID: 12532723525</p>
+                <p className="truncate text-[13px] font-bold text-bq-heading">{displayName}</p>
+                {uid && <p className="font-plex text-[11px] text-bq-dim">UID: {uid}</p>}
               </div>
             </div>
 

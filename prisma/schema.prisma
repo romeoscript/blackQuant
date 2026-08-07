@@ -21,9 +21,32 @@ model User {
   image         String?
   /// Null for accounts created purely through an OAuth provider.
   passwordHash  String?
+  /// Stamped on every password change so the profile can age it honestly.
+  /// Null means "never changed since signup".
+  passwordChangedAt DateTime?
+
+  username String? @unique
+  phone    String?
+  country  String?
+  currency String  @default("USD")
+
+  notifySignals     Boolean @default(true)
+  notifyPositions   Boolean @default(true)
+  notifyWithdrawals Boolean @default(true)
+  notifyReferrals   Boolean @default(false)
+
+  /// AES-256-GCM ciphertext — never the raw TOTP secret. Present without
+  /// `twoFactorEnabledAt` means an enrollment was started but never confirmed.
+  twoFactorSecret    String?
+  twoFactorEnabledAt DateTime?
+
   accounts      Account[]
   sessions      Session[]
+  recoveryCodes RecoveryCode[]
+  kycSubmissions KycSubmission[]
   passwordResets PasswordResetToken[]
+  credentialResets CredentialResetCode[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,4 +116,115 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+/// Single-use escape hatch when the authenticator is lost. Stored as digests,
+/// so the table alone cannot be used to sign in.
+model RecoveryCode {
+  id       Int       @id @default(autoincrement())
+  userId   Int
+  codeHash String
+  usedAt   DateTime?
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// Step-up check for changing credentials from inside an authenticated session.
+/// Six digits is only ~1M wide, so `attempts` is load-bearing: without a cap the
+/// code is brute-forceable well inside its lifetime.
+model CredentialResetCode {
+  id Int @id @default(autoincrement())
+  /// Deliberately not unique: six digits collide across users often enough to
+  /// fail a legitimate request. Rows are found by `userId` — which is also what
+  /// makes `attempts` enforceable, since a wrong guess must still land on the
+  /// user's own row to be counted.
+  codeHash  String
+  userId    Int
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum KycDocumentKind {
+  DOCUMENT_FRONT
+  DOCUMENT_BACK
+  SELFIE
+}
+
+/// One identity-verification attempt. The account's overall status is derived
+/// from the newest row rather than denormalised onto `User`, so the two can
+/// never disagree.
+model KycSubmission {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  status       KycStatus @default(PENDING)
+  /// Which document the user chose: "id" | "passport" | "licence".
+  documentType String
+  /// True only when the simulated liveness step was completed. Named for what
+  /// it is — no anti-spoofing is performed, so it proves presence of a capture,
+  /// not presence of a person.
+  livenessSimulated Boolean   @default(false)
+  reviewedAt        DateTime?
+  reviewNote        String?
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents    KycDocument[]
+
+  createdAt DateTime @default(now())
+
+  /// The screen always reads one user's attempts newest-first.
+  @@index([userId, createdAt])
+}
+
+/// Pointer to an object in private storage. The bytes never touch this table.
+model KycDocument {
+  id           Int             @id @default(autoincrement())
+  submissionId Int
+  kind         KycDocumentKind
+  /// Object key within the bucket; never a public URL.
+  storageKey   String
+  contentType  String
+  byteSize     Int
+  submission   KycSubmission   @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([submissionId])
+}
+
+/// Drives the icon and tone each notification renders with.
+enum NotificationKind {
+  WELCOME
+  SECURITY
+  SYSTEM
+}
+
+/// In-app notification. Read state is a nullable timestamp rather than a
+/// boolean so "when was this read" is answerable without a second column.
+model Notification {
+  id     Int              @id @default(autoincrement())
+  userId Int
+  kind   NotificationKind @default(SYSTEM)
+  title  String
+  body   String
+  readAt DateTime?
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  /// The panel always reads one user's rows newest-first.
+  @@index([userId, createdAt])
 }

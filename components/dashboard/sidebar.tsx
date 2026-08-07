@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import { getAccountStatus } from "@/app/account-status-actions";
+import { twoFactorBadge, verificationBadge, type StatusBadge } from "@/lib/account-status";
 import { LogoMark } from "@/components/logo";
 import {
   LayoutGrid,
@@ -29,7 +32,11 @@ type Item = {
   label: string;
   icon: LucideIcon;
   href: string;
-  badge?: { text: string; tone: "live" | "danger" };
+  badge?: StatusBadge;
+  /// Which live status supplies this item's badge, if any. Resolved at render
+  /// so the label reflects the account rather than a literal baked into the
+  /// nav table.
+  statusBadge?: "two-factor" | "verification";
   chevron?: boolean;
   danger?: boolean;
   /** Ends the session instead of navigating. */
@@ -59,9 +66,9 @@ const SECTIONS: Section[] = [
     title: "Personal",
     items: [
       { label: "My Profile", icon: User, href: "/dashboard/profile" },
-      { label: "2FA / Auth Guard", icon: Shield, href: "/dashboard/2fa", badge: { text: "Unconfigured", tone: "danger" } },
+      { label: "2FA / Auth Guard", icon: Shield, href: "/dashboard/2fa", statusBadge: "two-factor" },
       { label: "Reset Credentials", icon: KeyRound, href: "/dashboard/reset" },
-      { label: "Verification", icon: BadgeCheck, href: "/dashboard/verification", badge: { text: "Unverified", tone: "danger" } },
+      { label: "Verification", icon: BadgeCheck, href: "/dashboard/verification", statusBadge: "verification" },
     ],
   },
   {
@@ -73,14 +80,18 @@ const SECTIONS: Section[] = [
   },
 ];
 
-function NavBadge({ text, tone }: NonNullable<Item["badge"]>) {
+const BADGE_TONES: Record<StatusBadge["tone"], string> = {
+  live: "bg-bq-mint/15 text-bq-mint",
+  warn: "bg-bq-warn/15 text-bq-warn-text",
+  danger: "bg-bq-loss/15 text-bq-loss-text",
+};
+
+function NavBadge({ text, tone }: StatusBadge) {
   return (
     <span
       className={cn(
         "ml-auto shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold",
-        tone === "live"
-          ? "bg-bq-mint/15 text-bq-mint"
-          : "bg-bq-loss/15 text-bq-loss-text",
+        BADGE_TONES[tone],
       )}
     >
       {text}
@@ -90,6 +101,20 @@ function NavBadge({ text, tone }: NonNullable<Item["badge"]>) {
 
 export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { data: status } = useQuery({
+    queryKey: ["account-status"],
+    queryFn: () => getAccountStatus(),
+  });
+
+  // Undefined until the query resolves: showing "Unconfigured" first and
+  // correcting it a moment later is worse than showing nothing.
+  const badgeFor = (item: Item): StatusBadge | undefined => {
+    if (item.badge) return item.badge;
+    if (!status || !item.statusBadge) return undefined;
+    return item.statusBadge === "two-factor"
+      ? twoFactorBadge(status.twoFactorEnabled)
+      : verificationBadge(status.verification);
+  };
 
   return (
     <nav className="space-y-6 px-3 pb-6">
@@ -109,12 +134,13 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
                       ? "text-bq-loss-text hover:bg-bq-loss/10"
                       : "text-bq-muted hover:bg-bq-overlay/[0.03] hover:text-bq-text",
                 );
+                const badge = badgeFor(item);
                 const content = (
                   <>
                     <item.icon className="size-4 shrink-0" strokeWidth={1.8} />
                     <span className="flex-1 truncate">{item.label}</span>
-                    {item.badge && <NavBadge {...item.badge} />}
-                    {!item.badge && item.chevron && (
+                    {badge && <NavBadge {...badge} />}
+                    {!badge && item.chevron && (
                       <ChevronRight className="size-3.5 shrink-0 text-bq-dim" />
                     )}
                   </>

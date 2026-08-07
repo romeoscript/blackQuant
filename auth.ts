@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
+import { decryptSecret, hashRecoveryCode, verifyTotp } from "@/lib/totp";
 import authConfig from "./auth.config";
 
 const signInSchema = z.object({
@@ -13,7 +14,31 @@ const signInSchema = z.object({
   // Must accept "false" as well as "true": a literal("true") schema rejects the
   // unchecked case outright, which fails the whole sign-in.
   remember: z.enum(["true", "false"]).optional(),
+  /** A TOTP code or a recovery code; empty when the account has no 2FA. */
+  twoFactor: z.string().optional(),
 });
+
+/**
+ * Spends a recovery code if `token` matches an unused one. Marking it used in
+ * the same statement that selects it is what stops the same code authenticating
+ * twice from two concurrent attempts.
+ */
+async function consumeRecoveryCode(
+  userId: number,
+  token: string,
+): Promise<boolean> {
+  const candidate = await prisma.recoveryCode.findFirst({
+    where: { userId, usedAt: null, codeHash: hashRecoveryCode(token) },
+    select: { id: true },
+  });
+  if (!candidate) return false;
+
+  const spent = await prisma.recoveryCode.updateMany({
+    where: { id: candidate.id, usedAt: null },
+    data: { usedAt: new Date() },
+  });
+  return spent.count === 1;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -50,6 +75,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!user?.passwordHash) return null;
         if (!(await verifyPassword(parsed.data.password, user.passwordHash))) {
           return null;
+        }
+
+        // Enforced here rather than only in the sign-in action, so a caller
+        // that invokes signIn directly still cannot skip the second factor.
+        if (user.twoFactorEnabledAt) {
+          const token = parsed.data.twoFactor?.trim() ?? "";
+          if (!token) return null;
+
+          const secret = user.twoFactorSecret
+            ? decryptSecret(user.twoFactorSecret)
+            : null;
+          const accepted =
+            (secret !== null && verifyTotp(secret, token)) ||
+            (await consumeRecoveryCode(user.id, token));
+          if (!accepted) return null;
         }
 
         return {
