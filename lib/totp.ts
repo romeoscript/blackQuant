@@ -7,7 +7,7 @@ import {
   randomInt,
 } from "node:crypto";
 import { Secret, TOTP } from "otpauth";
-import encodeQr from "@paulmillr/qr";
+import { qrSvg } from "@/lib/qr";
 import { env } from "@/lib/env";
 
 const ISSUER = "BlackQuant";
@@ -76,12 +76,8 @@ export function provisioningUri(secret: string, account: string): string {
   return totpFor(secret, account).toString();
 }
 
-/** Inline SVG so the QR never leaves the server or hits a third-party renderer. */
 export function provisioningQrSvg(secret: string, account: string): string {
-  return encodeQr(provisioningUri(secret, account), "svg", {
-    ecc: "medium",
-    scale: 4,
-  });
+  return qrSvg(provisioningUri(secret, account));
 }
 
 export function verifyTotp(secret: string, token: string): boolean {

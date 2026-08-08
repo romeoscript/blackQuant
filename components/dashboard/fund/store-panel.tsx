@@ -10,9 +10,11 @@ import {
   ShoppingCart,
   type LucideIcon,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Panel, usd } from "@/components/dashboard/panel";
-import { STORE_BALANCE, STORE_ITEMS, type StoreItem } from "./data";
+import { Panel } from "@/components/dashboard/panel";
+import { getBalanceUsd } from "@/app/balance-actions";
+import { STORE_ITEMS, type StoreItem } from "./data";
 
 const ICONS: Record<StoreItem["icon"], LucideIcon> = {
   cpu: Cpu,
@@ -22,19 +24,26 @@ const ICONS: Record<StoreItem["icon"], LucideIcon> = {
   shield: Shield,
 };
 
-function buy(item: StoreItem) {
-  if (item.price > STORE_BALANCE) {
-    toast.error("Insufficient balance", {
-      description: `${item.name} costs $${item.price}. Fund your account to complete this purchase.`,
-    });
-    return;
-  }
-  toast.success(`${item.name} purchased`, {
-    description: `$${item.price} deducted from your BlackQuant balance.`,
-  });
-}
-
 export function StorePanel() {
+  // The real balance, not a placeholder: a funding page that quotes a number
+  // the deposit flow cannot produce teaches people not to trust either.
+  const { data: balance = "0.00" } = useQuery({
+    queryKey: ["balance"],
+    queryFn: () => getBalanceUsd(),
+  });
+
+  const buy = (item: StoreItem) => {
+    if (item.price > Number(balance)) {
+      toast.error("Not enough balance", {
+        description: `${item.name} costs $${item.price}. You have $${balance}. Deposit crypto to top up.`,
+      });
+      return;
+    }
+    toast("Store isn't live yet", {
+      description: `${item.name} can't be purchased until checkout is wired up.`,
+    });
+  };
+
   return (
     <Panel className="p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -48,7 +57,7 @@ export function StorePanel() {
           </div>
         </div>
         <span className="flex items-center gap-1.5 rounded-[14px] border border-bq-mint/20 bg-bq-mint/10 px-[13px] py-[7px] text-[11px]">
-          <span className="font-semibold text-bq-mint">{usd(STORE_BALANCE)}</span>
+          <span className="font-plex font-semibold text-bq-mint">${balance}</span>
           <span className="text-bq-dim">available</span>
         </span>
       </div>

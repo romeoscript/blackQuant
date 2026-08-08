@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
   ChevronRight,
   CircleArrowDown,
@@ -14,7 +15,8 @@ import { AssetSelectCard } from "@/components/dashboard/fund/asset-select-card";
 import { DepositAddressCard } from "@/components/dashboard/fund/deposit-address-card";
 import { HelpCard, RecentDepositsCard } from "@/components/dashboard/fund/side-cards";
 import { StorePanel } from "@/components/dashboard/fund/store-panel";
-import { DEPOSIT_ASSETS } from "@/components/dashboard/fund/data";
+import { DEPOSIT_ASSETS, type DepositAssetInfo } from "@/lib/deposit";
+import { getBalanceUsd } from "@/app/balance-actions";
 
 const TABS: { id: "deposit" | "store"; label: string; icon: LucideIcon }[] = [
   { id: "deposit", label: "Deposit Crypto", icon: CircleArrowDown },
@@ -23,7 +25,13 @@ const TABS: { id: "deposit" | "store"; label: string; icon: LucideIcon }[] = [
 
 export default function FundAccountPage() {
   const [tab, setTab] = useState<"deposit" | "store">("deposit");
-  const [asset, setAsset] = useState(DEPOSIT_ASSETS[0]);
+  // Annotated, not inferred: `DEPOSIT_ASSETS` is `as const`, so the initial
+  // value alone would narrow the state to BTC's literal type.
+  const [asset, setAsset] = useState<DepositAssetInfo>(DEPOSIT_ASSETS[0]);
+  const { data: balance = "0.00" } = useQuery({
+    queryKey: ["balance"],
+    queryFn: () => getBalanceUsd(),
+  });
 
   return (
     <div className="space-y-4 lg:space-y-5">
@@ -35,12 +43,22 @@ export default function FundAccountPage() {
             <span className="text-bq-text">Fund Account</span>
           </p>
         </div>
-        <Link
-          href="/dashboard/withdrawals"
-          className="flex items-center gap-2 rounded-full border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-surface"
-        >
-          <CircleArrowUp className="size-4" /> Withdraw Instead
-        </Link>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="font-plex text-[10px] uppercase tracking-[0.1em] text-bq-dim">
+              Available
+            </p>
+            <p className="font-plex text-[19px] font-semibold text-bq-heading tabular-nums">
+              ${balance}
+            </p>
+          </div>
+          <Link
+            href="/dashboard/withdrawals"
+            className="flex items-center gap-2 rounded-full border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-surface"
+          >
+            <CircleArrowUp className="size-4" /> Withdraw
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-6 border-b border-bq-border">

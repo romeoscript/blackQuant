@@ -31,6 +31,11 @@ const envSchema = z.object({
   S3_BUCKET: optionalStr,
   S3_ACCESS_KEY_ID: optionalStr,
   S3_SECRET_ACCESS_KEY: optionalStr,
+  // Crypto deposits through NOWPayments. Without an API key the deposit page
+  // cannot provision addresses and says so; the IPN route rejects everything.
+  NOWPAYMENTS_API_KEY: optionalStr,
+  NOWPAYMENTS_IPN_SECRET: optionalStr,
+  NOWPAYMENTS_BASE_URL: optionalStr,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -60,6 +65,21 @@ const parsed = envSchema
         path: ["RESEND_FROM"],
         message: `RESEND_FROM must be "email@example.com" or "Name <email@example.com>" — got ${JSON.stringify(v.RESEND_FROM)}`,
       });
+    }
+  })
+  // An API key without the IPN secret is the dangerous half-configuration:
+  // addresses get handed out and money arrives, but every callback that would
+  // credit it fails signature verification. Caught at boot, not at deposit time.
+  .superRefine((v, ctx) => {
+    if (!v.NOWPAYMENTS_API_KEY) return;
+    for (const key of ["NOWPAYMENTS_IPN_SECRET", "NOWPAYMENTS_BASE_URL"] as const) {
+      if (!v[key]) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `${key} is required when NOWPAYMENTS_API_KEY is set`,
+        });
+      }
     }
   })
   .safeParse(process.env);
