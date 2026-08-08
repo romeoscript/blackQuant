@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useAvatar } from "@/hooks/use-avatar";
+import { useDepositStream } from "@/hooks/use-deposit-stream";
 import { userIdentity } from "@/lib/user-display";
 import { Avatar } from "@/components/dashboard/avatar";
 import { DashboardSidebar, SidebarBrand } from "@/components/dashboard/sidebar";
@@ -19,6 +20,10 @@ export default function DashboardLayout({
   const { user } = useUser();
   const { displayName, initials, uid } = userIdentity(user);
   const avatar = useAvatar();
+
+  // One connection for the whole dashboard; every screen's queries refetch
+  // from it the moment a deposit moves.
+  useDepositStream();
 
   return (
     <div className="min-h-screen bg-bq-bg font-satoshi text-bq-text">
