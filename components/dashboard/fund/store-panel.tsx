@@ -21,7 +21,7 @@ import { StatPill } from "@/components/dashboard/widgets";
 import { LoadError } from "@/components/dashboard/load-error";
 import { useBalance } from "@/hooks/use-balance";
 import { listEntitlements, purchaseItem } from "@/app/store-actions";
-import { STORE_ITEMS, type StoreItem } from "@/lib/store";
+import { STORE_ITEMS, storeItem, type StoreItem } from "@/lib/store";
 
 const ICONS: Record<StoreItem["icon"], LucideIcon> = {
   cpu: Cpu,
@@ -55,10 +55,10 @@ export function StorePanel() {
         return;
       }
       toast.success(result.message, {
-        description: `$${storePrice(itemId)} deducted from your balance.`,
+        description: `$${storeItem(itemId)?.priceUsd} deducted from your balance.`,
       });
       // The balance, the entitlement and the notification all just changed.
-      for (const queryKey of [["balance"], ["entitlements"], ["notifications"], ["treasury"], ["control-center"]]) {
+      for (const queryKey of [["balance"], ["entitlements"], ["notifications"], ["treasury"], ["transactions"], ["control-center"]]) {
         queryClient.invalidateQueries({ queryKey });
       }
     },
@@ -216,5 +216,3 @@ function StoreCard({
   );
 }
 
-const storePrice = (itemId: string) =>
-  STORE_ITEMS.find((item) => item.id === itemId)?.priceUsd ?? 0;
