@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { loadEnv } from "../scripts/load-env";
 
 /**
@@ -25,3 +26,11 @@ if (!process.env.DATABASE_URL) {
 // of what the developer has configured locally.
 process.env.NOWPAYMENTS_IPN_SECRET = "test-ipn-secret";
 process.env.AUTH_SECRET ??= "test-auth-secret";
+
+// Server actions call `revalidatePath`, which needs a Next request context that
+// does not exist under vitest. Stubbed so an action can be tested as a plain
+// function; what it revalidates is Next's concern, not this suite's.
+vi.mock("next/cache", () => ({
+  revalidatePath: () => {},
+  revalidateTag: () => {},
+}));
