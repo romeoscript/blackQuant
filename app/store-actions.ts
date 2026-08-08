@@ -54,7 +54,8 @@ export async function listEntitlements(): Promise<StoreEntitlement[] | null> {
  */
 export async function purchaseItem(itemId: string): Promise<PurchaseState> {
   const userId = await currentUserId();
-  if (userId === null) return { ok: false, message: "Your session has expired." };
+  if (userId === null)
+    return { ok: false, message: "Your session has expired." };
 
   const item = storeItem(itemId);
   if (!item) return { ok: false, message: "That item isn't available." };
@@ -66,63 +67,71 @@ export async function purchaseItem(itemId: string): Promise<PurchaseState> {
       : null;
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const held = await tx.purchase.findFirst({
-        where: {
-          userId,
-          itemId,
-          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-        },
-        select: { id: true },
-      });
-      if (held) {
-        return {
-          ok: false,
-          message: expiresAt
-            ? "That subscription is already active."
-            : "You already own that.",
-        };
-      }
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const held = await tx.purchase.findFirst({
+          where: {
+            userId,
+            itemId,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
+          select: { id: true },
+        });
+        if (held) {
+          return {
+            ok: false,
+            message: expiresAt
+              ? "That subscription is already active."
+              : "You already own that.",
+          };
+        }
 
-      const debited = await tx.user.updateMany({
-        where: { id: userId, balanceUsd: { gte: price } },
-        data: { balanceUsd: { decrement: price } },
-      });
-      if (debited.count === 0) {
-        return {
-          ok: false,
-          message: "Not enough balance. Deposit crypto to top up.",
-        };
-      }
+        const debited = await tx.user.updateMany({
+          where: { id: userId, balanceUsd: { gte: price } },
+          data: { balanceUsd: { decrement: price } },
+        });
+        if (debited.count === 0) {
+          return {
+            ok: false,
+            message: "Not enough balance. Deposit crypto to top up.",
+          };
+        }
 
-      const purchase = await tx.purchase.create({
-        data: { userId, itemId, priceUsd: price, expiresAt },
-      });
+        const purchase = await tx.purchase.create({
+          data: { userId, itemId, priceUsd: price, expiresAt },
+        });
 
-      // Negative, because the ledger is signed and the balance is derived from
-      // it. Nothing debits a balance without the entry that explains it.
-      await tx.ledgerEntry.create({
-        data: {
-          userId,
-          amountUsd: price.negated(),
-          kind: "purchase",
-          refId: String(purchase.id),
-        },
-      });
+        // Negative, because the ledger is signed and the balance is derived from
+        // it. Nothing debits a balance without the entry that explains it.
+        await tx.ledgerEntry.create({
+          data: {
+            userId,
+            amountUsd: price.negated(),
+            kind: "purchase",
+            refId: String(purchase.id),
+          },
+        });
 
-      await tx.notification.create({
-        data: {
-          userId,
-          kind: "SYSTEM",
-          title: `${item.name} activated`,
-          body: expiresAt
-            ? `$${item.priceUsd} was deducted from your balance. Active until ${expiresAt.toDateString()}.`
-            : `$${item.priceUsd} was deducted from your balance.`,
-        },
-      });
+        await tx.notification.create({
+          data: {
+            userId,
+            kind: "SYSTEM",
+            title: `${item.name} activated`,
+            body: expiresAt
+              ? `$${item.priceUsd} was deducted from your balance. Active until ${expiresAt.toDateString()}.`
+              : `$${item.priceUsd} was deducted from your balance.`,
+          },
+        });
 
-      return { ok: true, message: `${item.name} is now active.` };
-    });
+        return { ok: true, message: `${item.name} is now active.` };
+      },
+      // Serializable because the "do they already own this?" check is a read
+      // followed by a write: under the default isolation two clicks arriving
+      // together both see "not owned" and both charge. The balance guard alone
+      // does not catch it, since the account can afford both. Postgres aborts
+      // the loser, which the catch below turns into a refusal.
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
 
     // Only when something actually changed; a refused purchase has nothing to
     // revalidate.
