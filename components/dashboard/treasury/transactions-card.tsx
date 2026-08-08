@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowDownLeft, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -13,26 +13,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Panel } from "@/components/dashboard/panel";
+import { StatPill } from "@/components/dashboard/widgets";
 import { CoinLogo } from "@/components/dashboard/fund/coin-logo";
 import { listDeposits, type DepositView } from "@/app/deposit-actions";
 import { DEPOSIT_STATUS_UI, isPendingStatus } from "@/lib/deposit";
 
 const ALL = "All";
-
-const TONE: Record<string, string> = {
-  mint: "bg-bq-mint/10 text-bq-mint",
-  warn: "bg-bq-warn/10 text-bq-warn-text",
-  loss: "bg-bq-loss/10 text-bq-loss-text",
-  muted: "bg-bq-overlay/[0.06] text-bq-muted",
-};
-
-const dateLabel = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
 
 const TH = "h-9 px-0 text-[10px] font-medium uppercase tracking-[1px] text-bq-dim";
 
@@ -138,7 +125,7 @@ export function TransactionsCard() {
                         {row.status === "CONFIRMED" ? `+$${row.usdCredited}` : "—"}
                       </TableCell>
                       <TableCell className="text-[12px] text-bq-muted">
-                        {dateLabel.format(new Date(row.createdAt))}
+                        {formatDate(row.createdAt)}
                       </TableCell>
                       <TableCell>
                         <StatusBadge deposit={row} />
@@ -162,7 +149,7 @@ export function TransactionsCard() {
                     </p>
                     <p className="font-plex text-[11px] text-bq-dim">
                       {row.payAmount} {row.symbol} ·{" "}
-                      {dateLabel.format(new Date(row.createdAt))}
+                      {formatDate(row.createdAt)}
                     </p>
                   </div>
                   <StatusBadge deposit={row} />
@@ -190,10 +177,10 @@ function StatusBadge({ deposit }: { deposit: DepositView }) {
     isPendingStatus(deposit.status) && deposit.requiredConfirmations > 0;
 
   return (
-    <Badge className={cn("rounded-full font-medium", TONE[ui.tone])}>
+    <StatPill tone={ui.tone}>
       {showConfirmations
         ? `${Math.min(deposit.confirmations, deposit.requiredConfirmations)}/${deposit.requiredConfirmations}`
         : ui.label}
-    </Badge>
+    </StatPill>
   );
 }

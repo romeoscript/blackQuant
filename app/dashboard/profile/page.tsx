@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { NotificationKind } from "@prisma/client";
+import { formatDate } from "@/lib/utils";
 import { DashboardPageHeader } from "@/components/dashboard/page-header";
 import { Card, StatPill, HeaderActions } from "@/components/dashboard/widgets";
 import { ProfileHeader } from "@/components/dashboard/profile/profile-header";
@@ -26,12 +27,6 @@ const ACTIVITY_ICONS: Record<NotificationKind, LucideIcon> = {
   SYSTEM: Bell,
 };
 
-const dayMonth = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
-
 function daysSince(iso: string) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
 }
@@ -39,7 +34,7 @@ function daysSince(iso: string) {
 function authGuardSummary(status: TwoFactorStatus | null) {
   if (!status?.enabledAt) return "Not configured. Your account has one factor";
   const codes = status.recoveryCodesRemaining;
-  return `Active since ${dayMonth.format(new Date(status.enabledAt))} · ${codes} backup ${codes === 1 ? "code" : "codes"} left`;
+  return `Active since ${formatDate(status.enabledAt)} · ${codes} backup ${codes === 1 ? "code" : "codes"} left`;
 }
 
 export default async function ProfilePage() {
@@ -151,7 +146,7 @@ export default async function ProfilePage() {
                     <p className="truncate text-[11px] text-bq-dim">{item.body}</p>
                   </div>
                   <span className="shrink-0 font-plex text-[11px] text-bq-dim">
-                    {dayMonth.format(new Date(item.createdAt))}
+                    {formatDate(item.createdAt)}
                   </span>
                 </li>
               );

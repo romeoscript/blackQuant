@@ -7,17 +7,12 @@ import {
   EyeOff,
   TriangleAlert,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import { DashboardPageHeader } from "@/components/dashboard/page-header";
 import { Card, StatPill, HeaderActions } from "@/components/dashboard/widgets";
 import { VerificationFlow } from "@/components/dashboard/verification/verification-flow";
 import { getLatestSubmission, getStorageMode } from "@/app/kyc-actions";
 import { verificationStage } from "@/lib/account-status";
-
-const dateFormat = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
 
 export default async function VerificationPage() {
   const [submission, storageMode] = await Promise.all([
@@ -53,7 +48,7 @@ export default async function VerificationPage() {
             </span>
             <span className="block text-bq-dim">
               {approved
-                ? `Approved ${submission.reviewedAt ? dateFormat.format(new Date(submission.reviewedAt)) : ""}`
+                ? `Approved ${submission.reviewedAt ? formatDate(submission.reviewedAt) : ""}`
                 : awaitingReview
                   ? "We'll notify you once a decision is made."
                   : "Verify your identity to raise your withdrawal limits."}
@@ -104,7 +99,7 @@ export default async function VerificationPage() {
                 Verification complete
               </h2>
               <p className="mt-1 text-[13px] text-bq-muted">
-                Submitted {dateFormat.format(new Date(submission.submittedAt))} ·{" "}
+                Submitted {formatDate(submission.submittedAt)} ·{" "}
                 {submission.documentCount} document
                 {submission.documentCount === 1 ? "" : "s"} on file.
               </p>
@@ -116,7 +111,7 @@ export default async function VerificationPage() {
                 Under review
               </h2>
               <p className="mt-1 text-[13px] text-bq-muted">
-                Submitted {dateFormat.format(new Date(submission.submittedAt))}.
+                Submitted {formatDate(submission.submittedAt)}.
                 A reviewer will compare your document with your face capture.
               </p>
             </Card>

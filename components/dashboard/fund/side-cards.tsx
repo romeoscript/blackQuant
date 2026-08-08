@@ -4,24 +4,12 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Headset, Loader2, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Panel } from "@/components/dashboard/panel";
+import { StatPill } from "@/components/dashboard/widgets";
 import { listDeposits, type DepositView } from "@/app/deposit-actions";
 import { DEPOSIT_STATUS_UI, isPendingStatus } from "@/lib/deposit";
 import { CoinLogo } from "./coin-logo";
-
-const TONE: Record<string, string> = {
-  mint: "bg-bq-mint/10 text-bq-mint",
-  warn: "bg-bq-warn/10 text-bq-warn-text",
-  loss: "bg-bq-loss/10 text-bq-loss-text",
-  muted: "bg-bq-overlay/[0.06] text-bq-muted",
-};
-
-const dayMonth = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
 
 export function RecentDepositsCard() {
   const queryClient = useQueryClient();
@@ -104,13 +92,11 @@ function DepositRow({ deposit }: { deposit: DepositView }) {
           {credited ? `$${deposit.usdCredited} credited` : (ui.note ?? "Not yet credited")}
         </p>
         <p className="mt-1 text-[11px] text-bq-dim">
-          {dayMonth.format(new Date(deposit.createdAt))}
+          {formatDate(deposit.createdAt)}
         </p>
       </div>
       <div className="flex flex-col items-end gap-3">
-        <span className={cn("rounded-lg px-2 py-0.5 text-[11px]", TONE[ui.tone])}>
-          {ui.label}
-        </span>
+        <StatPill tone={ui.tone}>{ui.label}</StatPill>
         {isPendingStatus(deposit.status) && deposit.requiredConfirmations > 0 && (
           <span className="font-plex text-[10px] text-bq-dim">
             {Math.min(deposit.confirmations, deposit.requiredConfirmations)}/
