@@ -60,6 +60,7 @@ model User {
   depositAddresses DepositAddress[]
   depositEvents    DepositEvent[]
   ledgerEntries    LedgerEntry[]
+  purchases        Purchase[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -259,7 +260,7 @@ enum DepositStatus {
 /// persists for the life of the account, so a user's saved address keeps
 /// working.
 model DepositAddress {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   userId      Int
   /// NOWPayments currency code, e.g. "usdttrc20".
   currency    String
@@ -345,5 +346,26 @@ model LedgerEntry {
   /// The idempotency guard for the whole system. A replayed IPN callback fails
   /// here, which is the one write that must happen exactly once.
   @@unique([kind, refId])
+  @@index([userId, createdAt])
+}
+
+/// Something bought from the store, and the record that it was paid for.
+///
+/// The price is stored as charged rather than read back from the catalogue: a
+/// receipt has to survive the catalogue changing.
+model Purchase {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  /// Catalogue id from `lib/store.ts`.
+  itemId    String
+  priceUsd  Decimal   @db.Decimal(18, 2)
+  /// When a subscription lapses. Null for a one-time add-on, which is kept
+  /// forever — the absence of a date is what makes it permanent.
+  expiresAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
   @@index([userId, createdAt])
 }
