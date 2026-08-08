@@ -196,17 +196,14 @@ function CopyField({
     <div
       style={{ borderLeftColor: accent }}
       className={cn(
-        "rounded-[14px] border border-l-[3px] border-bq-border bg-bq-bg px-4 py-3",
+        "rounded-[14px] border border-l-[3px] border-bq-border bg-bq-bg px-3.5 py-2.5",
         emphasis && "border-bq-warn/40 bg-bq-warn/5",
       )}
     >
-      <p className="font-plex text-[10px] uppercase tracking-[0.08em] text-bq-dim">
-        {label}
-      </p>
-      <div className="mt-1.5 flex items-start gap-3">
-        <code className="min-w-0 flex-1 break-all font-plex text-[13px] leading-relaxed text-bq-heading">
-          {value}
-        </code>
+      <div className="flex items-center justify-between gap-3">
+        <p className="font-plex text-[10px] uppercase tracking-[0.08em] text-bq-dim">
+          {label}
+        </p>
         <button
           onClick={() => {
             navigator.clipboard.writeText(value);
@@ -214,7 +211,7 @@ function CopyField({
             setTimeout(() => setCopied(false), 2000);
             toast.success("Copied", { description: `${label} is on your clipboard.` });
           }}
-          className="flex shrink-0 items-center gap-1.5 rounded-[10px] border border-bq-border px-2.5 py-1.5 text-[11px] font-medium text-bq-heading transition-colors hover:bg-bq-surface"
+          className="-my-1 flex shrink-0 items-center gap-1.5 rounded-[10px] border border-bq-border px-2 py-1 text-[11px] font-medium text-bq-heading transition-colors hover:bg-bq-surface"
         >
           {copied ? (
             <>
@@ -227,6 +224,9 @@ function CopyField({
           )}
         </button>
       </div>
+      <code className="mt-1 block break-all font-plex text-[13px] leading-snug text-bq-heading">
+        {value}
+      </code>
     </div>
   );
 }
