@@ -28,9 +28,13 @@ const balanceOf = async (userId: number) =>
     })
   ).balanceUsd.toFixed(2);
 
+// A counter, not a timestamp: two users made in the same millisecond with the
+// same balance would otherwise collide on the unique email.
+let made = 0;
+
 async function makeUser(balance: number) {
   const user = await prisma.user.create({
-    data: { email: `store-${Date.now()}-${Math.round(balance)}@ipn.test`, balanceUsd: balance },
+    data: { email: `store-${Date.now()}-${made++}@ipn.test`, balanceUsd: balance },
   });
   currentUserId = user.id;
   return user.id;
