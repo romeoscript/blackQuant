@@ -1,4 +1,5 @@
 import type { DepositStatus } from "@prisma/client";
+import type { Tone as StatPillTone } from "@/components/dashboard/widgets";
 
 /**
  * The assets the deposit page offers, and the NOWPayments code each maps to.
@@ -188,21 +189,24 @@ const USD_DENOMINATED = new Set([
  * How each status reads on the deposit list. A deposit is only money once it is
  * CONFIRMED; everything before that is reported as in-progress rather than as
  * an amount the user has.
+ *
+ * Tones are `StatPill`'s vocabulary so both deposit lists can render the badge
+ * with the shared component instead of each keeping its own class map.
  */
 export const DEPOSIT_STATUS_UI: Record<
   DepositStatus,
-  { label: string; tone: "mint" | "warn" | "loss" | "muted"; note?: string }
+  { label: string; tone: StatPillTone; note?: string }
 > = {
-  WAITING: { label: "Detected", tone: "muted", note: "Waiting for the network" },
-  CONFIRMING: { label: "Confirming", tone: "warn" },
-  CONFIRMED: { label: "Confirmed", tone: "mint" },
+  WAITING: { label: "Detected", tone: "neutral", note: "Waiting for the network" },
+  CONFIRMING: { label: "Confirming", tone: "amber" },
+  CONFIRMED: { label: "Confirmed", tone: "green" },
   PARTIALLY_PAID: {
     label: "Underpaid",
-    tone: "warn",
+    tone: "amber",
     note: "Less arrived than expected. Send the difference to the same address.",
   },
-  FAILED: { label: "Failed", tone: "loss", note: "Contact support with this deposit." },
-  EXPIRED: { label: "Expired", tone: "loss", note: "Contact support with this deposit." },
+  FAILED: { label: "Failed", tone: "red", note: "Contact support with this deposit." },
+  EXPIRED: { label: "Expired", tone: "red", note: "Contact support with this deposit." },
 };
 
 /** Nothing is settled until it is confirmed, so anything else keeps polling. */

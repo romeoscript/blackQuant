@@ -98,7 +98,9 @@ export function StatCard({
   );
 }
 
-type Tone = "green" | "red" | "amber" | "white" | "neutral";
+/** Shared badge vocabulary. Exported so domain modules can name a tone
+ *  without also owning its Tailwind classes. */
+export type Tone = "green" | "red" | "amber" | "white" | "neutral";
 export function StatPill({ tone, children }: { tone: Tone; children: ReactNode }) {
   const cls: Record<Tone, string> = {
     green: "bg-bq-mint/15 text-bq-mint",
