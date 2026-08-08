@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { getControlCenterSummary } from "@/app/dashboard-actions";
-import { activityDays } from "@/lib/dashboard";
+import { activityDays, type ActivityRange } from "@/lib/dashboard";
 import { plainDate } from "@/lib/utils";
 
 /**
@@ -12,6 +12,13 @@ import { plainDate } from "@/lib/utils";
  */
 
 const prisma = new PrismaClient();
+
+/** Fails the test rather than leaking a null into every assertion below. */
+async function summaryFor(range: ActivityRange) {
+  const summary = await getControlCenterSummary(range);
+  if (!summary) throw new Error(`expected a summary for ${range}`);
+  return summary;
+}
 
 /** The action reads the session, so tests exercise it through a stubbed auth. */
 let currentUserId: number | null = null;
@@ -55,13 +62,13 @@ afterAll(async () => {
 
 describe("activity buckets", () => {
   it("returns one bucket per day in the window, including empty ones", async () => {
-    const summary = await getControlCenterSummary("7d");
+    const summary = await summaryFor("7d");
     expect(summary.activity).toHaveLength(7);
     expect(summary.activity.filter((d) => d.netUsd === 0).length).toBeGreaterThan(0);
   });
 
   it("is ordered oldest to newest, with no gaps", async () => {
-    const { activity } = await getControlCenterSummary("30d");
+    const { activity } = await summaryFor("30d");
     const dates = activity.map((d) => d.date);
     expect([...dates].sort()).toEqual(dates);
 
@@ -74,19 +81,19 @@ describe("activity buckets", () => {
   });
 
   it("sums entries that fall on the same day into one bucket", async () => {
-    const { activity } = await getControlCenterSummary("7d");
+    const { activity } = await summaryFor("7d");
     const day = activity.find((d) => d.date === key(daysAgo(2)));
     expect(day?.netUsd).toBe(300);
   });
 
   it("keeps spend negative, so a bar can point the other way", async () => {
-    const { activity } = await getControlCenterSummary("7d");
+    const { activity } = await summaryFor("7d");
     expect(activity.find((d) => d.date === key(daysAgo(3)))?.netUsd).toBe(-30);
   });
 
   it("excludes entries outside the window and includes them in a wider one", async () => {
-    const week = await getControlCenterSummary("7d");
-    const month = await getControlCenterSummary("30d");
+    const week = await summaryFor("7d");
+    const month = await summaryFor("30d");
 
     expect(week.activity.some((d) => d.netUsd === 900)).toBe(false);
     expect(month.activity.some((d) => d.netUsd === 900)).toBe(true);
@@ -97,24 +104,23 @@ describe("activity buckets", () => {
 
   it("falls back to the shortest window for an unknown range", async () => {
     // The range crosses from the client and must never index blindly.
-    const summary = await getControlCenterSummary("300y" as never);
+    const summary = await summaryFor("300y" as never);
     expect(summary.activity).toHaveLength(activityDays("7d"));
   });
 });
 
 describe("totals", () => {
   it("counts only credited deposits, not spend", async () => {
-    const summary = await getControlCenterSummary("30d");
+    const summary = await summaryFor("30d");
     // 100 + 250 + 50 + 900; the -30 purchase is not a deposit.
     expect(summary.totalDepositedUsd).toBe("1300.00");
   });
 
-  it("returns empty values with no session rather than throwing", async () => {
+  it("reports unavailable rather than an empty account", async () => {
     const signedIn = currentUserId;
     currentUserId = null;
-    const summary = await getControlCenterSummary("7d");
-    expect(summary.totalDepositedUsd).toBe("0.00");
-    expect(summary.activity).toEqual([]);
+    // Null, never zeroes: a screen cannot tell "no money" from "no answer".
+    expect(await getControlCenterSummary("7d")).toBeNull();
     currentUserId = signedIn;
   });
 });

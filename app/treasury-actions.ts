@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { assetByCurrency } from "@/lib/deposit";
 import {
   balanceRangeDays,
@@ -19,15 +19,6 @@ export type TreasurySummary = {
   pendingCount: number;
   byAsset: AssetDeposits[];
   history: BalancePoint[];
-};
-
-const EMPTY: TreasurySummary = {
-  balanceUsd: "0.00",
-  totalDepositedUsd: "0.00",
-  totalWithdrawnUsd: "0.00",
-  pendingCount: 0,
-  byAsset: [],
-  history: [],
 };
 
 const monthLabel = new Intl.DateTimeFormat("en-GB", {
@@ -87,10 +78,26 @@ function bucketStarts(days: number): Date[] {
  */
 export async function getTreasurySummary(
   range: BalanceRange = DEFAULT_BALANCE_RANGE,
+): Promise<TreasurySummary | null> {
+  const userId = await currentUserId();
+  if (userId === null) return null;
+
+  try {
+    return await summarise(userId, range);
+  } catch (error) {
+    // Returned rather than rethrown: a server action that throws still answers
+    // 200, so the caller sees a resolved promise and cannot tell failure from
+    // an account with nothing in it. Null is the difference between "no money"
+    // and "we could not read your money".
+    console.error("[treasury:summary]", error);
+    return null;
+  }
+}
+
+async function summarise(
+  userId: number,
+  range: BalanceRange,
 ): Promise<TreasurySummary> {
-  const session = await auth();
-  const userId = Number(session?.user?.id);
-  if (!Number.isInteger(userId)) return EMPTY;
 
   const buckets = bucketStarts(balanceRangeDays(range));
   const windowStart = buckets[0];
@@ -130,7 +137,7 @@ export async function getTreasurySummary(
       }),
     ]);
 
-  if (!user) return EMPTY;
+  if (!user) throw new Error(`no such user: ${userId}`);
 
   const totalCredited = deposits.reduce(
     (total, row) => total + (row._sum.usdCredited?.toNumber() ?? 0),

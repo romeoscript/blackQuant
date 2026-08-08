@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 
 /**
  * The account's spendable balance, as a fixed-point string.
@@ -10,14 +10,20 @@ import { auth } from "@/auth";
  * putting money through a JS float on the way to the screen is how a balance
  * ends up a cent short of the ledger that produced it.
  */
-export async function getBalanceUsd(): Promise<string> {
-  const session = await auth();
-  const userId = Number(session?.user?.id);
-  if (!Number.isInteger(userId)) return "0.00";
+export async function getBalanceUsd(): Promise<string | null> {
+  const userId = await currentUserId();
+  if (userId === null) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { balanceUsd: true },
-  });
-  return (user?.balanceUsd ?? 0).toFixed(2);
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { balanceUsd: true },
+    });
+    return user ? user.balanceUsd.toFixed(2) : null;
+  } catch (error) {
+    // Null, not "0.00". A failed read that renders as zero tells someone their
+    // money is gone.
+    console.error("[balance]", error);
+    return null;
+  }
 }

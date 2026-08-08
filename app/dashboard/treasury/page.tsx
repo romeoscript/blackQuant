@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { CirclePlus, CircleArrowOutUpRight, ChevronRight } from "lucide-react";
+import { LoadError } from "@/components/dashboard/load-error";
 import { StatCards } from "@/components/dashboard/treasury/stat-cards";
 import { DepositsByAssetCard } from "@/components/dashboard/treasury/holdings-card";
 import { AllocationCard } from "@/components/dashboard/treasury/allocation-card";
@@ -15,7 +16,11 @@ import { DEFAULT_BALANCE_RANGE, type BalanceRange } from "@/lib/treasury";
 export default function TreasuryPage() {
   const [range, setRange] = useState<BalanceRange>(DEFAULT_BALANCE_RANGE);
 
-  const { data: summary } = useQuery({
+  const {
+    data: summary,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["treasury", range],
     queryFn: () => getTreasurySummary(range),
     // Switching ranges keeps the current figures on screen rather than
@@ -23,6 +28,10 @@ export default function TreasuryPage() {
     placeholderData: (previous) => previous,
     refetchInterval: (query) => (query.state.data?.pendingCount ? 15_000 : 60_000),
   });
+
+  // Null is the action reporting failure; isError covers the request never
+  // arriving at all.
+  const unavailable = isError || summary === null;
 
   return (
     <div className="space-y-4 lg:space-y-5">
@@ -50,24 +59,33 @@ export default function TreasuryPage() {
         </div>
       </div>
 
-      <StatCards summary={summary} />
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5">
-        <DepositsByAssetCard
-          assets={summary?.byAsset ?? []}
-          totalUsd={summary?.totalDepositedUsd ?? "0.00"}
+      {unavailable ? (
+        <LoadError
+          message="We couldn't load your treasury. Your balance is safe — this is only the view."
+          onRetry={() => refetch()}
         />
-        <AllocationCard
-          assets={summary?.byAsset ?? []}
-          totalUsd={summary?.totalDepositedUsd ?? "0.00"}
-        />
-      </div>
+      ) : (
+        <>
+          <StatCards summary={summary ?? undefined} />
 
-      <BalanceHistoryCard
-        history={summary?.history ?? []}
-        range={range}
-        onRangeChange={setRange}
-      />
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5">
+            <DepositsByAssetCard
+              assets={summary?.byAsset ?? []}
+              totalUsd={summary?.totalDepositedUsd ?? "0.00"}
+            />
+            <AllocationCard
+              assets={summary?.byAsset ?? []}
+              totalUsd={summary?.totalDepositedUsd ?? "0.00"}
+            />
+          </div>
+
+          <BalanceHistoryCard
+            history={summary?.history ?? []}
+            range={range}
+            onRangeChange={setRange}
+          />
+        </>
+      )}
       <TransactionsCard />
     </div>
   );

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import {
   ChevronRight,
   CircleArrowDown,
@@ -16,7 +15,7 @@ import { DepositAddressCard } from "@/components/dashboard/fund/deposit-address-
 import { HelpCard, RecentDepositsCard } from "@/components/dashboard/fund/side-cards";
 import { StorePanel } from "@/components/dashboard/fund/store-panel";
 import { DEPOSIT_ASSETS, type DepositAssetInfo } from "@/lib/deposit";
-import { getBalanceUsd } from "@/app/balance-actions";
+import { useBalance } from "@/hooks/use-balance";
 
 const TABS: { id: "deposit" | "store"; label: string; icon: LucideIcon }[] = [
   { id: "deposit", label: "Deposit Crypto", icon: CircleArrowDown },
@@ -28,10 +27,7 @@ export default function FundAccountPage() {
   // Annotated, not inferred: `DEPOSIT_ASSETS` is `as const`, so the initial
   // value alone would narrow the state to BTC's literal type.
   const [asset, setAsset] = useState<DepositAssetInfo>(DEPOSIT_ASSETS[0]);
-  const { data: balance = "0.00" } = useQuery({
-    queryKey: ["balance"],
-    queryFn: () => getBalanceUsd(),
-  });
+  const { balanceUsd } = useBalance();
 
   return (
     <div className="space-y-4 lg:space-y-5">
@@ -49,7 +45,7 @@ export default function FundAccountPage() {
               Available
             </p>
             <p className="font-plex text-[19px] font-semibold text-bq-heading tabular-nums">
-              ${balance}
+              ${balanceUsd ?? "—"}
             </p>
           </div>
           <Link

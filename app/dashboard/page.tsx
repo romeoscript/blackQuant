@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { NotificationKind } from "@prisma/client";
-import { cn, plainDate, timeAgo } from "@/lib/utils";
+import { cn, formatDate, plainDate, timeAgo } from "@/lib/utils";
 import type { VerificationStage } from "@/lib/account-status";
 import {
   ACTIVITY_RANGES,
@@ -32,17 +32,12 @@ import {
   type ActivityDay,
   type ActivityRange,
 } from "@/lib/dashboard";
+import { LoadError } from "@/components/dashboard/load-error";
 import { getControlCenterSummary } from "@/app/dashboard-actions";
-import { getBalanceUsd } from "@/app/balance-actions";
+import { useBalance } from "@/hooks/use-balance";
 import { listNotifications } from "@/app/notification-actions";
 
 const dayLabel = new Intl.DateTimeFormat("en-GB", { weekday: "narrow" });
-const fullDate = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
-
 
 const VERIFICATION_LABEL: Record<VerificationStage, string> = {
   approved: "Identity verified",
@@ -91,7 +86,12 @@ function Stat({
       <p className="mt-3 truncate text-[28px] font-bold leading-none text-bq-heading tabular-nums">
         {value}
       </p>
-      <p className={cn("mt-2 truncate text-[12px]", tone ? TONE[tone] : "text-bq-dim")}>
+      <p
+        className={cn(
+          "mt-2 truncate text-[12px]",
+          tone ? TONE[tone] : "text-bq-dim",
+        )}
+      >
         {sub}
       </p>
     </div>
@@ -191,7 +191,11 @@ export default function ControlCenter() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: summary } = useQuery({
+  const {
+    data: summary,
+    isError: summaryError,
+    refetch: refetchSummary,
+  } = useQuery({
     queryKey: ["control-center", range],
     queryFn: () => getControlCenterSummary(range),
     // Keeps the previous range on screen while the next one loads, so switching
@@ -205,10 +209,7 @@ export default function ControlCenter() {
     refetchInterval: (query) =>
       query.state.data?.pending.count ? 15_000 : 60_000,
   });
-  const { data: balance = "0.00" } = useQuery({
-    queryKey: ["balance"],
-    queryFn: () => getBalanceUsd(),
-  });
+  const { balanceUsd } = useBalance();
   const { data: activity = [], isPending: activityPending } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => listNotifications(),
@@ -236,7 +237,10 @@ export default function ControlCenter() {
     return () => clearInterval(id);
   }, []);
 
-  const funded = Number(balance) > 0;
+  // Null is the action reporting failure; isError covers the request never
+  // arriving at all.
+  const summaryFailed = summaryError || summary === null;
+  const funded = Number(balanceUsd ?? 0) > 0;
 
   return (
     <div className="space-y-6">
@@ -250,11 +254,13 @@ export default function ControlCenter() {
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <span className="flex items-center gap-2 rounded-lg border border-bq-border px-3 py-2 font-plex text-[12px] text-bq-muted">
-            <Calendar className="size-3.5" /> {now ? fullDate.format(now) : "—"}
+            <Calendar className="size-3.5" /> {now ? formatDate(now) : "—"}
           </span>
           <span className="flex items-center gap-2 rounded-lg border border-bq-border px-3 py-2 font-plex text-[12px] tabular-nums text-bq-muted">
             <Clock className="size-3.5" />{" "}
-            {now ? now.toLocaleTimeString("en-GB", { hour12: false }) : "--:--:--"}
+            {now
+              ? now.toLocaleTimeString("en-GB", { hour12: false })
+              : "--:--:--"}
           </span>
           <Link
             href="/dashboard/fund"
@@ -273,7 +279,7 @@ export default function ControlCenter() {
 
       {/* Only shown when there is something to act on, and it names the one
           thing that matters most — a banner that is always there is furniture. */}
-      {summary && !funded && (
+      {summary && !summaryFailed && !funded && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-loss/25 bg-bq-loss/[0.06] px-4 py-3">
           <p className="flex items-center gap-2.5 text-[13px] text-bq-loss-strong">
             <CircleAlert className="size-4 shrink-0" />
@@ -293,7 +299,9 @@ export default function ControlCenter() {
 
       {/* overview */}
       <div>
-        <p className="font-plex text-[11px] uppercase tracking-[1.5px] text-bq-dim">Overview</p>
+        <p className="font-plex text-[11px] uppercase tracking-[1.5px] text-bq-dim">
+          Overview
+        </p>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           {/* The balance is real, and updates as soon as a deposit is credited. */}
           <div className="rounded-xl border border-bq-border bg-bq-surface p-4 sm:p-5">
@@ -306,7 +314,7 @@ export default function ControlCenter() {
               </span>
             </div>
             <p className="mt-3 text-[28px] font-bold leading-none text-bq-heading tabular-nums">
-              ${balance}
+              ${balanceUsd ?? "—"}
             </p>
             <Link
               href="/dashboard/fund"
@@ -316,34 +324,44 @@ export default function ControlCenter() {
             </Link>
           </div>
 
-          <Stat
-            label="Total Deposited"
-            icon={CircleDollarSign}
-            value={`$${summary?.totalDepositedUsd ?? "0.00"}`}
-            sub={
-              summary?.depositCount
-                ? `${summary.depositCount} deposit${summary.depositCount === 1 ? "" : "s"} credited`
-                : "No deposits yet"
-            }
-          />
-          <Stat
-            label="Pending Deposits"
-            icon={Clock}
-            value={String(summary?.pending.count ?? 0)}
-            sub={summary?.pending.label ?? "Nothing awaiting confirmation"}
-            tone={summary?.pending.count ? "warn" : undefined}
-          />
-          <Stat
-            label="Account Security"
-            icon={ShieldCheck}
-            value={summary?.twoFactorEnabled ? "Protected" : "At risk"}
-            sub={
-              summary?.twoFactorEnabled
-                ? `Auth Guard on · ${VERIFICATION_LABEL[summary.verification]}`
-                : "Auth Guard is off"
-            }
-            tone={summary?.twoFactorEnabled ? "good" : "warn"}
-          />
+          {summaryFailed ? (
+            <LoadError
+              className="col-span-2 xl:col-span-3"
+              message="Account details are unavailable."
+              onRetry={() => refetchSummary()}
+            />
+          ) : (
+            <>
+              <Stat
+                label="Total Deposited"
+                icon={CircleDollarSign}
+                value={`$${summary?.totalDepositedUsd ?? "0.00"}`}
+                sub={
+                  summary?.depositCount
+                    ? `${summary.depositCount} deposit${summary.depositCount === 1 ? "" : "s"} credited`
+                    : "No deposits yet"
+                }
+              />
+              <Stat
+                label="Pending Deposits"
+                icon={Clock}
+                value={String(summary?.pending.count ?? 0)}
+                sub={summary?.pending.label ?? "Nothing awaiting confirmation"}
+                tone={summary?.pending.count ? "warn" : undefined}
+              />
+              <Stat
+                label="Account Security"
+                icon={ShieldCheck}
+                value={summary?.twoFactorEnabled ? "Protected" : "At risk"}
+                sub={
+                  summary?.twoFactorEnabled
+                    ? `Auth Guard on · ${VERIFICATION_LABEL[summary.verification]}`
+                    : "Auth Guard is off"
+                }
+                tone={summary?.twoFactorEnabled ? "good" : "warn"}
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -353,7 +371,9 @@ export default function ControlCenter() {
         <div className="rounded-xl border border-bq-border bg-bq-surface p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-semibold text-bq-heading">Account Activity</h2>
+              <h2 className="font-semibold text-bq-heading">
+                Account Activity
+              </h2>
               <p className="text-[12px] text-bq-dim">
                 Every movement in and out of your balance
               </p>
@@ -380,7 +400,7 @@ export default function ControlCenter() {
             <ReportStat
               label="Balance"
               icon={Coins}
-              value={`$${balance}`}
+              value={`$${balanceUsd ?? "—"}`}
             />
             <ReportStat
               label="Deposited"
@@ -394,7 +414,11 @@ export default function ControlCenter() {
             />
           </div>
 
-          <ActivityChart days={summary?.activity ?? []} />
+          {summaryFailed ? (
+            <LoadError className="mt-6" onRetry={() => refetchSummary()} />
+          ) : (
+            <ActivityChart days={summary?.activity ?? []} />
+          )}
           <p className="mt-4 text-[11px] text-bq-dim">
             Positions and subscriptions are not wired up yet, so nothing here
             reflects trading — this is your balance history.
@@ -451,7 +475,9 @@ export default function ControlCenter() {
                         <Icon className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] text-bq-text">{item.title}</p>
+                        <p className="truncate text-[13px] text-bq-text">
+                          {item.title}
+                        </p>
                         <p className="font-plex text-[11px] text-bq-dim">
                           {timeAgo(item.createdAt)}
                         </p>

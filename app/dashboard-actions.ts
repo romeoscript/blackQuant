@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { verificationStage, type VerificationStage } from "@/lib/account-status";
 import {
   activityDays,
@@ -28,16 +28,6 @@ export type ControlCenterSummary = {
   activityTotalUsd: string;
 };
 
-const EMPTY: ControlCenterSummary = {
-  totalDepositedUsd: "0.00",
-  pending: { count: 0, label: null },
-  depositCount: 0,
-  verification: "unverified",
-  twoFactorEnabled: false,
-  activity: [],
-  activityTotalUsd: "0.00",
-};
-
 const dayKey = (date: Date) => date.toISOString().slice(0, 10);
 
 /**
@@ -49,10 +39,24 @@ const dayKey = (date: Date) => date.toISOString().slice(0, 10);
  */
 export async function getControlCenterSummary(
   range: ActivityRange = DEFAULT_ACTIVITY_RANGE,
+): Promise<ControlCenterSummary | null> {
+  const userId = await currentUserId();
+  if (userId === null) return null;
+
+  try {
+    return await summarise(userId, range);
+  } catch (error) {
+    // Null rather than a throw: a failing server action still answers 200, so
+    // the caller cannot otherwise tell failure from an empty account.
+    console.error("[dashboard:summary]", error);
+    return null;
+  }
+}
+
+async function summarise(
+  userId: number,
+  range: ActivityRange,
 ): Promise<ControlCenterSummary> {
-  const session = await auth();
-  const userId = Number(session?.user?.id);
-  if (!Number.isInteger(userId)) return EMPTY;
 
   // The range crosses from the client, so it is resolved through the allow-list
   // rather than indexed with directly.
@@ -84,7 +88,7 @@ export async function getControlCenterSummary(
       getLatestSubmission(),
     ]);
 
-  if (!user) return EMPTY;
+  if (!user) throw new Error(`no such user: ${userId}`);
 
   // Every day in the window, including the empty ones: a chart that omits them
   // would compress a quiet fortnight into a busy-looking week.

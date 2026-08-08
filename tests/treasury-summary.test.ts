@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { getTreasurySummary } from "@/app/treasury-actions";
+import type { BalanceRange } from "@/lib/treasury";
 
 /**
  * The balance curve is the part that breaks quietly: it carries a balance in
@@ -10,6 +11,13 @@ import { getTreasurySummary } from "@/app/treasury-actions";
  */
 
 const prisma = new PrismaClient();
+
+/** Fails the test rather than leaking a null into every assertion below. */
+async function summaryFor(range: BalanceRange) {
+  const summary = await getTreasurySummary(range);
+  if (!summary) throw new Error(`expected a summary for ${range}`);
+  return summary;
+}
 
 let currentUserId: number | null = null;
 vi.mock("@/auth", () => ({
@@ -67,65 +75,64 @@ afterAll(async () => {
 
 describe("totals", () => {
   it("separates deposits from withdrawals and reports withdrawals positive", async () => {
-    const summary = await getTreasurySummary("12M");
+    const summary = await summaryFor("12M");
     expect(summary.totalDepositedUsd).toBe("500.00");
     expect(summary.totalWithdrawnUsd).toBe("80.00");
   });
 
   it("counts only deposits still awaiting confirmation", async () => {
-    expect((await getTreasurySummary("12M")).pendingCount).toBe(1);
+    expect((await summaryFor("12M")).pendingCount).toBe(1);
   });
 });
 
 describe("deposits by asset", () => {
   it("groups confirmed deposits and shares add up", async () => {
-    const { byAsset } = await getTreasurySummary("12M");
+    const { byAsset } = await summaryFor("12M");
     expect(byAsset.map((a) => a.symbol)).toEqual(["USDT", "BTC"]);
     expect(byAsset.reduce((total, a) => total + a.share, 0)).toBe(100);
   });
 
   it("leaves unconfirmed deposits out entirely", async () => {
-    const { byAsset } = await getTreasurySummary("12M");
+    const { byAsset } = await summaryFor("12M");
     expect(byAsset.some((a) => a.symbol === "SOL")).toBe(false);
   });
 });
 
 describe("balance history", () => {
   it("carries in the balance from before the window", async () => {
-    const { history } = await getTreasurySummary("1M");
+    const { history } = await summaryFor("1M");
     // The 90-day-old $200 predates this window; the curve must start there.
     expect(history[0].balanceUsd).toBe(200);
   });
 
   it("closes each point at the running balance, ending at today's", async () => {
-    const { history } = await getTreasurySummary("1M");
+    const { history } = await summaryFor("1M");
     expect(history.at(-1)?.balanceUsd).toBe(420);
   });
 
   it("never moves backwards through time", async () => {
-    const { history } = await getTreasurySummary("12M");
+    const { history } = await summaryFor("12M");
     expect(history).toHaveLength(12);
     expect(new Set(history.map((p) => p.label)).size).toBe(12);
   });
 
   it("returns a daily window for 1M and monthly for longer ranges", async () => {
-    expect((await getTreasurySummary("1M")).history).toHaveLength(30);
-    expect((await getTreasurySummary("6M")).history).toHaveLength(6);
+    expect((await summaryFor("1M")).history).toHaveLength(30);
+    expect((await summaryFor("6M")).history).toHaveLength(6);
   });
 
   it("falls back to the longest range for an unknown id", async () => {
-    const summary = await getTreasurySummary("nonsense" as never);
+    const summary = await summaryFor("nonsense" as never);
     expect(summary.history).toHaveLength(12);
   });
 });
 
 describe("no session", () => {
-  it("returns empty values rather than throwing", async () => {
+  it("reports unavailable rather than an empty account", async () => {
     const signedIn = currentUserId;
     currentUserId = null;
-    const summary = await getTreasurySummary("12M");
-    expect(summary.balanceUsd).toBe("0.00");
-    expect(summary.byAsset).toEqual([]);
+    // Null, never zeroes: a screen cannot tell "no money" from "no answer".
+    expect(await getTreasurySummary("12M")).toBeNull();
     currentUserId = signedIn;
   });
 });
