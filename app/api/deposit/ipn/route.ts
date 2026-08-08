@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { depositStatus, furthestStatus, isUsdDenominated } from "@/lib/deposit";
 import { ipnPayloadSchema } from "@/lib/nowpayments";
+import { publishDeposit } from "@/lib/events";
 
 /**
  * The NOWPayments callback. The only place in the application where a balance
@@ -207,6 +208,15 @@ export async function POST(req: Request) {
     console.error("[deposit:ipn]", error);
     throw error;
   }
+
+  // After the commit, never inside it: a subscriber must not be told a balance
+  // moved by a transaction that could still roll back.
+  publishDeposit(userId, {
+    type: "deposit",
+    npPaymentId,
+    status,
+    confirmations: evt.confirmations,
+  });
 
   return Response.json({ ok: true });
 }
