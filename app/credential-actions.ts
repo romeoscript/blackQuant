@@ -3,7 +3,7 @@
 import { createHash, randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { sendMail } from "@/lib/mail";
 import { hashPassword } from "@/lib/password";
 import {
@@ -23,9 +23,8 @@ const readForm = (formData: FormData, key: string) =>
   String(formData.get(key) ?? "");
 
 async function currentUser() {
-  const session = await auth();
-  const id = Number(session?.user?.id);
-  if (!Number.isInteger(id)) return null;
+  const id = await currentUserId();
+  if (id === null) return null;
   return prisma.user.findUnique({
     where: { id },
     select: { id: true, email: true, passwordHash: true },
@@ -48,9 +47,8 @@ export type CredentialAccount = {
 };
 
 export async function getCredentialAccount(): Promise<CredentialAccount | null> {
-  const session = await auth();
-  const id = Number(session?.user?.id);
-  if (!Number.isInteger(id)) return null;
+  const id = await currentUserId();
+  if (id === null) return null;
 
   const user = await prisma.user.findUnique({
     where: { id },

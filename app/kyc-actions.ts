@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import type { KycStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { putObject, isObjectStoreConfigured } from "@/lib/storage";
 import { humanBytes } from "@/lib/utils";
 import {
@@ -28,12 +28,6 @@ export type KycSubmissionView = {
 };
 
 const KYC_PATH = "/dashboard/verification";
-
-async function currentUserId(): Promise<number | null> {
-  const session = await auth();
-  const id = Number(session?.user?.id);
-  return Number.isInteger(id) ? id : null;
-}
 
 function unexpected(scope: string, error: unknown): KycState {
   console.error(`[kyc:${scope}]`, error);

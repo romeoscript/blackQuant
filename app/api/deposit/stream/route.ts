@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { subscribeToDeposits, type DepositEventMessage } from "@/lib/events";
 
 /**
@@ -22,9 +22,8 @@ export const dynamic = "force-dynamic";
 const HEARTBEAT_MS = 25_000;
 
 export async function GET(request: Request) {
-  const session = await auth();
-  const userId = Number(session?.user?.id);
-  if (!Number.isInteger(userId)) {
+  const userId = await currentUserId();
+  if (userId === null) {
     return new Response(null, { status: 401 });
   }
 

@@ -2,7 +2,7 @@
 
 import { Prisma, type DepositStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { env } from "@/lib/env";
 import { qrSvg } from "@/lib/qr";
 import { rateLimit, type Limit } from "@/lib/rate-limit";
@@ -34,12 +34,6 @@ export type DepositAddressResult =
  * letting a click-happy tab burn the quota.
  */
 const PROVISION_LIMIT: Limit = { windowMs: 60 * 60_000, max: 10 };
-
-async function currentUserId(): Promise<number | null> {
-  const session = await auth();
-  const id = Number(session?.user?.id);
-  return Number.isInteger(id) ? id : null;
-}
 
 type AddressRow = {
   address: string;

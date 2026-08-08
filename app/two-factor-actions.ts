@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { verifyPassword } from "@/lib/password";
 import {
   createTotpSecret,
@@ -37,12 +37,6 @@ const TWO_FACTOR_PATH = "/dashboard/2fa";
 // The profile screen's Security card reads the same status, so it is
 // revalidated alongside every change here.
 const PROFILE_PATH = "/dashboard/profile";
-
-async function currentUserId(): Promise<number | null> {
-  const session = await auth();
-  const id = Number(session?.user?.id);
-  return Number.isInteger(id) ? id : null;
-}
 
 function unexpected(scope: string, error: unknown): TwoFactorState {
   console.error(`[2fa:${scope}]`, error);

@@ -2,7 +2,7 @@
 
 import type { NotificationKind } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 
 export type Notification = {
   id: number;
@@ -16,17 +16,6 @@ export type Notification = {
 
 /** Enough to fill the panel; it is not a paginated inbox. */
 const PANEL_LIMIT = 20;
-
-/**
- * The signed-in user's id, or null. Every query below scopes on this rather
- * than on anything the caller passes, so one account can never address
- * another's notifications.
- */
-async function currentUserId(): Promise<number | null> {
-  const session = await auth();
-  const id = Number(session?.user?.id);
-  return Number.isInteger(id) ? id : null;
-}
 
 export async function listNotifications(): Promise<Notification[]> {
   const userId = await currentUserId();

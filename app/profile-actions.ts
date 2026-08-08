@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { verifyPassword } from "@/lib/password";
 import { deleteObject, putObject } from "@/lib/storage";
 import { humanBytes } from "@/lib/utils";
@@ -25,16 +25,6 @@ import {
 export type ProfileState = { ok: boolean; message: string };
 
 const PROFILE_PATH = "/dashboard/profile";
-
-/**
- * The signed-in user's id, or null. Every query below scopes on this rather
- * than on anything the caller passes, so one account can never edit another's.
- */
-async function currentUserId(): Promise<number | null> {
-  const session = await auth();
-  const id = Number(session?.user?.id);
-  return Number.isInteger(id) ? id : null;
-}
 
 function unexpected(scope: string, error: unknown): ProfileState {
   console.error(`[profile:${scope}]`, error);

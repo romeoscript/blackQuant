@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentUserId } from "@/lib/session";
 import { getObject } from "@/lib/storage";
 import { avatarContentType } from "@/lib/avatar";
 
@@ -13,9 +13,8 @@ import { avatarContentType } from "@/lib/avatar";
  * out of shared caches, since it is a different image per session.
  */
 export async function GET() {
-  const session = await auth();
-  const userId = Number(session?.user?.id);
-  if (!Number.isInteger(userId)) {
+  const userId = await currentUserId();
+  if (userId === null) {
     return new Response(null, { status: 401 });
   }
 
