@@ -98,7 +98,9 @@ export function StatCard({
   );
 }
 
-type Tone = "green" | "red" | "amber" | "white" | "neutral";
+/** Shared badge vocabulary. Exported so domain modules can name a tone
+ *  without also owning its Tailwind classes. */
+export type Tone = "green" | "red" | "amber" | "white" | "neutral";
 export function StatPill({ tone, children }: { tone: Tone; children: ReactNode }) {
   const cls: Record<Tone, string> = {
     green: "bg-bq-mint/15 text-bq-mint",
@@ -144,15 +146,35 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
   );
 }
 
-export function Toggle({ defaultOn = false }: { defaultOn?: boolean }) {
+export function Toggle({
+  defaultOn = false,
+  onToggle,
+  disabled = false,
+  label,
+}: {
+  defaultOn?: boolean;
+  /** Omit to keep the switch purely visual, as the fixture-backed screens do. */
+  onToggle?: (on: boolean) => void;
+  disabled?: boolean;
+  label?: string;
+}) {
   const [on, setOn] = useState(defaultOn);
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
-      onClick={() => setOn((o) => !o)}
-      className={cn("relative h-5 w-9 shrink-0 rounded-full transition-colors", on ? "bg-primary" : "bg-bq-border")}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => {
+        const next = !on;
+        setOn(next);
+        onToggle?.(next);
+      }}
+      className={cn(
+        "relative h-5 w-9 shrink-0 rounded-full transition-colors disabled:opacity-50",
+        on ? "bg-primary" : "bg-bq-border",
+      )}
     >
       <span
         className={cn("absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all", on ? "left-[18px]" : "left-0.5")}

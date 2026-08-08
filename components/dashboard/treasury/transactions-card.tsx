@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowUpRight, Loader2 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -13,161 +13,216 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { TRANSACTIONS, type Transaction } from "./data";
 import { Panel } from "@/components/dashboard/panel";
+import { StatPill } from "@/components/dashboard/widgets";
+import { LoadError } from "@/components/dashboard/load-error";
+import { CoinLogo } from "@/components/dashboard/fund/coin-logo";
+import { listTransactions, type TransactionView } from "@/app/treasury-actions";
+import { DEPOSIT_STATUS_UI, isPendingStatus } from "@/lib/deposit";
 
-const TABS = ["All", "BTC", "ETH", "USDT"] as const;
+const FILTERS = [
+  { id: "all", label: "All" },
+  { id: "in", label: "Money in" },
+  { id: "out", label: "Money out" },
+] as const;
 
-function TxIcon({ incoming }: { incoming: boolean }) {
+const TH = "h-9 px-0 text-[10px] font-medium uppercase tracking-[1px] text-bq-dim";
+
+/**
+ * Every movement of money, not only deposits.
+ *
+ * A purchase leaves the balance as surely as a deposit enters it, and a screen
+ * showing one but not the other turns spending into an unexplained drop in the
+ * balance curve above it.
+ */
+export function TransactionsCard() {
+  const [filter, setFilter] = useState<string>("all");
+
+  const { data, isPending, isError, refetch } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: () => listTransactions(),
+    refetchInterval: (query) =>
+      (query.state.data ?? []).some(
+        (row) => row.type === "deposit" && isPendingStatus(row.status),
+      )
+        ? 15_000
+        : 60_000,
+  });
+
+  const rows = (data ?? []).filter((row) =>
+    filter === "all"
+      ? true
+      : filter === "in"
+        ? row.type === "deposit"
+        : row.type === "spend",
+  );
+
   return (
-    <span
-      className={cn(
-        "flex size-9 shrink-0 items-center justify-center rounded-full",
-        incoming ? "bg-bq-mint/12 text-bq-mint" : "bg-bq-surface text-bq-muted",
-      )}
-    >
-      {incoming ? <ArrowDownLeft className="size-4" /> : <ArrowUpRight className="size-4" />}
+    <Panel className="p-5">
+      <Tabs value={filter} onValueChange={setFilter}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-[15px] font-semibold text-bq-heading">
+              Account activity
+            </h2>
+            <p className="text-[12px] text-bq-dim">
+              Everything that moved your balance
+            </p>
+          </div>
+          <TabsList className="h-auto gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
+            {FILTERS.map((option) => (
+              <TabsTrigger
+                key={option.id}
+                value={option.id}
+                className="rounded-md px-3 py-1 text-[12px] text-bq-muted data-[state=active]:bg-bq-surface data-[state=active]:text-bq-heading"
+              >
+                {option.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+
+        {isError || data === null ? (
+          <LoadError
+            className="mt-4"
+            message="We couldn't load your activity."
+            onRetry={() => refetch()}
+          />
+        ) : isPending ? (
+          <p className="flex items-center gap-2 py-8 text-[13px] text-bq-muted">
+            <Loader2 className="size-3.5 animate-spin" /> Loading…
+          </p>
+        ) : rows.length === 0 ? (
+          <p className="py-8 text-[13px] text-bq-muted">
+            Nothing here yet. Deposits and purchases both appear in this list.
+          </p>
+        ) : (
+          <>
+            <div className="mt-4 hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-bq-border-soft hover:bg-transparent">
+                    <TableHead className={TH}>Transaction</TableHead>
+                    <TableHead className={TH}>Detail</TableHead>
+                    <TableHead className={TH}>Amount</TableHead>
+                    <TableHead className={TH}>Date</TableHead>
+                    <TableHead className={TH}>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      className="border-bq-border-soft hover:bg-bq-surface/30"
+                    >
+                      <TableCell className="py-3.5">
+                        <div className="flex items-center gap-3">
+                          <RowIcon row={row} />
+                          <div>
+                            <p className="text-[13px] font-medium text-bq-heading">
+                              {row.type === "deposit"
+                                ? `${row.symbol} deposit`
+                                : row.title}
+                            </p>
+                            <p className="text-[11px] capitalize text-bq-dim">
+                              {row.type === "deposit" ? row.symbol : row.kind}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-plex text-[13px] text-bq-muted tabular-nums">
+                        {row.type === "deposit"
+                          ? `${row.payAmount} ${row.symbol}`
+                          : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Amount row={row} />
+                      </TableCell>
+                      <TableCell className="text-[12px] text-bq-muted">
+                        {formatDate(row.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <Status row={row} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="mt-4 flex flex-col md:hidden">
+              {rows.map((row) => (
+                <div
+                  key={row.id}
+                  className="flex items-center gap-3 border-b border-bq-border-soft py-3 last:border-0"
+                >
+                  <RowIcon row={row} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-medium text-bq-heading">
+                      {row.type === "deposit"
+                        ? `${row.symbol} deposit`
+                        : row.title}
+                    </p>
+                    <p className="font-plex text-[11px] text-bq-dim">
+                      {formatDate(row.createdAt)}
+                    </p>
+                  </div>
+                  <Amount row={row} />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </Tabs>
+    </Panel>
+  );
+}
+
+function RowIcon({ row }: { row: TransactionView }) {
+  if (row.type === "deposit") {
+    return <CoinLogo symbol={row.symbol} className="size-9" />;
+  }
+  return (
+    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bq-surface text-bq-muted">
+      <ArrowUpRight className="size-4" />
     </span>
   );
 }
 
-function StatusBadge({ status }: { status: Transaction["status"] }) {
+/** Signed and coloured, so money in and money out differ at a glance. */
+function Amount({ row }: { row: TransactionView }) {
+  if (row.type === "spend") {
+    return (
+      <span className="text-[13px] font-medium text-bq-heading tabular-nums">
+        −${Math.abs(Number(row.amountUsd)).toFixed(2)}
+      </span>
+    );
+  }
+  // Only a confirmed deposit is money, so only it shows a dollar figure.
+  if (row.status !== "CONFIRMED") {
+    return <span className="text-[13px] text-bq-dim">—</span>;
+  }
   return (
-    <Badge
-      className={cn(
-        "rounded-full font-medium",
-        status === "Completed"
-          ? "bg-bq-mint/10 text-bq-mint"
-          : "bg-bq-warn/10 text-bq-warn-text",
-      )}
-    >
-      {status}
-    </Badge>
+    <span className="text-[13px] font-medium text-bq-mint tabular-nums">
+      +${row.usdCredited}
+    </span>
   );
 }
 
-const th = "h-9 px-0 text-[10px] font-medium uppercase tracking-[1px] text-bq-dim";
+function Status({ row }: { row: TransactionView }) {
+  if (row.type === "spend") {
+    return <StatPill tone="neutral">Paid</StatPill>;
+  }
 
-export function TransactionsCard() {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("All");
-  const rows = TRANSACTIONS.filter((t) => tab === "All" || t.asset === tab);
+  const ui = DEPOSIT_STATUS_UI[row.status];
+  const showConfirmations =
+    isPendingStatus(row.status) && row.requiredConfirmations > 0;
 
   return (
-    <Panel className="p-5">
-      <Tabs value={tab} onValueChange={(v) => setTab(v as (typeof TABS)[number])}>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-[15px] font-semibold text-bq-heading">Transaction History</h2>
-            <p className="text-[12px] text-bq-dim">
-              Recent deposits and withdrawals across all assets
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <TabsList className="h-auto gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
-              {TABS.map((t) => (
-                <TabsTrigger
-                  key={t}
-                  value={t}
-                  className="rounded-md px-3 py-1 text-[12px] text-bq-muted data-[state=active]:bg-bq-surface data-[state=active]:text-bq-heading"
-                >
-                  {t}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <button
-              onClick={() => toast("Transactions", { description: "Full history coming soon." })}
-              className="shrink-0 text-[12px] text-bq-muted transition-colors hover:text-bq-heading"
-            >
-              View all
-            </button>
-          </div>
-        </div>
-
-        {/* desktop table */}
-        <div className="mt-4 hidden md:block">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-bq-border-soft hover:bg-transparent">
-                <TableHead className={th}>Transaction</TableHead>
-                <TableHead className={th}>Amount</TableHead>
-                <TableHead className={th}>USD Value</TableHead>
-                <TableHead className={th}>Date</TableHead>
-                <TableHead className={th}>Status</TableHead>
-                <TableHead className={cn(th, "text-right")}> </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((t, i) => (
-                <TableRow key={i} className="border-bq-border-soft hover:bg-bq-surface/30">
-                  <TableCell className="py-3.5">
-                    <div className="flex items-center gap-3">
-                      <TxIcon incoming={t.incoming} />
-                      <div>
-                        <p className="text-[13px] font-medium text-bq-heading">
-                          {t.asset} {t.type}
-                        </p>
-                        <p className="text-[11px] text-bq-dim">{t.asset}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      "text-[13px] font-medium tabular-nums",
-                      t.incoming ? "text-bq-mint" : "text-bq-heading",
-                    )}
-                  >
-                    {t.amount}
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      "text-[13px] tabular-nums",
-                      t.incoming ? "text-bq-mint" : "text-bq-heading",
-                    )}
-                  >
-                    {t.usd}
-                  </TableCell>
-                  <TableCell className="text-[12px] text-bq-muted">{t.date}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={t.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <button
-                      onClick={() => toast(`${t.asset} ${t.type}`, { description: t.date })}
-                      className="inline-flex items-center gap-0.5 text-[12px] text-bq-muted transition-colors hover:text-bq-heading"
-                    >
-                      Details <ChevronRight className="size-3.5" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* mobile list */}
-        <div className="mt-4 flex flex-col md:hidden">
-          {rows.map((t, i) => (
-            <div key={i} className="flex items-center gap-3 border-b border-bq-border-soft py-3 last:border-0">
-              <TxIcon incoming={t.incoming} />
-              <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium text-bq-heading">
-                  {t.asset} {t.type}
-                </p>
-                <p className="text-[11px] text-bq-dim">
-                  {t.asset} · {t.date}
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                <p className={cn("text-[12px] font-medium tabular-nums", t.incoming ? "text-bq-mint" : "text-bq-heading")}>
-                  {t.amount}
-                </p>
-                <StatusBadge status={t.status} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </Tabs>
-    </Panel>
+    <StatPill tone={ui.tone}>
+      {showConfirmations
+        ? `${Math.min(row.confirmations, row.requiredConfirmations)}/${row.requiredConfirmations}`
+        : ui.label}
+    </StatPill>
   );
 }

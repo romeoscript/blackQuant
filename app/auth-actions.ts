@@ -7,10 +7,15 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { sendMail } from "@/lib/mail";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { signIn } from "@/auth";
 
-export type AuthState = { ok: boolean; message: string };
+export type AuthState = {
+  ok: boolean;
+  message: string;
+  /** The password was right but the account needs its second factor. */
+  needsTwoFactor?: boolean;
+};
 
 /** Matches the 15 minutes the forgot-password screen promises. */
 const RESET_TOKEN_TTL_MINUTES = 15;
@@ -100,6 +105,16 @@ export async function signUp(
         email,
         name: `${firstName} ${lastName}`,
         passwordHash: await hashPassword(password),
+        // Written with the account so the panel is never empty on first login.
+        // Nested create shares the insert's transaction: no account can exist
+        // without it, and a failure rolls the whole signup back.
+        notifications: {
+          create: {
+            kind: "WELCOME",
+            title: "Welcome to BlackQuant",
+            body: `You're in, ${firstName}. Fund your account to activate a plan and start receiving live signals.`,
+          },
+        },
       },
     });
   } catch (error) {
@@ -136,12 +151,40 @@ export async function logIn(
     });
   if (!parsed.success) return { ok: false, message: firstIssue(parsed.error) };
 
+  const email = parsed.data.email.trim().toLowerCase();
+  const twoFactor = readForm(formData, "twoFactor").trim();
+
+  // Whether to prompt for a second factor is decided only after the password
+  // checks out. Asking based on the address alone would tell an attacker which
+  // accounts have 2FA — and confirm the address exists. The cost is one extra
+  // hash comparison on a first attempt; `authorize` verifies independently.
+  if (!twoFactor) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { passwordHash: true, twoFactorEnabledAt: true },
+      });
+      if (
+        user?.passwordHash &&
+        user.twoFactorEnabledAt &&
+        (await verifyPassword(parsed.data.password, user.passwordHash))
+      ) {
+        return { ok: false, message: "", needsTwoFactor: true };
+      }
+    } catch (error) {
+      return unexpected("log-in", error);
+    }
+  }
+
   return signInWithPassword({
-    email: parsed.data.email.trim().toLowerCase(),
+    email,
     password: parsed.data.password,
     // Deliberately does not distinguish unknown address from wrong password.
-    failureMessage: "Invalid email or password.",
+    failureMessage: twoFactor
+      ? "That code isn't right. Try the current one."
+      : "Invalid email or password.",
     remember: readForm(formData, "remember") === "true",
+    twoFactor,
   });
 }
 
@@ -270,25 +313,32 @@ async function signInWithPassword({
   password,
   failureMessage,
   remember = false,
+  twoFactor = "",
 }: {
   email: string;
   password: string;
   failureMessage: string;
   /** Only the login form offers the choice; the rest take the short session. */
   remember?: boolean;
+  twoFactor?: string;
 }): Promise<AuthState> {
   try {
+    // `redirect: false` so this returns rather than throwing: the caller
+    // navigates with a full page load (see useAuthRedirect), which a
+    // server-side redirect cannot produce.
     await signIn("credentials", {
       email,
       password,
       remember: String(remember),
-      redirectTo: "/dashboard",
+      twoFactor,
+      redirect: false,
     });
-    return { ok: true, message: "" };
   } catch (error) {
     // Rethrows Next's internal control-flow errors (the post-login redirect);
     // anything else is a genuine sign-in failure.
     unstable_rethrow(error);
     return { ok: false, message: failureMessage };
   }
+
+  return { ok: true, message: "" };
 }

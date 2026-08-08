@@ -3,24 +3,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { embed } from "../lib/assistant/rag";
-
-// Load .env into process.env (standalone script — Next isn't running here).
-async function loadEnv() {
-  try {
-    const raw = await fs.readFile(path.join(process.cwd(), ".env"), "utf8");
-    for (const line of raw.split("\n")) {
-      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-      if (!m) continue;
-      let v = m[2].trim();
-      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-        v = v.slice(1, -1);
-      }
-      if (process.env[m[1]] === undefined) process.env[m[1]] = v;
-    }
-  } catch {
-    // no .env — rely on the ambient environment
-  }
-}
+import { loadEnv } from "./load-env";
 
 function chunkText(md: string): string[] {
   const paras = md.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);

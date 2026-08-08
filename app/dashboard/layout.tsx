@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useUser } from "@/hooks/use-user";
+import { useAvatar } from "@/hooks/use-avatar";
+import { useDepositStream } from "@/hooks/use-deposit-stream";
+import { userIdentity } from "@/lib/user-display";
+import { Avatar } from "@/components/dashboard/avatar";
 import { DashboardSidebar, SidebarBrand } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { ThemeSwitcher } from "@/components/dashboard/theme-switcher";
@@ -12,6 +17,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
+  const { displayName, initials, uid } = userIdentity(user);
+  const avatar = useAvatar();
+
+  // One connection for the whole dashboard; every screen's queries refetch
+  // from it the moment a deposit moves.
+  useDepositStream();
 
   return (
     <div className="min-h-screen bg-bq-bg font-satoshi text-bq-text">
@@ -42,12 +54,10 @@ export default function DashboardLayout({
             </div>
 
             <div className="flex items-center gap-2.5 border-b border-bq-border px-4 py-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[13px] font-bold text-primary">
-                YN
-              </span>
+              <Avatar src={avatar} initials={initials} className="size-9 text-[13px]" />
               <div className="min-w-0">
-                <p className="truncate text-[13px] font-bold text-bq-heading">YourNoCodeDev</p>
-                <p className="font-plex text-[11px] text-bq-dim">UID: 12532723525</p>
+                <p className="truncate text-[13px] font-bold text-bq-heading">{displayName}</p>
+                {uid && <p className="font-plex text-[11px] text-bq-dim">UID: {uid}</p>}
               </div>
             </div>
 

@@ -40,3 +40,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# KYC uploads written by the dev fallback when no object store is configured
+.uploads/
+
+# Face-detection model weights, staged from node_modules by scripts/copy-face-models.mjs
+public/models/

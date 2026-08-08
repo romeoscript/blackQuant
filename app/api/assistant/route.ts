@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { env } from "@/lib/env";
 import { retrieve } from "@/lib/assistant/rag";
-import { getClientIp, rateLimit } from "@/lib/assistant/rate-limit";
+import { getClientIp, rateLimit, type Limit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -10,6 +10,9 @@ export const runtime = "nodejs";
 // the box. Swap any of these via env (see .env.example) with no code change.
 const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
 const DEFAULT_MODEL = "google/gemini-2.5-flash";
+
+/** Per IP: the endpoint is open, so there is no user to key on. */
+const ASSISTANT_LIMIT: Limit = { windowMs: 60_000, max: 20 };
 
 const textPart = z.object({ type: z.literal("text"), text: z.string().max(4000) });
 const imagePart = z.object({
@@ -59,7 +62,7 @@ export async function POST(req: Request) {
   // NOTE: open endpoint for the demo. Gate behind auth() before production —
   // the fake login flow doesn't create a real session, so requiring one here
   // would break the assistant for demo users.
-  const limit = rateLimit(getClientIp(req));
+  const limit = rateLimit(`assistant:${getClientIp(req)}`, ASSISTANT_LIMIT);
   if (!limit.ok) {
     return Response.json(
       { error: "You're sending messages too fast. Please wait a moment and try again." },

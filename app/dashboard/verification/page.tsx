@@ -1,106 +1,31 @@
-"use client";
-
-import { useState } from "react";
 import {
+  BadgeCheck,
   ScanFace,
-  CreditCard,
-  BookOpen,
-  Car,
-  Upload,
-  Check,
-  Circle,
-  CircleCheck,
+  Clock,
+  CircleX,
   Lock,
   EyeOff,
-  ArrowRight,
-  type LucideIcon,
+  TriangleAlert,
 } from "lucide-react";
-import { toast } from "sonner";
+import { formatDate } from "@/lib/utils";
 import { DashboardPageHeader } from "@/components/dashboard/page-header";
-import { Card, StatPill, HeaderActions, notify } from "@/components/dashboard/widgets";
-import { cn } from "@/lib/utils";
+import { Card, StatPill, HeaderActions } from "@/components/dashboard/widgets";
+import { VerificationFlow } from "@/components/dashboard/verification/verification-flow";
+import { getLatestSubmission, getStorageMode } from "@/app/kyc-actions";
+import { verificationStage } from "@/lib/account-status";
 
-const DOC_TYPES: { id: string; name: string; sub: string; icon: LucideIcon }[] = [
-  { id: "id", name: "National ID Card", sub: "Front and back required", icon: CreditCard },
-  { id: "passport", name: "International Passport", sub: "Photo page only", icon: BookOpen },
-  { id: "license", name: "Driver's Licence", sub: "Front and back required", icon: Car },
-];
+export default async function VerificationPage() {
+  const [submission, storageMode] = await Promise.all([
+    getLatestSubmission(),
+    getStorageMode(),
+  ]);
 
-const GUIDELINES = [
-  "Document must be valid and not expired",
-  "All four corners must be visible",
-  "Text must be clearly legible",
-  "No glare, shadows, or obstructions",
-];
-
-const TIERS: {
-  name: string;
-  limit: string;
-  status: string;
-  tone: "green" | "amber" | "neutral";
-  active?: boolean;
-  locked?: boolean;
-  items: { t: string; done: boolean }[];
-}[] = [
-  {
-    name: "Basic",
-    limit: "Withdraw up to $500 / day",
-    status: "Complete",
-    tone: "green",
-    items: [
-      { t: "Email verified", done: true },
-      { t: "Phone verified", done: true },
-    ],
-  },
-  {
-    name: "Standard",
-    limit: "Withdraw up to $5,000 / day",
-    status: "In Progress",
-    tone: "amber",
-    active: true,
-    items: [
-      { t: "Government-issued ID", done: false },
-      { t: "Selfie with ID", done: false },
-    ],
-  },
-  {
-    name: "Advanced",
-    limit: "Withdraw up to $50,000 / day",
-    status: "Locked",
-    tone: "neutral",
-    locked: true,
-    items: [
-      { t: "Proof of address", done: false },
-      { t: "Source of funds declaration", done: false },
-    ],
-  },
-];
-
-function UploadBox() {
-  const [name, setName] = useState<string | null>(null);
-  return (
-    <label className="mt-2 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-bq-border bg-bq-bg py-8 text-center transition-colors hover:border-primary/40">
-      <input
-        type="file"
-        accept=".png,.jpg,.jpeg,.pdf"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) {
-            setName(f.name);
-            toast("File selected", { description: f.name });
-          }
-        }}
-      />
-      <Upload className="size-5 text-bq-muted" />
-      <span className="max-w-[80%] truncate text-[13px] font-medium text-bq-heading">{name ?? "Click to upload"}</span>
-      <span className="text-[11px] text-bq-dim">PNG, JPG or PDF · Max 10MB</span>
-    </label>
-  );
-}
-
-export default function VerificationPage() {
-  const [doc, setDoc] = useState("passport");
+  // Same rule the sidebar badge reads, so the two cannot disagree. The explicit
+  // null check is what lets TypeScript narrow `submission` inside the branches
+  // these flags guard.
+  const stage = verificationStage(submission);
+  const approved = submission !== null && stage === "approved";
+  const awaitingReview = submission !== null && stage === "in-review";
 
   return (
     <div className="space-y-6">
@@ -108,134 +33,127 @@ export default function VerificationPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-border bg-bq-surface px-4 py-3">
         <p className="flex items-center gap-2.5 text-[13px] text-bq-text">
-          <ScanFace className="size-4 shrink-0 text-bq-loss-text" />
+          {approved ? (
+            <BadgeCheck className="size-4 shrink-0 text-primary" />
+          ) : (
+            <ScanFace className="size-4 shrink-0 text-bq-loss-text" />
+          )}
           <span>
-            <span className="font-semibold text-bq-heading">Your account is not verified</span>
+            <span className="font-semibold text-bq-heading">
+              {approved
+                ? "Your identity is verified"
+                : awaitingReview
+                  ? "Your submission is under review"
+                  : "Your identity is not verified"}
+            </span>
             <span className="block text-bq-dim">
-              Complete identity verification to unlock higher withdrawal limits and full platform access.
+              {approved
+                ? `Approved ${submission.reviewedAt ? formatDate(submission.reviewedAt) : ""}`
+                : awaitingReview
+                  ? "We'll notify you once a decision is made."
+                  : "Verify your identity to raise your withdrawal limits."}
             </span>
           </span>
         </p>
-        <StatPill tone="red">Unverified</StatPill>
+        <StatPill tone={approved ? "green" : awaitingReview ? "amber" : "red"}>
+          {approved ? "Verified" : awaitingReview ? "Pending" : "Unverified"}
+        </StatPill>
       </div>
 
+      {storageMode === "local-dev" && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-bq-warn/25 bg-bq-warn/[0.06] px-4 py-3">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-bq-warn-text" />
+          <p className="text-[12px] text-bq-muted">
+            <span className="font-semibold text-bq-warn-text">
+              No object store configured.
+            </span>{" "}
+            Uploads are written unencrypted to <code>.uploads/</code> on this
+            machine. Set the <code>S3_*</code> variables before any real use.
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <Card>
-          <div className="flex items-center gap-3">
-            <span className="flex size-8 items-center justify-center rounded-full bg-bq-bg text-bq-muted">
-              <ScanFace className="size-4" />
-            </span>
-            <div>
-              <h2 className="font-semibold text-bq-heading">Standard Verification — Step 1 of 2</h2>
-              <p className="text-[12px] text-bq-dim">Upload a valid government-issued photo ID.</p>
-            </div>
-          </div>
+        <div className="space-y-6">
+          {submission?.status === "REJECTED" && (
+            <Card className="border-bq-loss/25 bg-bq-loss/[0.04]">
+              <div className="flex items-start gap-3">
+                <CircleX className="mt-0.5 size-5 shrink-0 text-bq-loss-text" />
+                <div>
+                  <h2 className="font-semibold text-bq-heading">
+                    Not approved
+                  </h2>
+                  <p className="mt-1 text-[13px] text-bq-muted">
+                    {submission.reviewNote ??
+                      "Your submission couldn't be verified. Please try again with clearer photos."}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
 
-          <p className="mt-5 text-[12px] text-bq-muted">Select document type</p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-3">
-            {DOC_TYPES.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setDoc(d.id)}
-                className={cn(
-                  "rounded-xl border p-4 text-center transition-colors",
-                  doc === d.id ? "border-primary bg-primary/5" : "border-bq-border hover:bg-bq-overlay/[0.03]",
-                )}
-              >
-                <span className="mx-auto flex size-9 items-center justify-center rounded-lg bg-bq-bg text-bq-muted">
-                  <d.icon className="size-4" />
-                </span>
-                <p className="mt-2 text-[13px] font-medium text-bq-heading">{d.name}</p>
-                <p className="text-[11px] text-bq-dim">{d.sub}</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-[12px] text-bq-muted">Front of document</p>
-              <UploadBox />
-            </div>
-            <div>
-              <p className="text-[12px] text-bq-muted">Back of document</p>
-              <UploadBox />
-            </div>
-          </div>
-
-          <div className="mt-5 rounded-xl border border-bq-border bg-bq-bg p-4">
-            <p className="text-[13px] font-semibold text-bq-heading">Document guidelines</p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              {GUIDELINES.map((g) => (
-                <span key={g} className="flex items-center gap-2 text-[12px] text-bq-muted">
-                  <Check className="size-3.5 shrink-0 text-primary" /> {g}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] text-bq-dim">Your data is encrypted and never shared with third parties.</p>
-            <button
-              onClick={() => notify("Submit Document")}
-              className="flex items-center gap-2 rounded-lg bg-bq-contrast px-5 py-2.5 text-[13px] font-semibold text-bq-on-fill transition-transform hover:scale-[1.02] active:translate-y-px"
-            >
-              Submit Document <ArrowRight className="size-4" />
-            </button>
-          </div>
-        </Card>
+          {approved ? (
+            <Card>
+              <BadgeCheck className="size-8 text-primary" />
+              <h2 className="mt-3 font-semibold text-bq-heading">
+                Verification complete
+              </h2>
+              <p className="mt-1 text-[13px] text-bq-muted">
+                Submitted {formatDate(submission.submittedAt)} ·{" "}
+                {submission.documentCount} document
+                {submission.documentCount === 1 ? "" : "s"} on file.
+              </p>
+            </Card>
+          ) : awaitingReview ? (
+            <Card>
+              <Clock className="size-8 text-bq-warn-text" />
+              <h2 className="mt-3 font-semibold text-bq-heading">
+                Under review
+              </h2>
+              <p className="mt-1 text-[13px] text-bq-muted">
+                Submitted {formatDate(submission.submittedAt)}.
+                A reviewer will compare your document with your face capture.
+              </p>
+            </Card>
+          ) : (
+            <VerificationFlow
+              submission={
+                submission?.status === "PENDING" ? submission : null
+              }
+            />
+          )}
+        </div>
 
         <div className="space-y-6">
           <Card>
-            <h3 className="font-semibold text-bq-heading">Verification Tiers</h3>
-            <p className="mt-1 text-[12px] text-bq-dim">Complete each tier to unlock higher limits.</p>
-            <div className="mt-4 space-y-3">
-              {TIERS.map((t) => (
-                <div
-                  key={t.name}
-                  className={cn(
-                    "rounded-xl border p-4",
-                    t.active ? "border-primary/40 bg-primary/[0.04]" : "border-bq-border",
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      {t.locked ? (
-                        <Lock className="size-4 text-bq-dim" />
-                      ) : (
-                        <Circle className={cn("size-4", t.tone === "green" ? "text-primary" : "text-bq-muted")} />
-                      )}
-                      <span className="text-[13px] font-semibold text-bq-heading">{t.name}</span>
-                    </span>
-                    <StatPill tone={t.tone}>{t.status}</StatPill>
-                  </div>
-                  <p className="mt-1 text-[12px] text-bq-dim">{t.limit}</p>
-                  <ul className="mt-2 space-y-1.5">
-                    {t.items.map((it) => (
-                      <li key={it.t} className="flex items-center gap-2 text-[12px] text-bq-muted">
-                        {it.done ? (
-                          <CircleCheck className="size-3.5 shrink-0 text-primary" />
-                        ) : (
-                          <Circle className="size-3.5 shrink-0 text-bq-dim" />
-                        )}
-                        {it.t}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            <h3 className="font-semibold text-bq-heading">
+              What verification unlocks
+            </h3>
+            <p className="mt-2 text-[13px] text-bq-muted">
+              A verified identity is what withdrawal limits and institutional
+              features will be gated on.
+            </p>
+            <p className="mt-3 border-t border-bq-border-soft pt-3 text-[11px] text-bq-dim">
+              Tiered limits aren&apos;t enforced yet. Funding and withdrawals have no
+              data model, so no limit is applied today.
+            </p>
           </Card>
 
           <Card>
-            <EyeOff className="size-6 text-bq-muted" />
-            <h3 className="mt-3 font-semibold text-bq-heading">Your data stays private</h3>
-            <p className="mt-1 text-[12px] leading-relaxed text-bq-muted">
-              Submitted documents are encrypted at rest, reviewed only by our compliance team, and deleted within 90
-              days of account verification.
-            </p>
-            <button onClick={() => notify("Privacy policy")} className="mt-3 text-[12px] text-primary hover:opacity-80">
-              Read our privacy policy
-            </button>
+            <Lock className="size-6 text-primary" />
+            <h3 className="mt-3 font-semibold text-bq-heading">
+              How your documents are handled
+            </h3>
+            <ul className="mt-3 space-y-2.5 text-[13px] text-bq-muted">
+              <li className="flex items-start gap-2.5">
+                <EyeOff className="mt-0.5 size-4 shrink-0 text-bq-dim" />
+                Stored privately, never served from a public URL.
+              </li>
+              <li className="flex items-start gap-2.5">
+                <Lock className="mt-0.5 size-4 shrink-0 text-bq-dim" />
+                Reviewers open them through short-lived signed links.
+              </li>
+            </ul>
           </Card>
         </div>
       </div>
