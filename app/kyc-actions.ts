@@ -6,10 +6,10 @@ import type { KycStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { putObject, isObjectStoreConfigured } from "@/lib/storage";
+import { humanBytes } from "@/lib/utils";
 import {
   MAX_UPLOAD_BYTES,
   documentTypeSchema,
-  humanBytes,
   isAcceptedImage,
   sidesFor,
 } from "@/lib/kyc";

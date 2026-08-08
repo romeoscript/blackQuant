@@ -1,11 +1,20 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { verifyPassword } from "@/lib/password";
+import { deleteObject, putObject } from "@/lib/storage";
+import { humanBytes } from "@/lib/utils";
+import {
+  MAX_AVATAR_BYTES,
+  avatarExtension,
+  avatarUrl,
+  isAcceptedAvatar,
+} from "@/lib/avatar";
 import {
   notificationPreferenceKeySchema,
   profileSchema,
@@ -54,6 +63,8 @@ export async function getProfile(): Promise<Profile | null> {
       phone: true,
       country: true,
       currency: true,
+      image: true,
+      avatarKey: true,
       createdAt: true,
       passwordChangedAt: true,
       notifySignals: true,
@@ -71,6 +82,8 @@ export async function getProfile(): Promise<Profile | null> {
     phone: user.phone,
     country: user.country,
     currency: user.currency,
+    avatarUrl: avatarUrl(user),
+    avatarUploaded: user.avatarKey !== null,
     memberSince: user.createdAt.toISOString(),
     passwordChangedAt: user.passwordChangedAt?.toISOString() ?? null,
     preferences: {
@@ -113,6 +126,103 @@ export async function updateProfile(
 
   revalidatePath(PROFILE_PATH);
   return { ok: true, message: "Profile updated." };
+}
+
+/** What the topbar and the mobile drawer draw, or null for the initials. */
+export async function getAvatarUrl(): Promise<string | null> {
+  const userId = await currentUserId();
+  if (!userId) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { image: true, avatarKey: true },
+  });
+  return avatarUrl(user);
+}
+
+/**
+ * Stores a new profile picture. Takes the form data directly rather than the
+ * `(prevState, formData)` shape the edit form uses: the picked file is resized
+ * in the browser first, so this is called from a handler and never wired
+ * straight to a `<form action>`.
+ *
+ * The browser downscales before sending, so what arrives is normally a few tens
+ * of kilobytes — but the type and size are checked here regardless, because the
+ * `accept` attribute is only a hint to the file picker and anything at all can
+ * be posted to a server action.
+ */
+export async function updateAvatar(formData: FormData): Promise<ProfileState> {
+  const userId = await currentUserId();
+  if (!userId) return { ok: false, message: "Your session has expired." };
+
+  const file = formData.get("avatar");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, message: "Choose an image to upload." };
+  }
+  const extension = avatarExtension(file.type);
+  if (!extension || !isAcceptedAvatar(file.type)) {
+    return { ok: false, message: "Upload a JPEG, PNG or WebP image." };
+  }
+  if (file.size > MAX_AVATAR_BYTES) {
+    return {
+      ok: false,
+      message: `That image is over ${humanBytes(MAX_AVATAR_BYTES)}.`,
+    };
+  }
+
+  let previousKey: string | null = null;
+  try {
+    const current = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarKey: true },
+    });
+    previousKey = current?.avatarKey ?? null;
+
+    // Stored before the row is pointed at it: an object nobody references is a
+    // cheaper failure than a row referencing an object that was never written.
+    const key = `avatars/${userId}/${randomUUID()}.${extension}`;
+    await putObject(key, new Uint8Array(await file.arrayBuffer()), file.type);
+    await prisma.user.update({ where: { id: userId }, data: { avatarKey: key } });
+  } catch (error) {
+    return unexpected("avatar", error);
+  }
+
+  // Only once the new key is committed, so a failure above leaves the old
+  // picture intact rather than leaving the account with none.
+  if (previousKey) await deleteObject(previousKey);
+
+  revalidatePath(PROFILE_PATH);
+  return { ok: true, message: "Profile picture updated." };
+}
+
+/** Drops the upload. An OAuth provider's picture, if any, shows again. */
+export async function removeAvatar(): Promise<ProfileState> {
+  const userId = await currentUserId();
+  if (!userId) return { ok: false, message: "Your session has expired." };
+
+  let removedKey: string | null = null;
+  try {
+    const current = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarKey: true },
+    });
+    if (!current?.avatarKey) {
+      return { ok: false, message: "There's no picture to remove." };
+    }
+    removedKey = current.avatarKey;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatarKey: null },
+    });
+  } catch (error) {
+    return unexpected("avatar-remove", error);
+  }
+
+  await deleteObject(removedKey);
+
+  revalidatePath(PROFILE_PATH);
+  return { ok: true, message: "Profile picture removed." };
 }
 
 /**

@@ -3,13 +3,12 @@
 import { useActionState, useEffect, useState } from "react";
 import { CreditCard, BookOpen, Car, Upload, Loader2, CircleCheck } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, humanBytes } from "@/lib/utils";
 import { Card, StatPill } from "@/components/dashboard/widgets";
 import {
   DOCUMENT_TYPES,
   REQUIREMENTS,
   UPLOAD_ACCEPT_ATTRIBUTE,
-  humanBytes,
   MAX_UPLOAD_BYTES,
   sidesFor,
   type DocumentTypeId,

@@ -14,13 +14,18 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
+  id                Int       @id @default(autoincrement())
+  name              String?
+  email             String    @unique
+  emailVerified     DateTime?
+  /// Written by the OAuth provider — an absolute URL to their avatar.
+  image             String?
+  /// Object-store key for a picture the user uploaded themselves. Kept apart
+  /// from `image` so the adapter can keep owning that column, and so the two
+  /// can be told apart: this one is a key, never a URL. Takes precedence.
+  avatarKey         String?
   /// Null for accounts created purely through an OAuth provider.
-  passwordHash  String?
+  passwordHash      String?
   /// Stamped on every password change so the profile can age it honestly.
   /// Null means "never changed since signup".
   passwordChangedAt DateTime?
@@ -29,6 +34,11 @@ model User {
   phone    String?
   country  String?
   currency String  @default("USD")
+
+  /// Spendable balance in USD. A cache of `sum(ledgerEntries.amountUsd)`, and
+  /// only ever written in the same transaction as the entry that explains it,
+  /// so the two cannot drift. Read this; audit against the ledger.
+  balanceUsd Decimal @default(0) @db.Decimal(18, 2)
 
   notifySignals     Boolean @default(true)
   notifyPositions   Boolean @default(true)
@@ -40,13 +50,16 @@ model User {
   twoFactorSecret    String?
   twoFactorEnabledAt DateTime?
 
-  accounts      Account[]
-  sessions      Session[]
-  recoveryCodes RecoveryCode[]
-  kycSubmissions KycSubmission[]
-  passwordResets PasswordResetToken[]
+  accounts         Account[]
+  sessions         Session[]
+  recoveryCodes    RecoveryCode[]
+  kycSubmissions   KycSubmission[]
+  passwordResets   PasswordResetToken[]
   credentialResets CredentialResetCode[]
-  notifications Notification[]
+  notifications    Notification[]
+  depositAddresses DepositAddress[]
+  depositEvents    DepositEvent[]
+  ledgerEntries    LedgerEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -84,14 +97,13 @@ model Session {
 }
 
 model Subscriber {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  source    String   @default("luminary-circle")
+  id     Int    @id @default(autoincrement())
+  email  String @unique
+  source String @default("luminary-circle")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 /// Required by the Auth.js Prisma adapter. Unused today — no email provider is
 /// configured — but the adapter contract expects the table to exist.
@@ -136,7 +148,7 @@ model RecoveryCode {
 /// Six digits is only ~1M wide, so `attempts` is load-bearing: without a cap the
 /// code is brute-forceable well inside its lifetime.
 model CredentialResetCode {
-  id Int @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   /// Deliberately not unique: six digits collide across users often enough to
   /// fail a legitimate request. Rows are found by `userId` — which is also what
   /// makes `attempts` enforceable, since a wrong guess must still land on the
@@ -169,19 +181,19 @@ enum KycDocumentKind {
 /// from the newest row rather than denormalised onto `User`, so the two can
 /// never disagree.
 model KycSubmission {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  status       KycStatus @default(PENDING)
+  id                Int           @id @default(autoincrement())
+  userId            Int
+  status            KycStatus     @default(PENDING)
   /// Which document the user chose: "id" | "passport" | "licence".
-  documentType String
+  documentType      String
   /// True only when the simulated liveness step was completed. Named for what
   /// it is — no anti-spoofing is performed, so it proves presence of a capture,
   /// not presence of a person.
-  livenessSimulated Boolean   @default(false)
+  livenessSimulated Boolean       @default(false)
   reviewedAt        DateTime?
   reviewNote        String?
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documents    KycDocument[]
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents         KycDocument[]
 
   createdAt DateTime @default(now())
 
@@ -226,5 +238,112 @@ model Notification {
   createdAt DateTime @default(now())
 
   /// The panel always reads one user's rows newest-first.
+  @@index([userId, createdAt])
+}
+
+/// Where a deposit got to. `CONFIRMED` is the only status that has moved money
+/// into a balance; everything else is informational.
+enum DepositStatus {
+  WAITING
+  CONFIRMING
+  CONFIRMED
+  PARTIALLY_PAID
+  FAILED
+  EXPIRED
+}
+
+/// A payin address minted by NOWPayments and handed to one user for one chain.
+///
+/// We do not hold its keys — it is a routing tag whose only job is to say who
+/// sent the funds, which then forward to a treasury wallet we do hold. It
+/// persists for the life of the account, so a user's saved address keeps
+/// working.
+model DepositAddress {
+  id          Int     @id @default(autoincrement())
+  userId      Int
+  /// NOWPayments currency code, e.g. "usdttrc20".
+  currency    String
+  address     String
+  /// Destination tag / memo. Set only on chains where NOWPayments hands every
+  /// user the *same* address and distinguishes them by tag (XRP); null
+  /// everywhere else. Part of this address's identity, never decoration — a
+  /// callback is matched on the pair, because matching on a shared address
+  /// alone would credit an arbitrary user.
+  extraId     String?
+  /// The payment whose creation minted the address, kept for support.
+  npPaymentId String
+  /// Smallest accepted deposit, as NOWPayments reported it when the address was
+  /// minted. Shown on the deposit screen so the figure is a real one — refresh
+  /// it if the network minimum moves.
+  minAmount   Decimal? @db.Decimal(38, 18)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, currency])
+  /// The lookup the IPN handler performs, on both columns together.
+  @@index([address, extraId])
+}
+
+/// One row per NOWPayments payment, updated in place as the deposit progresses.
+///
+/// Deliberately not one row per callback: NOWPayments sends `confirming`
+/// repeatedly as confirmations accumulate, and the UI shows a single deposit
+/// with a status, not a log. Crediting is made idempotent by the unique
+/// constraint on `LedgerEntry`, not by rejecting repeat callbacks here.
+model DepositEvent {
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  currency        String
+  /// Crypto actually received, in `currency`.
+  payAmount       Decimal       @db.Decimal(38, 18)
+  /// What NOWPayments forwarded to the treasury, in `outcomeCurrency`. Only
+  /// dollar-denominated when auto-conversion is configured — which is exactly
+  /// what `heldReason` exists to catch.
+  outcomeAmount   Decimal?      @db.Decimal(38, 18)
+  outcomeCurrency String?
+  /// What actually reached the balance. Zero until confirmed.
+  usdCredited     Decimal       @default(0) @db.Decimal(18, 2)
+  confirmations   Int           @default(0)
+  txHash          String?
+  status          DepositStatus
+  npPaymentId     String        @unique
+  /// Set when a callback confirmed but was deliberately not credited. A row
+  /// with this set needs a human — it is never a state the user can resolve.
+  heldReason      String?
+  /// The full callback body. When someone disputes an amount six months from
+  /// now, the fee breakdown in here settles it.
+  rawPayload      Json
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+/// Append-only record of every balance change, with what caused it.
+///
+/// `balanceUsd` is derived from these. Nothing writes a balance without writing
+/// the entry that explains it, in the same transaction.
+model LedgerEntry {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  /// Signed: credits positive, debits negative.
+  amountUsd Decimal @db.Decimal(18, 2)
+  /// "deposit" | "purchase" | "withdrawal" | "adjustment".
+  kind      String
+  /// The row that caused it — a DepositEvent id, an order id, and so on.
+  refId     String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  /// The idempotency guard for the whole system. A replayed IPN callback fails
+  /// here, which is the one write that must happen exactly once.
+  @@unique([kind, refId])
   @@index([userId, createdAt])
 }

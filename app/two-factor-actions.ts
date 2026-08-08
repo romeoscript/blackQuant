@@ -34,6 +34,9 @@ export type Enrollment = {
 };
 
 const TWO_FACTOR_PATH = "/dashboard/2fa";
+// The profile screen's Security card reads the same status, so it is
+// revalidated alongside every change here.
+const PROFILE_PATH = "/dashboard/profile";
 
 async function currentUserId(): Promise<number | null> {
   const session = await auth();
@@ -166,7 +169,7 @@ export async function confirmTwoFactorEnrollment(
     ]);
 
     revalidatePath(TWO_FACTOR_PATH);
-    revalidatePath("/dashboard/profile");
+    revalidatePath(PROFILE_PATH);
     return { ok: true, message: "Auth Guard is on.", recoveryCodes: codes };
   } catch (error) {
     return unexpected("confirm", error);
@@ -216,7 +219,7 @@ export async function disableTwoFactor(
   }
 
   revalidatePath(TWO_FACTOR_PATH);
-  revalidatePath("/dashboard/profile");
+  revalidatePath(PROFILE_PATH);
   return { ok: true, message: "Auth Guard is off." };
 }
 
@@ -245,6 +248,7 @@ export async function regenerateRecoveryCodes(): Promise<
     ]);
 
     revalidatePath(TWO_FACTOR_PATH);
+    revalidatePath(PROFILE_PATH);
     return { ok: true, message: "New recovery codes generated.", recoveryCodes: codes };
   } catch (error) {
     return unexpected("regenerate", error);

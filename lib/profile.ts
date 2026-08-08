@@ -11,6 +11,13 @@ export type Profile = {
   phone: string | null;
   country: string | null;
   currency: string;
+  /** Null when the account has no picture and the initials stand in. */
+  avatarUrl: string | null;
+  /**
+   * Whether that picture is one the user uploaded. False for an OAuth
+   * provider's avatar, which is theirs to change, not ours to delete.
+   */
+  avatarUploaded: boolean;
   memberSince: string;
   /** Null means the password has never been changed since signup. */
   passwordChangedAt: string | null;

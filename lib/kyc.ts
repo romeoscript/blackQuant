@@ -36,9 +36,3 @@ export const REQUIREMENTS = [
 export function isAcceptedImage(type: string): boolean {
   return (ACCEPTED_IMAGE_TYPES as readonly string[]).includes(type);
 }
-
-export function humanBytes(bytes: number): string {
-  return bytes < 1024 * 1024
-    ? `${Math.round(bytes / 1024)} KB`
-    : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}

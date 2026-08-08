@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { AwsClient } from "aws4fetch";
 import { env } from "@/lib/env";
@@ -80,6 +80,49 @@ export async function signedDownloadUrl(key: string): Promise<string> {
     { aws: { signQuery: true } },
   );
   return signed.url;
+}
+
+/**
+ * The bytes behind a key, or null if there are none. Unlike
+ * `signedDownloadUrl` this does pass them through the app — an avatar is drawn
+ * on every page, and a link that expires in two minutes cannot do that.
+ * Callers must decide who is allowed to see the key before asking for it.
+ */
+export async function getObject(
+  key: string,
+): Promise<ReadableStream<Uint8Array> | Uint8Array | null> {
+  if (!isObjectStoreConfigured()) {
+    try {
+      const file = await readFile(join(DEV_UPLOAD_DIR, key));
+      return new Uint8Array(file);
+    } catch {
+      return null;
+    }
+  }
+
+  const response = await client().fetch(objectUrl(key));
+  if (!response.ok || !response.body) return null;
+  return response.body;
+}
+
+/**
+ * Best-effort removal, used when an object is replaced. A failure is logged
+ * rather than thrown: the new object is already stored and the row already
+ * points at it, so the only cost is one file nobody references.
+ */
+export async function deleteObject(key: string): Promise<void> {
+  try {
+    if (!isObjectStoreConfigured()) {
+      await rm(join(DEV_UPLOAD_DIR, key), { force: true });
+      return;
+    }
+    const response = await client().fetch(objectUrl(key), { method: "DELETE" });
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error(`[storage:delete] ${key}`, error);
+  }
 }
 
 /** Dev-only: reads back what the fallback wrote, so tests can assert on it. */

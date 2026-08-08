@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  MapPin,
   Calendar,
   ShieldCheck,
   ShieldAlert,
@@ -11,11 +10,15 @@ import {
 import type { NotificationKind } from "@prisma/client";
 import { DashboardPageHeader } from "@/components/dashboard/page-header";
 import { Card, StatPill, HeaderActions } from "@/components/dashboard/widgets";
+import { ProfileHeader } from "@/components/dashboard/profile/profile-header";
 import { PersonalInfo } from "@/components/dashboard/profile/personal-info";
 import { DangerZone } from "@/components/dashboard/profile/danger-zone";
 import { getProfile } from "@/app/profile-actions";
 import { listNotifications } from "@/app/notification-actions";
-import { userIdentity } from "@/lib/user-display";
+import {
+  getTwoFactorStatus,
+  type TwoFactorStatus,
+} from "@/app/two-factor-actions";
 
 const ACTIVITY_ICONS: Record<NotificationKind, LucideIcon> = {
   WELCOME: Calendar,
@@ -23,10 +26,6 @@ const ACTIVITY_ICONS: Record<NotificationKind, LucideIcon> = {
   SYSTEM: Bell,
 };
 
-const monthYear = new Intl.DateTimeFormat("en-GB", {
-  month: "short",
-  year: "numeric",
-});
 const dayMonth = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
   month: "short",
@@ -37,10 +36,17 @@ function daysSince(iso: string) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
 }
 
+function authGuardSummary(status: TwoFactorStatus | null) {
+  if (!status?.enabledAt) return "Not configured. Your account has one factor";
+  const codes = status.recoveryCodesRemaining;
+  return `Active since ${dayMonth.format(new Date(status.enabledAt))} · ${codes} backup ${codes === 1 ? "code" : "codes"} left`;
+}
+
 export default async function ProfilePage() {
-  const [profile, activity] = await Promise.all([
+  const [profile, activity, twoFactor] = await Promise.all([
     getProfile(),
     listNotifications(),
+    getTwoFactorStatus(),
   ]);
 
   if (!profile) {
@@ -56,37 +62,11 @@ export default async function ProfilePage() {
     );
   }
 
-  const { displayName, initials } = userIdentity(profile);
-
   return (
     <div className="space-y-6">
       <DashboardPageHeader title="My Profile" actions={<HeaderActions />} />
 
-      <Card>
-        <div className="flex flex-wrap items-center gap-5">
-          <div className="relative">
-            <span className="flex size-16 items-center justify-center rounded-2xl bg-primary/20 text-xl font-bold text-primary">
-              {initials}
-            </span>
-            <span className="absolute -bottom-0.5 -right-0.5 size-4 rounded-full border-2 border-bq-surface bg-primary" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-bq-heading">{displayName}</h2>
-            <p className="text-[13px] text-bq-muted">{profile.email}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-bq-dim">
-              {profile.country && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="size-3.5" /> {profile.country}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Calendar className="size-3.5" /> Member since{" "}
-                {monthYear.format(new Date(profile.memberSince))}
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
+      <ProfileHeader profile={profile} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <PersonalInfo profile={profile} />
@@ -99,16 +79,24 @@ export default async function ProfilePage() {
                 href="/dashboard/2fa"
                 className="flex items-center gap-3 rounded-lg border border-bq-border px-3 py-3 transition-colors hover:bg-bq-overlay/5"
               >
-                <ShieldAlert className="size-4 shrink-0 text-bq-warn-text" />
+                {twoFactor?.enabled ? (
+                  <ShieldCheck className="size-4 shrink-0 text-primary" />
+                ) : (
+                  <ShieldAlert className="size-4 shrink-0 text-bq-warn-text" />
+                )}
                 <div className="flex-1">
                   <p className="text-[13px] font-medium text-bq-heading">
                     Auth Guard (2FA)
                   </p>
                   <p className="text-[11px] text-bq-dim">
-                    Not configured. Your account has one factor
+                    {authGuardSummary(twoFactor)}
                   </p>
                 </div>
-                <StatPill tone="amber">Set up</StatPill>
+                {twoFactor?.enabled ? (
+                  <StatPill tone="green">Active</StatPill>
+                ) : (
+                  <StatPill tone="amber">Set up</StatPill>
+                )}
               </Link>
 
               <div className="flex items-center gap-3 rounded-lg border border-bq-border px-3 py-3">
