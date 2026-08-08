@@ -1,14 +1,29 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { CirclePlus, CircleArrowOutUpRight, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
 import { StatCards } from "@/components/dashboard/treasury/stat-cards";
-import { HoldingsCard } from "@/components/dashboard/treasury/holdings-card";
+import { DepositsByAssetCard } from "@/components/dashboard/treasury/holdings-card";
 import { AllocationCard } from "@/components/dashboard/treasury/allocation-card";
 import { BalanceHistoryCard } from "@/components/dashboard/treasury/balance-history-card";
 import { TransactionsCard } from "@/components/dashboard/treasury/transactions-card";
+import { getTreasurySummary } from "@/app/treasury-actions";
+import { DEFAULT_BALANCE_RANGE, type BalanceRange } from "@/lib/treasury";
 
 export default function TreasuryPage() {
+  const [range, setRange] = useState<BalanceRange>(DEFAULT_BALANCE_RANGE);
+
+  const { data: summary } = useQuery({
+    queryKey: ["treasury", range],
+    queryFn: () => getTreasurySummary(range),
+    // Switching ranges keeps the current figures on screen rather than
+    // flashing zeroes at someone reading their balance.
+    placeholderData: (previous) => previous,
+    refetchInterval: (query) => (query.state.data?.pendingCount ? 15_000 : 60_000),
+  });
+
   return (
     <div className="space-y-4 lg:space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -20,29 +35,39 @@ export default function TreasuryPage() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => toast("Fund", { description: "Funding flow coming soon." })}
+          <Link
+            href="/dashboard/fund"
             className="flex items-center gap-2 rounded-full bg-bq-contrast px-4 py-2 text-[13px] font-semibold text-bq-on-fill transition-transform hover:scale-[1.02] active:translate-y-px"
           >
             <CirclePlus className="size-4" /> Fund
-          </button>
-          <button
-            onClick={() => toast("Withdraw", { description: "Withdrawal flow coming soon." })}
+          </Link>
+          <Link
+            href="/dashboard/withdrawals"
             className="flex items-center gap-2 rounded-full border border-bq-border px-4 py-2 text-[13px] font-semibold text-bq-heading transition-colors hover:bg-bq-surface"
           >
             <CircleArrowOutUpRight className="size-4" /> Withdraw
-          </button>
+          </Link>
         </div>
       </div>
 
-      <StatCards />
+      <StatCards summary={summary} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5">
-        <HoldingsCard />
-        <AllocationCard />
+        <DepositsByAssetCard
+          assets={summary?.byAsset ?? []}
+          totalUsd={summary?.totalDepositedUsd ?? "0.00"}
+        />
+        <AllocationCard
+          assets={summary?.byAsset ?? []}
+          totalUsd={summary?.totalDepositedUsd ?? "0.00"}
+        />
       </div>
 
-      <BalanceHistoryCard />
+      <BalanceHistoryCard
+        history={summary?.history ?? []}
+        range={range}
+        onRangeChange={setRange}
+      />
       <TransactionsCard />
     </div>
   );

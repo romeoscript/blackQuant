@@ -1,43 +1,69 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { BALANCE_HISTORY } from "./data";
 import { Panel } from "@/components/dashboard/panel";
 import { AreaLineChart } from "@/components/dashboard/charts";
+import {
+  BALANCE_RANGES,
+  type BalancePoint,
+  type BalanceRange,
+} from "@/lib/treasury";
 
-const RANGES = { "12M": 12, "6M": 6, "1M": 3 } as const;
-type Range = keyof typeof RANGES;
-
-export function BalanceHistoryCard() {
-  const [range, setRange] = useState<Range>("12M");
-  const data = BALANCE_HISTORY.slice(-RANGES[range]);
+export function BalanceHistoryCard({
+  history,
+  range,
+  onRangeChange,
+}: {
+  history: BalancePoint[];
+  range: BalanceRange;
+  onRangeChange: (range: BalanceRange) => void;
+}) {
+  // Every point equal means a flat line pinned to the top of the chart, which
+  // reads as data. An account that has never moved should say so.
+  const hasMovement = new Set(history.map((p) => p.balanceUsd)).size > 1;
 
   return (
     <Panel className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-bq-heading">Balance History</h2>
-          <p className="text-[12px] text-bq-dim">Total portfolio value over the last 12 months</p>
+          <h2 className="text-[15px] font-semibold text-bq-heading">
+            Balance history
+          </h2>
+          <p className="text-[12px] text-bq-dim">
+            Your balance at the close of each period
+          </p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-bq-border bg-bq-bg p-1">
-          {(Object.keys(RANGES) as Range[]).map((r) => (
+          {BALANCE_RANGES.map((option) => (
             <button
-              key={r}
-              onClick={() => setRange(r)}
+              key={option.id}
+              onClick={() => onRangeChange(option.id)}
               className={cn(
                 "rounded-md px-3 py-1 text-[12px] font-medium transition-colors",
-                range === r ? "bg-bq-surface text-bq-heading" : "text-bq-muted hover:text-bq-text",
+                range === option.id
+                  ? "bg-bq-surface text-bq-heading"
+                  : "text-bq-muted hover:text-bq-text",
               )}
             >
-              {r}
+              {option.label}
             </button>
           ))}
         </div>
       </div>
 
       <div className="mt-5">
-        <AreaLineChart data={data.map((d) => ({ label: d.month, value: d.value }))} />
+        {hasMovement ? (
+          <AreaLineChart
+            data={history.map((point) => ({
+              label: point.label,
+              value: point.balanceUsd,
+            }))}
+          />
+        ) : (
+          <p className="flex h-40 items-center justify-center text-[13px] text-bq-muted">
+            No balance changes in this period.
+          </p>
+        )}
       </div>
     </Panel>
   );
