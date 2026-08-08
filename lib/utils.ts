@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const DATE = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+/** The one date format the app shows: "08 Aug 2026". */
+export const formatDate = (value: string | Date): string =>
+  DATE.format(typeof value === "string" ? new Date(value) : value);
+
 const RELATIVE = new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" });
 
 /**
