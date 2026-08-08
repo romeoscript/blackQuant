@@ -9,7 +9,7 @@
 // It mints balances out of nothing, so it refuses to talk to anything but
 // localhost unless you insist with --force.
 //
-//   npm run ipn -- --email you@example.com --asset BTC --amount 250
+//   npm run ipn -- --email you@example.com --asset BTC --amount 250 --paid 0.0023
 //   npm run ipn -- --email you@example.com --asset XRP --amount 100
 //   npm run ipn -- --email you@example.com --asset BTC --status confirming --confirmations 3
 //   npm run ipn -- --email you@example.com --asset BTC --amount 250 --tamper
@@ -143,6 +143,9 @@ async function main() {
 
   const paymentId = str(args["payment-id"]) ?? `dev-${Date.now()}`;
   const amount = str(args.amount) ?? "250.00";
+  // Crypto actually sent. Defaults to the dollar figure, which is fine for a
+  // stablecoin and nonsense for BTC — pass --paid to make a demo look real.
+  const paid = str(args.paid) ?? amount;
   const outcomeCurrency = str(args["outcome-currency"]) ?? "usdttrc20";
   const confirmations = Number(str(args.confirmations) ?? 6);
 
@@ -163,7 +166,7 @@ async function main() {
       pay_address: address.address,
       payment_status: status,
       pay_currency: asset.currency,
-      actually_paid: status === "waiting" ? "0" : amount,
+      actually_paid: status === "waiting" ? "0" : paid,
       outcome_amount: finished ? amount : "0",
       outcome_currency: outcomeCurrency,
       confirmations: status === "waiting" ? 0 : confirmations,
