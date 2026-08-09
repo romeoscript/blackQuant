@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { listEntitlements, purchaseItem } from "@/app/store-actions";
-import { storeItem } from "@/lib/store";
+import type { PurchaseState } from "@/lib/purchase";
+import { catalogueItem } from "@/lib/catalogue";
 
 /**
  * A purchase moves money, so the failure modes are the point: charging twice,
@@ -133,11 +134,11 @@ describe("concurrency", () => {
   it("charges once when the same purchase is clicked repeatedly", async () => {
     const userId = await makeUser(1000);
 
-    const results = await Promise.all(
+    const results: PurchaseState[] = await Promise.all(
       Array.from({ length: 5 }, () => purchaseItem(MONTHLY)),
     );
 
-    expect(results.filter((r) => r.ok)).toHaveLength(1);
+    expect(results.filter((result) => result.ok)).toHaveLength(1);
     expect(await balanceOf(userId)).toBe("500.00");
     expect(await prisma.purchase.count({ where: { userId } })).toBe(1);
   });
@@ -191,7 +192,7 @@ describe("entitlements", () => {
 describe("catalogue", () => {
   it("is the only source of a price", () => {
     // The action takes an id; this is where the amount charged comes from.
-    expect(storeItem(MONTHLY)?.priceUsd).toBe(500);
-    expect(storeItem("free-money")).toBeUndefined();
+    expect(catalogueItem(MONTHLY)?.priceUsd).toBe(500);
+    expect(catalogueItem("free-money")).toBeUndefined();
   });
 });
