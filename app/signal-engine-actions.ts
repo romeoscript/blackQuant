@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { currentUserId } from "@/lib/session";
 import {
+  getEngineHealth,
   getSnapshot,
-  hourlyVolume,
   isSignalEngineConfigured,
   listSignals,
   registerStrategy,
@@ -17,8 +17,8 @@ import {
   type Signal,
   type Stats,
   type Strategy,
-  type VolumeBucket,
 } from "@/lib/signal-engine";
+import { hourlyVolume, type VolumeBucket } from "@/lib/signal-engine-view";
 
 /**
  * The Signal Engine screen's data, and the two writes behind it.
@@ -34,19 +34,49 @@ const SIGNAL_WINDOW = 1000;
 /** Hours the volume chart covers. */
 const VOLUME_HOURS = 24;
 
+/**
+ * Signals actually handed to the browser.
+ *
+ * The engine's window is read in full so the volume chart counts every bar,
+ * but shipping all of it to the client was 1.3MB per refetch of data the feed
+ * cannot show — it pages twenty-five rows at a time. On a 1m-bar engine that
+ * arrived faster than the tab could parse it and the page never finished
+ * loading. The buckets are computed here; only the rows travel.
+ */
+const FEED_WINDOW = 200;
+
+const HOUR_MS = 3_600_000;
+
 export type SignalEngineOverview = {
   generatedAt: string;
   /** Where the trade feed came from, when the engine names it. */
   source: string | null;
   pairs: string[];
   timeframes: string[];
-  uptimeMs: number | null;
+  /**
+   * Market time the stats cover, not process uptime. On a replay this is the
+   * span of history replayed — two years of it, in minutes of wall clock.
+   */
+  marketElapsedMs: number | null;
+  /** How long the engine process itself has been serving. Null if unknown. */
+  processUptimeMs: number | null;
+  /**
+   * Set when the engine is rescaling calibrated confidence for display. The
+   * screen has to say so: a signal measured at 27 can present as 85.
+   */
+  display: { confidenceBand?: [number, number]; note?: string } | null;
   portfolio: Stats;
   /** Live strategies first, then whatever has been measured most. */
   strategies: Strategy[];
-  /** Newest first, straight from the engine. */
+  /** Newest first, capped at what the feed can page through. */
   signals: Signal[];
   volume: VolumeBucket[];
+  /** What the volume window is anchored to, and whether that is the wall clock. */
+  volumeAnchor: number;
+  /** True when the feed has fallen behind real time, as a replay has. */
+  volumeIsHistorical: boolean;
+  /** Oldest to newest signal in the window — what the feed actually covers. */
+  feedSpanMs: number;
   /** Signals matching the query before the window was applied. */
   totalSignals: number;
   /**
@@ -73,10 +103,26 @@ export async function getSignalEngineOverview(): Promise<SignalEngineView> {
   if (!isSignalEngineConfigured()) return { status: "unconfigured" };
 
   try {
-    const [snapshot, feed] = await Promise.all([
+    const [snapshot, feed, health] = await Promise.all([
       getSnapshot(),
       listSignals({ limit: SIGNAL_WINDOW }),
+      // Supplementary: the screen is still worth rendering without it, so a
+      // failing health probe must not take the whole snapshot down with it.
+      getEngineHealth().catch(() => null),
     ]);
+
+    // A replayed feed's newest signal can be days old. Pinning the window to
+    // the wall clock would draw an empty chart over a feed full of data, so it
+    // anchors on the feed itself once the feed has fallen behind.
+    const ordered = orderNewestFirst(feed.signals);
+    const latest = ordered.reduce((max, s) => Math.max(max, s.openedAt ?? 0), 0);
+    const oldest = ordered.reduce(
+      (min, s) => (s.openedAt === undefined ? min : Math.min(min, s.openedAt)),
+      Number.POSITIVE_INFINITY,
+    );
+    const span = Number.isFinite(oldest) && latest > 0 ? latest - oldest : 0;
+    const historical = latest > 0 && Date.now() - latest > HOUR_MS;
+    const anchor = historical ? latest : Date.now();
 
     return {
       status: "ok",
@@ -85,13 +131,18 @@ export async function getSignalEngineOverview(): Promise<SignalEngineView> {
         source: snapshot.source ?? null,
         pairs: snapshot.pairs ?? [],
         timeframes: snapshot.timeframes ?? [],
-        uptimeMs: snapshot.uptimeMs ?? null,
+        marketElapsedMs: snapshot.uptimeMs ?? null,
+        processUptimeMs: health?.uptimeMs ?? null,
+        display: snapshot.display ?? null,
         portfolio: snapshot.portfolio,
         strategies: rankStrategies(snapshot.strategies),
-        signals: feed.signals,
-        volume: hourlyVolume(feed.signals, Date.now(), VOLUME_HOURS),
+        signals: ordered.slice(0, FEED_WINDOW),
+        volume: hourlyVolume(ordered, anchor, VOLUME_HOURS),
+        volumeAnchor: anchor,
+        volumeIsHistorical: historical,
+        feedSpanMs: span,
         totalSignals: feed.total,
-        windowed: feed.total > feed.returned,
+        windowed: feed.total > Math.min(feed.returned, FEED_WINDOW),
       },
     };
   } catch (error) {
@@ -100,6 +151,20 @@ export async function getSignalEngineOverview(): Promise<SignalEngineView> {
     reportFailure("load the signal engine snapshot", error);
     return { status: "unavailable" };
   }
+}
+
+/**
+ * Newest first, by when the signal actually opened.
+ *
+ * `/api/signals` documents "newest first", but not every feed delivers it —
+ * the gecko source groups by pair, which puts a four-minute-old signal above a
+ * twenty-minute-old one and makes an age-ordered feed read as noise. Sorting
+ * here is cheap and makes the list mean what its heading says. Signals with no
+ * open time sort last rather than to the top, where a missing timestamp would
+ * otherwise masquerade as the most recent thing that happened.
+ */
+function orderNewestFirst(signals: Signal[]): Signal[] {
+  return [...signals].sort((a, b) => (b.openedAt ?? -Infinity) - (a.openedAt ?? -Infinity));
 }
 
 /**
