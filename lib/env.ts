@@ -36,6 +36,15 @@ const envSchema = z.object({
   NOWPAYMENTS_API_KEY: optionalStr,
   NOWPAYMENTS_IPN_SECRET: optionalStr,
   NOWPAYMENTS_BASE_URL: optionalStr,
+  // The dexwatch signal engine — a separate process serving the live feed and
+  // the measured strategy stats. Without a base URL the Signal Engine screen
+  // says it isn't connected rather than showing invented numbers.
+  //
+  // The key is only needed when the engine is bound off the loopback
+  // interface; a local engine accepts writes without one, and refuses them
+  // entirely when it is remote and no key was configured on its side.
+  SIGNAL_ENGINE_BASE_URL: optionalStr,
+  SIGNAL_ENGINE_API_KEY: optionalStr,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -80,6 +89,18 @@ const parsed = envSchema
           message: `${key} is required when NOWPAYMENTS_API_KEY is set`,
         });
       }
+    }
+  })
+  // A relative or half-typed engine URL fails at `fetch` time, which on this
+  // screen looks identical to the engine being down — one is a typo in a
+  // deploy config and the other is an outage, so they are separated here.
+  .superRefine((v, ctx) => {
+    if (v.SIGNAL_ENGINE_BASE_URL && !URL.canParse(v.SIGNAL_ENGINE_BASE_URL)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["SIGNAL_ENGINE_BASE_URL"],
+        message: `SIGNAL_ENGINE_BASE_URL must be an absolute URL such as http://127.0.0.1:8820 — got ${JSON.stringify(v.SIGNAL_ENGINE_BASE_URL)}`,
+      });
     }
   })
   .safeParse(process.env);
