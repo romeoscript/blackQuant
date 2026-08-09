@@ -1,13 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { CircleCheck, CircleAlert, Zap } from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { PLANS } from "./data";
+import { cn, formatDate } from "@/lib/utils";
+import { PLAN_ITEMS, type PlanItem } from "@/lib/catalogue";
+import { useBalance } from "@/hooks/use-balance";
+import { listEntitlements } from "@/app/store-actions";
+import { CheckoutDialog } from "./checkout-dialog";
 
 export function PricingSection() {
   const [annual, setAnnual] = useState(false);
+  const [checkingOut, setCheckingOut] = useState<PlanItem | null>(null);
+  const { balanceUsd } = useBalance();
+
+  const { data: entitlements } = useQuery({
+    queryKey: ["entitlements"],
+    queryFn: () => listEntitlements(),
+  });
+
+  const period = annual ? "Annual" : "Monthly";
+  const plans = PLAN_ITEMS.filter((plan) => plan.period === period);
+  const active = (entitlements ?? []).find((held) =>
+    PLAN_ITEMS.some((plan) => plan.id === held.itemId),
+  );
+  const activePlan = active && PLAN_ITEMS.find((p) => p.id === active.itemId);
 
   return (
     <div className="space-y-5">
@@ -40,71 +58,102 @@ export function PricingSection() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-loss/25 bg-bq-loss/[0.06] px-4 py-3">
-        <p className="flex items-center gap-2.5 text-[13px] text-bq-loss-strong">
-          <CircleAlert className="size-4 shrink-0" />
-          You have no active subscription. Fund your account to activate a plan.
-        </p>
-        <button
-          onClick={() => toast("Fund Account", { description: "Funding flow coming soon." })}
-          className="shrink-0 text-[13px] font-semibold text-bq-loss-text transition-colors hover:text-bq-loss-strong"
-        >
-          Fund Account
-        </button>
-      </div>
+      {activePlan ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-mint/25 bg-bq-mint/[0.06] px-4 py-3">
+          <p className="flex items-center gap-2.5 text-[13px] text-bq-mint">
+            <CircleCheck className="size-4 shrink-0" />
+            {activePlan.name} is active
+            {active?.expiresAt ? ` until ${formatDate(active.expiresAt)}` : ""}.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bq-loss/25 bg-bq-loss/[0.06] px-4 py-3">
+          <p className="flex items-center gap-2.5 text-[13px] text-bq-loss-strong">
+            <CircleAlert className="size-4 shrink-0" />
+            No active subscription. Pay from your balance, or with crypto.
+          </p>
+          <Link
+            href="/dashboard/fund"
+            className="shrink-0 text-[13px] font-semibold text-bq-loss-text transition-colors hover:text-bq-loss-strong"
+          >
+            Add funds
+          </Link>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {PLANS.map((plan) => (
+        {plans.map((plan) => (
           <div
-            key={plan.name}
+            key={plan.id}
             className={cn(
               "relative flex flex-col rounded-2xl border bg-bq-card p-6",
-              plan.featured ? "border-bq-contrast/70" : "border-bq-border",
+              plan.popular ? "border-bq-contrast/70" : "border-bq-border",
             )}
           >
             {plan.badge && (
               <span
                 className={cn(
                   "absolute right-6 top-6 rounded-md px-2 py-0.5 text-[10px] font-semibold",
-                  plan.featured ? "bg-bq-contrast text-bq-on-fill" : "bg-bq-surface text-bq-muted",
+                  plan.popular ? "bg-bq-contrast text-bq-on-fill" : "bg-bq-surface text-bq-muted",
                 )}
               >
                 {plan.badge}
               </span>
             )}
             <h3 className="text-[16px] font-bold text-bq-heading">{plan.name}</h3>
-            <p className="mt-1 max-w-[85%] text-[12px] leading-relaxed text-bq-dim">{plan.blurb}</p>
+            <p className="mt-1 max-w-[85%] text-[12px] leading-relaxed text-bq-dim">{plan.detail}</p>
 
             <p className="mt-5 flex items-baseline gap-1">
               <span className="text-[34px] font-bold leading-none text-bq-heading">
-                ${annual ? plan.annual : plan.monthly}
+                ${plan.priceUsd}
               </span>
-              <span className="text-[13px] text-bq-dim">/mo</span>
+              <span className="text-[13px] text-bq-dim">
+                {annual ? "/year" : "/month"}
+              </span>
             </p>
 
             <ul className="mt-5 flex-1 space-y-2.5">
               {plan.features.map((f) => (
                 <li key={f} className="flex items-center gap-2.5 text-[13px] text-bq-text">
-                  <CircleCheck className={cn("size-4 shrink-0", plan.featured ? "text-bq-mint" : "text-bq-dim")} />
+                  <CircleCheck className={cn("size-4 shrink-0", plan.popular ? "text-bq-mint" : "text-bq-dim")} />
                   {f}
                 </li>
               ))}
             </ul>
 
             <button
-              onClick={() => toast(`Activate ${plan.name}`, { description: "Fund your account to activate a plan." })}
+              onClick={() => setCheckingOut(plan)}
+              disabled={Boolean(activePlan)}
               className={cn(
                 "mt-6 flex items-center justify-center gap-2 rounded-lg py-2.5 text-[13px] font-semibold transition-colors",
-                plan.featured
-                  ? "bg-bq-contrast text-bq-on-fill hover:bg-bq-contrast/90"
-                  : "border border-bq-border text-bq-heading hover:bg-bq-surface",
+                activePlan
+                  ? "cursor-not-allowed border border-bq-border text-bq-dim"
+                  : plan.popular
+                    ? "bg-bq-contrast text-bq-on-fill hover:bg-bq-contrast/90"
+                    : "border border-bq-border text-bq-heading hover:bg-bq-surface",
               )}
             >
-              <Zap className="size-4" /> Activate
+              {activePlan?.id === plan.id ? (
+                <>
+                  <CircleCheck className="size-4" /> Active
+                </>
+              ) : (
+                <>
+                  <Zap className="size-4" /> Activate
+                </>
+              )}
             </button>
           </div>
         ))}
       </div>
+
+      {checkingOut && (
+        <CheckoutDialog
+          plan={checkingOut}
+          balanceUsd={balanceUsd}
+          onClose={() => setCheckingOut(null)}
+        />
+      )}
     </div>
   );
 }
