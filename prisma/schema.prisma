@@ -35,6 +35,19 @@ model User {
   country  String?
   currency String  @default("USD")
 
+  /// The code in this account's referral link. Assigned once and never changed:
+  /// a link already shared has to keep resolving to the same account. Null on
+  /// accounts made before the programme existed; minted on first read.
+  referralCode String? @unique
+  /// Who referred this account. Written with the account row and never
+  /// afterwards — signup is the only moment attribution cannot be argued with,
+  /// and a mutable column would let commission be re-pointed after it was
+  /// earned. Set-null rather than cascade on delete: losing a referrer must not
+  /// delete the people they referred.
+  referredById Int?
+  referredBy   User?   @relation("Referral", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals    User[]  @relation("Referral")
+
   /// Spendable balance in USD. A cache of `sum(ledgerEntries.amountUsd)`, and
   /// only ever written in the same transaction as the entry that explains it,
   /// so the two cannot drift. Read this; audit against the ledger.
@@ -61,9 +74,16 @@ model User {
   depositEvents    DepositEvent[]
   ledgerEntries    LedgerEntry[]
   purchases        Purchase[]
+  paymentIntents   PaymentIntent[]
+
+  commissionsEarned ReferralCommission[] @relation("CommissionEarner")
+  commissionsGiven  ReferralCommission[] @relation("CommissionSource")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  /// The downline lookup: everyone one account referred.
+  @@index([referredById])
 }
 
 model Account {
@@ -362,6 +382,72 @@ model Purchase {
   /// When a subscription lapses. Null for a one-time add-on, which is kept
   /// forever — the absence of a date is what makes it permanent.
   expiresAt DateTime?
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commissions ReferralCommission[]
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+/// Commission one account earned from another account's purchase.
+///
+/// The ledger already records the credit — this exists because the ledger
+/// cannot answer "how much has this particular referral earned me", which is
+/// the question the Referral Hub is built around. Written in the same
+/// transaction as the entry that pays it, so the two cannot disagree.
+model ReferralCommission {
+  id           Int     @id @default(autoincrement())
+  /// Who was paid.
+  earnerId     Int
+  /// Whose purchase paid them.
+  sourceUserId Int
+  purchaseId   Int
+  /// 1 for the direct referrer, 2 for the referrer above them.
+  tier         Int
+  /// The rate as applied, in basis points. Frozen for the same reason
+  /// `Purchase.priceUsd` is: changing the programme must not silently rewrite
+  /// what someone has already earned.
+  rateBps      Int
+  amountUsd    Decimal @db.Decimal(18, 2)
+
+  earner     User     @relation("CommissionEarner", fields: [earnerId], references: [id], onDelete: Cascade)
+  sourceUser User     @relation("CommissionSource", fields: [sourceUserId], references: [id], onDelete: Cascade)
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  /// One award per purchase per tier, whichever route the purchase arrived by.
+  /// The matching guard on the money itself is `LedgerEntry`'s unique
+  /// `(kind, refId)`; this one keeps the record that explains it just as single.
+  @@unique([purchaseId, tier])
+  /// The Hub reads one earner's commissions newest-first, and sums them per
+  /// referred user.
+  @@index([earnerId, createdAt])
+  @@index([earnerId, sourceUserId])
+}
+
+/// A crypto payment raised for one catalogue item, rather than a top-up.
+///
+/// The callback for it arrives at an address that belongs to no `DepositAddress`
+/// row, so this is what tells the IPN handler whose it is and what it buys. The
+/// price is captured here because the catalogue may change before it settles.
+model PaymentIntent {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  itemId      String
+  priceUsd    Decimal   @db.Decimal(18, 2)
+  /// The NOWPayments payment this intent is settled by.
+  npPaymentId String    @unique
+  payAddress  String
+  /// Destination tag, on the chains that share an address.
+  payExtraId  String?
+  /// Crypto the customer chose to pay in, as a NOWPayments code.
+  payCurrency String
+  /// Set once the deposit behind it credited and the item was granted, so a
+  /// replayed callback cannot buy the same thing twice.
+  fulfilledAt DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
