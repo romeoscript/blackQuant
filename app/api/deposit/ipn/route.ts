@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 import { depositStatus, furthestStatus, isUsdDenominated } from "@/lib/deposit";
 import { ipnPayloadSchema } from "@/lib/nowpayments";
 import { publishDeposit } from "@/lib/events";
+import { fulfilIntent } from "@/lib/purchase";
 
 /**
  * The NOWPayments callback. The only place in the application where a balance
@@ -91,20 +92,20 @@ export async function POST(req: Request) {
   // account is far worse than crediting late.
   const { pay_address: payAddress, payin_extra_id: extraId } = evt;
 
-  const matches = await prisma.depositAddress.findMany({
-    where: { address: payAddress, extraId },
-    select: { userId: true, currency: true },
-    take: 2,
+  // A checkout raises its own payment at a fresh address that belongs to no
+  // deposit address, so the intent is what identifies the payer. Looked up by
+  // payment id, which NOWPayments assigned and we stored when we raised it.
+  const intent = await prisma.paymentIntent.findUnique({
+    where: { npPaymentId },
+    select: { userId: true, payCurrency: true },
   });
 
-  if (matches.length !== 1) {
-    console.error(
-      `[deposit:ipn] ${matches.length === 0 ? "unknown" : "ambiguous"} address`,
-      { payAddress, extraId, npPaymentId },
-    );
-    return Response.json({ ok: true });
-  }
-  const [{ userId, currency }] = matches;
+  const owner = intent
+    ? { userId: intent.userId, currency: intent.payCurrency }
+    : await resolveByAddress(payAddress, extraId, npPaymentId);
+
+  if (!owner) return Response.json({ ok: true });
+  const { userId, currency } = owner;
 
   const status = depositStatus(evt.payment_status);
   const outcomeCurrency = evt.outcome_currency;
@@ -209,6 +210,10 @@ export async function POST(req: Request) {
     throw error;
   }
 
+  // Only once the credit is committed does the intent get to spend it, so a
+  // failure above can never grant an item that was not paid for.
+  if (intent && creditable) await fulfilIntent(npPaymentId);
+
   // After the commit, never inside it: a subscriber must not be told a balance
   // moved by a transaction that could still roll back.
   publishDeposit(userId, {
@@ -219,4 +224,33 @@ export async function POST(req: Request) {
   });
 
   return Response.json({ ok: true });
+}
+
+/**
+ * Whose deposit address this is, or null when it resolves to anything other
+ * than exactly one account.
+ *
+ * On XRP the address is shared by every user and the destination tag is what
+ * distinguishes them, so both halves are matched together. Crediting the wrong
+ * account is far worse than crediting late, so ambiguity is left for a human.
+ */
+async function resolveByAddress(
+  payAddress: string,
+  extraId: string | null,
+  npPaymentId: string,
+): Promise<{ userId: number; currency: string } | null> {
+  const matches = await prisma.depositAddress.findMany({
+    where: { address: payAddress, extraId },
+    select: { userId: true, currency: true },
+    take: 2,
+  });
+
+  if (matches.length !== 1) {
+    console.error(
+      `[deposit:ipn] ${matches.length === 0 ? "unknown" : "ambiguous"} address`,
+      { payAddress, extraId, npPaymentId },
+    );
+    return null;
+  }
+  return matches[0];
 }
