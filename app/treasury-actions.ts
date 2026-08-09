@@ -4,7 +4,7 @@ import type { DepositStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { currentUserId } from "@/lib/session";
 import { assetByCurrency } from "@/lib/deposit";
-import { storeItem } from "@/lib/store";
+import { catalogueItem } from "@/lib/catalogue";
 import {
   balanceRangeDays,
   bucketsByMonth,
@@ -197,6 +197,11 @@ async function summarise(
  * status and a confirmation count that a purchase has no meaning for, and a
  * type with both would let a caller read a confirmation count off a
  * subscription.
+ *
+ * The second arm is named for where it comes from rather than which way the
+ * money went, because it carries both: a referral commission is a ledger entry
+ * that credits. Its `amountUsd` is signed, and that sign — not the arm — is
+ * what says which direction it moved.
  */
 export type TransactionView =
   | {
@@ -212,12 +217,13 @@ export type TransactionView =
       requiredConfirmations: number;
     }
   | {
-      type: "spend";
+      type: "ledger";
       id: string;
       createdAt: string;
-      /** "purchase" | "withdrawal" | "adjustment". */
+      /** "purchase" | "withdrawal" | "referral" | "adjustment". */
       kind: string;
       title: string;
+      /** Signed: credits positive, debits negative. */
       amountUsd: string;
     };
 
@@ -232,7 +238,7 @@ export async function listTransactions(): Promise<TransactionView[] | null> {
     // Deposits come from their own record rather than the ledger: an uncredited
     // one has no ledger entry yet, and dropping it would hide the deposit
     // someone is watching confirm.
-    const [deposits, spends] = await Promise.all([
+    const [deposits, entries] = await Promise.all([
       prisma.depositEvent.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
@@ -258,7 +264,7 @@ export async function listTransactions(): Promise<TransactionView[] | null> {
     // One query for the names rather than one per row.
     const purchases = await prisma.purchase.findMany({
       where: {
-        id: { in: spends.map((s) => Number(s.refId)).filter(Number.isInteger) },
+        id: { in: entries.map((e) => Number(e.refId)).filter(Number.isInteger) },
       },
       select: { id: true, itemId: true },
     });
@@ -280,16 +286,18 @@ export async function listTransactions(): Promise<TransactionView[] | null> {
           requiredConfirmations: asset?.confirmations ?? 0,
         };
       }),
-      ...spends.map((row): TransactionView => {
+      ...entries.map((row): TransactionView => {
         const itemId = itemById.get(row.refId);
         return {
-          type: "spend",
+          type: "ledger",
           id: `ledger:${row.id}`,
           createdAt: row.createdAt.toISOString(),
           kind: row.kind,
           title: itemId
-            ? (storeItem(itemId)?.name ?? itemId)
-            : row.kind.charAt(0).toUpperCase() + row.kind.slice(1),
+            ? (catalogueItem(itemId)?.name ?? itemId)
+            : row.kind === "referral"
+              ? "Referral commission"
+              : row.kind.charAt(0).toUpperCase() + row.kind.slice(1),
           amountUsd: row.amountUsd.toFixed(2),
         };
       }),

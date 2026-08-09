@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Loader2 } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { ArrowDownLeft, ArrowUpRight, Loader2 } from "lucide-react";
+import { cn, formatDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -49,13 +49,13 @@ export function TransactionsCard() {
         : 60_000,
   });
 
-  const rows = (data ?? []).filter((row) =>
-    filter === "all"
-      ? true
-      : filter === "in"
-        ? row.type === "deposit"
-        : row.type === "spend",
-  );
+  // Split by the direction the money actually moved, not by which arm of the
+  // union a row came from: a referral commission is a ledger entry that pays in.
+  const rows = (data ?? []).filter((row) => {
+    if (filter === "all") return true;
+    const incoming = row.type === "deposit" || Number(row.amountUsd) > 0;
+    return filter === "in" ? incoming : !incoming;
+  });
 
   return (
     <Panel className="p-5">
@@ -182,19 +182,37 @@ function RowIcon({ row }: { row: TransactionView }) {
   if (row.type === "deposit") {
     return <CoinLogo symbol={row.symbol} className="size-9" />;
   }
+  const credit = Number(row.amountUsd) > 0;
   return (
-    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bq-surface text-bq-muted">
-      <ArrowUpRight className="size-4" />
+    <span
+      className={cn(
+        "flex size-9 shrink-0 items-center justify-center rounded-full bg-bq-surface",
+        credit ? "text-bq-mint" : "text-bq-muted",
+      )}
+    >
+      {credit ? (
+        <ArrowDownLeft className="size-4" />
+      ) : (
+        <ArrowUpRight className="size-4" />
+      )}
     </span>
   );
 }
 
 /** Signed and coloured, so money in and money out differ at a glance. */
 function Amount({ row }: { row: TransactionView }) {
-  if (row.type === "spend") {
+  if (row.type === "ledger") {
+    // The sign comes off the entry rather than the row type. A commission and a
+    // purchase are both ledger entries; only the amount says which is which.
+    const amount = Number(row.amountUsd);
     return (
-      <span className="text-[13px] font-medium text-bq-heading tabular-nums">
-        −${Math.abs(Number(row.amountUsd)).toFixed(2)}
+      <span
+        className={cn(
+          "text-[13px] font-medium tabular-nums",
+          amount > 0 ? "text-bq-mint" : "text-bq-heading",
+        )}
+      >
+        {amount > 0 ? "+" : "−"}${Math.abs(amount).toFixed(2)}
       </span>
     );
   }
@@ -210,8 +228,12 @@ function Amount({ row }: { row: TransactionView }) {
 }
 
 function Status({ row }: { row: TransactionView }) {
-  if (row.type === "spend") {
-    return <StatPill tone="neutral">Paid</StatPill>;
+  if (row.type === "ledger") {
+    return Number(row.amountUsd) > 0 ? (
+      <StatPill tone="green">Credited</StatPill>
+    ) : (
+      <StatPill tone="neutral">Paid</StatPill>
+    );
   }
 
   const ui = DEPOSIT_STATUS_UI[row.status];
