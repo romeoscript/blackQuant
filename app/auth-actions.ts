@@ -1,6 +1,7 @@
 "use server";
 
 import { createHash, randomBytes } from "node:crypto";
+import { cookies } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
@@ -8,6 +9,7 @@ import prisma from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { sendMail } from "@/lib/mail";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { REFERRAL_COOKIE, referrerByCode } from "@/lib/referral";
 import { signIn } from "@/auth";
 
 export type AuthState = {
@@ -96,6 +98,8 @@ export async function signUp(
   const { firstName, lastName, password } = parsed.data;
   const email = parsed.data.email.trim().toLowerCase();
 
+  const referredById = await pendingReferrer();
+
   // The unique index on email is the check. A findUnique first would be a
   // read-then-write race: two concurrent signups both pass, one then dies on
   // the constraint.
@@ -105,6 +109,10 @@ export async function signUp(
         email,
         name: `${firstName} ${lastName}`,
         passwordHash: await hashPassword(password),
+        // Written with the account and never updated afterwards. Signup is the
+        // only point where attribution cannot be argued with; a later write
+        // would let commission be re-pointed after it was earned.
+        referredById,
         // Written with the account so the panel is never empty on first login.
         // Nested create shares the insert's transaction: no account can exist
         // without it, and a failure rolls the whole signup back.
@@ -127,12 +135,41 @@ export async function signUp(
     return unexpected("sign-up", error);
   }
 
+  // Spent. Left in place it would attribute the next account created in this
+  // browser to the same referrer.
+  if (referredById !== null) await forgetReferrer();
+
   return signInWithPassword({
     email,
     password,
     failureMessage:
       "Your account is ready, but signing in failed. Try logging in.",
   });
+}
+
+/**
+ * The referrer a `/ref/<code>` visit left behind, if the code still resolves.
+ *
+ * Never fails a signup: an unreadable cookie or an unknown code means an
+ * unattributed account, which is a worse outcome for the referrer than for the
+ * person creating it.
+ */
+async function pendingReferrer(): Promise<number | null> {
+  try {
+    const code = (await cookies()).get(REFERRAL_COOKIE)?.value;
+    return await referrerByCode(code);
+  } catch (error) {
+    console.error("[auth:referral]", error);
+    return null;
+  }
+}
+
+async function forgetReferrer(): Promise<void> {
+  try {
+    (await cookies()).delete(REFERRAL_COOKIE);
+  } catch {
+    // Cosmetic only — the account is already attributed.
+  }
 }
 
 /** Signs an existing account in. Redirects to the dashboard on success. */
