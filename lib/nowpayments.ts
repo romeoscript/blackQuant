@@ -84,6 +84,46 @@ export async function createPayment(params: {
   });
 }
 
+export type NpCheckout = NpPayment & {
+  /** Crypto the customer must send, in `pay_currency`. */
+  pay_amount: number;
+};
+
+/**
+ * A payment for one item, priced in dollars and paid in crypto.
+ *
+ * Unlike a top-up this quotes a specific amount, so two settings differ from
+ * `createPayment`:
+ *
+ * `is_fee_paid_by_user` adds the processing fee to what the customer sends, so
+ * the full price arrives and the item can actually be granted — billing the
+ * quoted price and receiving less would fail every purchase by a few cents.
+ *
+ * `is_fixed_rate` holds the crypto quote for the payment window, so the amount
+ * shown is the amount that settles rather than a moving target.
+ */
+export async function createCheckout(params: {
+  priceUsd: number;
+  payCurrency: string;
+  orderId: string;
+  description: string;
+  callbackUrl: string;
+}): Promise<NpCheckout> {
+  return np<NpCheckout>("/v1/payment", {
+    method: "POST",
+    body: JSON.stringify({
+      price_amount: params.priceUsd,
+      price_currency: "usd",
+      pay_currency: params.payCurrency,
+      order_id: params.orderId,
+      order_description: params.description,
+      ipn_callback_url: params.callbackUrl,
+      is_fixed_rate: true,
+      is_fee_paid_by_user: true,
+    }),
+  });
+}
+
 /**
  * The callback body, parsed at the boundary rather than read field by field.
  *
