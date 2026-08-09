@@ -1,20 +1,31 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { currentUserId } from "@/lib/session";
-import { isSubscription, storeItem, type StoreEntitlement } from "@/lib/store";
-
-export type PurchaseState = { ok: boolean; message: string };
+import { env } from "@/lib/env";
+import { qrSvg } from "@/lib/qr";
+import { rateLimit, type Limit } from "@/lib/rate-limit";
+import { DEPOSIT_ASSETS } from "@/lib/deposit";
+import { createCheckout, isDepositsConfigured } from "@/lib/nowpayments";
+import { Prisma } from "@prisma/client";
+import { catalogueItem, type Entitlement } from "@/lib/catalogue";
+import {
+  heldEntitlement,
+  purchaseFor,
+  type PurchaseState,
+} from "@/lib/purchase";
 
 const FUND_PATH = "/dashboard/fund";
+
+/** Each checkout mints an upstream payment, so it is capped per user. */
+const CHECKOUT_LIMIT: Limit = { windowMs: 60 * 60_000, max: 10 };
 
 /**
  * What the account currently holds — an active subscription, and every add-on
  * ever bought. The store reads this to decide which items are still buyable.
  */
-export async function listEntitlements(): Promise<StoreEntitlement[] | null> {
+export async function listEntitlements(): Promise<Entitlement[] | null> {
   const userId = await currentUserId();
   if (userId === null) return null;
 
@@ -57,121 +68,106 @@ export async function purchaseItem(itemId: string): Promise<PurchaseState> {
   if (userId === null)
     return { ok: false, message: "Your session has expired." };
 
-  const item = storeItem(itemId);
-  if (!item) return { ok: false, message: "That item isn't available." };
-
-  const price = new Prisma.Decimal(item.priceUsd);
-  const expiresAt =
-    isSubscription(item) && item.days
-      ? new Date(Date.now() + item.days * 86_400_000)
-      : null;
-
-  try {
-    const result = await withWriteConflictRetry(() =>
-      prisma.$transaction(
-        async (tx) => {
-          const held = await tx.purchase.findFirst({
-            where: {
-              userId,
-              itemId,
-              OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-            },
-            select: { id: true },
-          });
-          if (held) {
-            return {
-              ok: false,
-              message: expiresAt
-                ? "That subscription is already active."
-                : "You already own that.",
-            };
-          }
-
-          const debited = await tx.user.updateMany({
-            where: { id: userId, balanceUsd: { gte: price } },
-            data: { balanceUsd: { decrement: price } },
-          });
-          if (debited.count === 0) {
-            return {
-              ok: false,
-              message: "Not enough balance. Deposit crypto to top up.",
-            };
-          }
-
-          const purchase = await tx.purchase.create({
-            data: { userId, itemId, priceUsd: price, expiresAt },
-          });
-
-          // Negative, because the ledger is signed and the balance is derived from
-          // it. Nothing debits a balance without the entry that explains it.
-          await tx.ledgerEntry.create({
-            data: {
-              userId,
-              amountUsd: price.negated(),
-              kind: "purchase",
-              refId: String(purchase.id),
-            },
-          });
-
-          await tx.notification.create({
-            data: {
-              userId,
-              kind: "SYSTEM",
-              title: `${item.name} activated`,
-              body: expiresAt
-                ? `$${item.priceUsd} was deducted from your balance. Active until ${expiresAt.toDateString()}.`
-                : `$${item.priceUsd} was deducted from your balance.`,
-            },
-          });
-
-          return { ok: true, message: `${item.name} is now active.` };
-        },
-        // Serializable because the "do they already own this?" check is a read
-        // followed by a write: under the default isolation two clicks arriving
-        // together both see "not owned" and both charge. The balance guard alone
-        // does not catch it, since the account can afford both. Postgres aborts
-        // the loser, which the catch below turns into a refusal.
-        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-      ),
-    );
-
-    // Only when something actually changed; a refused purchase has nothing to
-    // revalidate.
-    if (result.ok) revalidatePath(FUND_PATH);
-    return result;
-  } catch (error) {
-    console.error("[store:purchase]", error);
-    return {
-      ok: false,
-      message: "We couldn't complete that purchase. Your balance is unchanged.",
-    };
-  }
+  const result = await purchaseFor(userId, itemId);
+  // Only when something actually changed; a refused purchase has nothing to
+  // revalidate.
+  if (result.ok) revalidatePath(FUND_PATH);
+  return result;
 }
 
+export type CheckoutView = {
+  itemName: string;
+  priceUsd: string;
+  payCurrency: string;
+  payAmount: string;
+  address: string;
+  extraId: string | null;
+  qrSvg: string;
+};
+
+export type CheckoutResult =
+  ({ ok: true } & CheckoutView) | { ok: false; message: string };
+
 /**
- * Retries a serializable transaction that lost a write conflict.
+ * Raises a crypto payment for one item, instead of spending the balance.
  *
- * Postgres aborts one side of a conflict with 40001 — Prisma's P2034 — and the
- * abort means nothing happened, so replaying is safe. Without this, the
- * isolation level that stops a double charge also fails the occasional
- * legitimate purchase that merely collided with one.
+ * The money still arrives through the ordinary deposit path — the callback
+ * credits the balance exactly as a top-up does — and the intent recorded here
+ * is what tells the handler to spend it on this item once it lands. That keeps
+ * one way for money to enter the system, and keeps the ledger explaining the
+ * balance: credited in, spent out, both visible.
  */
-async function withWriteConflictRetry<T>(run: () => Promise<T>): Promise<T> {
-  const ATTEMPTS = 3;
+export async function startCheckout(
+  itemId: string,
+  payCurrency: string,
+): Promise<CheckoutResult> {
+  const userId = await currentUserId();
+  if (userId === null)
+    return { ok: false, message: "Your session has expired." };
 
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await run();
-    } catch (error) {
-      const conflicted =
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2034";
-      if (!conflicted || attempt === ATTEMPTS) throw error;
+  const item = catalogueItem(itemId);
+  if (!item) return { ok: false, message: "That item isn't available." };
 
-      // Staggered, so two callers retrying do not collide again in step.
-      await new Promise((resolve) =>
-        setTimeout(resolve, attempt * 25 + Math.random() * 25),
-      );
-    }
+  const asset = DEPOSIT_ASSETS.find((a) => a.currency === payCurrency);
+  if (!asset) return { ok: false, message: "Choose a supported coin." };
+
+  if (!isDepositsConfigured()) {
+    return {
+      ok: false,
+      message:
+        "Paying by crypto isn't available yet. Use your balance instead.",
+    };
+  }
+
+  const held = await heldEntitlement(userId, itemId);
+  if (held) {
+    return { ok: false, message: "You already have that." };
+  }
+
+  const limit = rateLimit(`checkout:${userId}`, CHECKOUT_LIMIT);
+  if (!limit.ok) {
+    return {
+      ok: false,
+      message: "Too many attempts. Wait a minute and try again.",
+    };
+  }
+
+  try {
+    const payment = await createCheckout({
+      priceUsd: item.priceUsd,
+      payCurrency,
+      orderId: `${userId}:${itemId}`,
+      description: `BlackQuant — ${item.name}`,
+      callbackUrl: `${env.AUTH_URL ?? "http://localhost:3000"}/api/deposit/ipn`,
+    });
+
+    const intent = await prisma.paymentIntent.create({
+      data: {
+        userId,
+        itemId,
+        priceUsd: new Prisma.Decimal(item.priceUsd),
+        npPaymentId: String(payment.payment_id),
+        payAddress: payment.pay_address,
+        payExtraId: payment.payin_extra_id ?? null,
+        payCurrency,
+      },
+    });
+
+    return {
+      ok: true,
+      itemName: item.name,
+      priceUsd: intent.priceUsd.toFixed(2),
+      payCurrency: asset.symbol,
+      payAmount: String(payment.pay_amount),
+      address: payment.pay_address,
+      extraId: payment.payin_extra_id ?? null,
+      qrSvg: qrSvg(payment.pay_address),
+    };
+  } catch (error) {
+    console.error("[store:checkout]", error);
+    return {
+      ok: false,
+      message: "We couldn't start that payment. Please try again.",
+    };
   }
 }
