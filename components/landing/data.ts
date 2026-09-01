@@ -211,6 +211,9 @@ export const FOOTER_COLUMNS = [
 export const FOOTER_LINK_HREFS: Record<string, string | undefined> = {
   About: "/about",
   Blog: "/blog",
+  Careers: "/careers",
+  "Press Kit": "/press",
+  Contact: "/contact",
 };
 
 /** Footer legal row. A missing `href` has no page yet and toasts instead. */

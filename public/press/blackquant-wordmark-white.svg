@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 100" width="430" height="100" fill="none" role="img" aria-label="BlackQuant">
+  <title>BlackQuant wordmark</title>
+  <g stroke="#00e5aa" stroke-width="8">
+    <circle cx="48" cy="48" r="30"/>
+    <line x1="60" y1="60" x2="82" y2="82" stroke-linecap="round"/>
+  </g>
+  <text x="112" y="67" fill="#ffffff" font-family="Satoshi, 'Satoshi Variable', Inter, -apple-system, system-ui, sans-serif" font-size="54" font-weight="700" letter-spacing="-1.5">BlackQuant</text>
+</svg>
