@@ -28,6 +28,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "minio": "sh scripts/minio.sh",
+    "upload:videos": "node scripts/upload-videos.mjs",
     "face-models": "node scripts/copy-face-models.mjs"
   },
   "dependencies": {

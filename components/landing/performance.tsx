@@ -9,6 +9,12 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 import { gsap, useGSAP } from "@/lib/gsap";
+import {
+  VIDEO_HEIGHT,
+  cloudinaryConfigured,
+  posterUrl,
+  videoUrl,
+} from "@/lib/cloudinary";
 import { Reveal } from "./reveal";
 import { FEATURES, type Feature } from "./data";
 
@@ -44,19 +50,25 @@ const ACCENT = {
   },
 } as const;
 
-/** AI/tech background clip per feature (public/videos, Pexels — free license). */
+/**
+ * Cloudinary public ID of each feature's background clip. The 1080p–4K masters
+ * and their Pexels sources (free licence) live in scripts/upload-videos.mjs;
+ * `lib/cloudinary` turns these IDs into per-layout renditions.
+ */
 const VIDEO: Record<string, string> = {
-  "01": "/videos/feature-01-data.mp4",
-  "02": "/videos/feature-02-core.mp4",
-  "03": "/videos/feature-03-network.mp4",
-  "04": "/videos/feature-04-ai.mp4",
+  "01": "feature-01-data",
+  "02": "feature-02-core",
+  "03": "feature-03-network",
+  "04": "feature-04-ai",
 };
 
 /**
  * The one condition under which the pinned rail replaces the stacked cards.
  * GSAP matches on it to swap the markup; React reads it to decide which of the
- * two layouts gets video sources, because the hidden one still fetches them —
- * without this the page pulls all eight clips (~3.6 MB) on every device.
+ * two layouts gets video sources, because the hidden one still fetches them.
+ * Both layouts render all four clips, and they request different Cloudinary
+ * renditions, so without this gate every device pulls eight files — including
+ * the four desktop-sized ones a phone will never show.
  */
 const PINNED_QUERY = "(min-width: 768px) and (prefers-reduced-motion: no-preference)";
 const subscribePinned = (onChange: () => void) => {
@@ -75,10 +87,10 @@ const COUNT = String(FEATURES.length).padStart(2, "0");
 
 export function Performance() {
   const stageRef = useRef<HTMLDivElement>(null);
-  // The four background clips are ~1.8 MB and sit far below the fold. Holding
-  // their `src` back until the section is approached keeps them out of the
-  // initial page load entirely, rather than relying on `preload="metadata"`
-  // (which browsers routinely over-fetch).
+  // The four background clips sit far below the fold. Holding their `src` back
+  // until the section is approached keeps them out of the initial page load
+  // entirely, rather than relying on `preload="metadata"` (which browsers
+  // routinely over-fetch).
   const [mediaReady, setMediaReady] = useState(false);
   const pinned = useSyncExternalStore(subscribePinned, isPinnedNow, isPinnedOnServer);
 
@@ -428,14 +440,16 @@ function ContentLayer({ feature }: { feature: Feature }) {
 /** Full-bleed AI clip for the rail, accent-tinted; layers crossfade in GSAP. */
 function VideoLayer({ feature, ready }: { feature: Feature; ready: boolean }) {
   const a = ACCENT[feature.accent];
+  const clip = ready && cloudinaryConfigured ? VIDEO[feature.index] : undefined;
   return (
     <div data-bg-layer className="absolute inset-0 isolate">
       <video
-        src={ready ? VIDEO[feature.index] : undefined}
+        src={clip && videoUrl(clip, VIDEO_HEIGHT.desktop)}
+        poster={clip && posterUrl(clip)}
         muted
         loop
         playsInline
-        preload={ready ? "auto" : "none"}
+        preload={clip ? "auto" : "none"}
         aria-hidden
         className="absolute inset-0 h-full w-full object-cover"
         style={{ filter: "brightness(0.82) contrast(1.05) saturate(1.05)" }}
@@ -534,14 +548,15 @@ function MetaRow({ feature }: { feature: Feature }) {
  */
 function StackedMedia({ feature, ready }: { feature: Feature; ready: boolean }) {
   const a = ACCENT[feature.accent];
+  const clip = ready && cloudinaryConfigured ? VIDEO[feature.index] : undefined;
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Keyed on `ready` so the observer is re-created once the source lands: it
+  // Keyed on `clip` so the observer is re-created once the source lands: it
   // fires immediately with the element's current intersection, which is what
   // starts a clip that was already on screen while it was still src-less.
   useEffect(() => {
     const el = videoRef.current;
-    if (!el || !ready) return;
+    if (!el || !clip) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const io = new IntersectionObserver(
@@ -559,17 +574,18 @@ function StackedMedia({ feature, ready }: { feature: Feature; ready: boolean }) 
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [ready]);
+  }, [clip]);
 
   return (
     <>
       <video
         ref={videoRef}
-        src={ready ? VIDEO[feature.index] : undefined}
+        src={clip && videoUrl(clip, VIDEO_HEIGHT.mobile)}
+        poster={clip && posterUrl(clip)}
         muted
         loop
         playsInline
-        preload={ready ? "auto" : "none"}
+        preload={clip ? "auto" : "none"}
         aria-hidden
         className="absolute inset-0 size-full object-cover"
         style={{ filter: "brightness(0.82) contrast(1.05) saturate(1.05)" }}
