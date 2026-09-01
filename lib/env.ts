@@ -45,6 +45,11 @@ const envSchema = z.object({
   // entirely when it is remote and no key was configured on its side.
   SIGNAL_ENGINE_BASE_URL: optionalStr,
   SIGNAL_ENGINE_API_KEY: optionalStr,
+  // The public status page, published by whichever uptime monitor watches
+  // `/api/health`. It lives off this infrastructure on purpose — a status page
+  // served by the app it reports on says nothing during the outage that matters
+  // most. Unset, the footer link keeps its placeholder toast.
+  STATUS_PAGE_URL: optionalStr,
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -100,6 +105,22 @@ const parsed = envSchema
         code: "custom",
         path: ["SIGNAL_ENGINE_BASE_URL"],
         message: `SIGNAL_ENGINE_BASE_URL must be an absolute URL such as http://127.0.0.1:8820 — got ${JSON.stringify(v.SIGNAL_ENGINE_BASE_URL)}`,
+      });
+    }
+  })
+  // This one goes straight into an `href`, so parsing is not a high enough bar:
+  // a `javascript:` URL parses perfectly well and would put a script sink in
+  // the footer of every page. Only the two schemes a status page can use pass.
+  .superRefine((v, ctx) => {
+    if (!v.STATUS_PAGE_URL) return;
+    const url = URL.canParse(v.STATUS_PAGE_URL)
+      ? new URL(v.STATUS_PAGE_URL)
+      : null;
+    if (url?.protocol !== "http:" && url?.protocol !== "https:") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STATUS_PAGE_URL"],
+        message: `STATUS_PAGE_URL must be an http(s) URL such as https://status.blackquant.com — got ${JSON.stringify(v.STATUS_PAGE_URL)}`,
       });
     }
   })

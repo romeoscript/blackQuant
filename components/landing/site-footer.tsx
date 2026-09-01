@@ -1,9 +1,23 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/logo";
+import { env } from "@/lib/env";
 import { PlaceholderLink } from "./placeholder-link";
 import { AUDITS, CHAINS, FOOTER_COLUMNS, FOOTER_LINK_HREFS, LEGAL_LINKS } from "./data";
 
 const LINK_CLASS = "text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading";
+
+/**
+ * The static routes, plus the status page — which is published by whichever
+ * monitor watches `/api/health` rather than by this app, so it arrives as an
+ * environment value instead of being hardcoded. Unset, the link falls back to
+ * the same placeholder toast as every other unwired destination.
+ */
+const FOOTER_HREFS: Record<string, string | undefined> = {
+  ...FOOTER_LINK_HREFS,
+  "Uptime Status": env.STATUS_PAGE_URL,
+};
+
+const isExternal = (href: string) => href.startsWith("http");
 
 /**
  * Site-wide footer. Extracted from the landing page's CTA block so marketing
@@ -46,11 +60,17 @@ export function SiteFooter() {
               </p>
               <ul className="mt-5 space-y-3">
                 {col.links.map((link) => {
-                  const href = FOOTER_LINK_HREFS[link];
+                  const href = FOOTER_HREFS[link];
+                  const external = href !== undefined && isExternal(href);
                   return (
                     <li key={link}>
                       {href ? (
-                        <Link href={href} className={LINK_CLASS}>
+                        <Link
+                          href={href}
+                          className={LINK_CLASS}
+                          target={external ? "_blank" : undefined}
+                          rel={external ? "noreferrer" : undefined}
+                        >
                           {link}
                         </Link>
                       ) : (
