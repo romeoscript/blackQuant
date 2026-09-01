@@ -160,22 +160,25 @@ export const FEATURES: Feature[] = [
 export const TRUST_METRICS = [
   { value: "0", label: "Custodial Events" },
   { value: "847K+", label: "On-Chain Trades" },
-  { value: "4", label: "Audit Firms" },
+  { value: "3", label: "Audit Firms" },
   { value: "99.97%", label: "Uptime SLA" },
 ] as const;
 
 export const TRUST_CARDS: { index: string; icon: LucideIcon; title: string; body: string }[] = [
   { index: "01", icon: Lock, title: "Non-Custodial by Design", body: "Smart contracts are immutable. BlackQuant has zero access to your principal or profits — ever." },
-  { index: "02", icon: ShieldCheck, title: "Audited Contracts", body: "Core contracts audited by Trail of Bits, Certik, OpenZeppelin, and Hacken. All reports publicly available." },
+  { index: "02", icon: ShieldCheck, title: "Audited Contracts", body: "Core contracts audited by Trail of Bits, OpenZeppelin, and Hacken. All reports publicly available." },
   { index: "03", icon: BadgeCheck, title: "MEV Protection", body: "Private mempool routing prevents front-running of your on-chain transactions across all networks." },
   { index: "04", icon: Globe, title: "Distributed Infrastructure", body: "5 regional node clusters · 99.97% uptime SLA · automatic failover across ETH, ARB, BASE, SOL." },
 ];
 
+// `slug` keys into AUDIT_LOGOS for the firm's wordmark. It lives here rather
+// than the logo module so this stays plain data: ./data is pulled into the
+// client bundle by the landing page's client components, and the logo paths
+// are only ever rendered on the server.
 export const AUDITS = [
-  { firm: "Trail of Bits", score: "98/100" },
-  { firm: "Certik", score: "96/100" },
-  { firm: "OpenZeppelin", score: "99/100" },
-  { firm: "Hacken", score: "97/100" },
+  { firm: "Trail of Bits", slug: "trail-of-bits", score: "98/100" },
+  { firm: "OpenZeppelin", slug: "openzeppelin", score: "99/100" },
+  { firm: "Hacken", slug: "hacken", score: "97/100" },
 ] as const;
 
 export const LIVE_METRICS = [

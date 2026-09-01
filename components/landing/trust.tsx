@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Reveal } from "./reveal";
 import { NetworkFlowLazy } from "./network-flow-lazy";
 import { LiveMetrics } from "./live-metrics";
+import { AUDIT_LOGOS } from "./audit-logos";
 import { TRUST_METRICS, TRUST_CARDS, AUDITS } from "./data";
 
 const LEGEND = [
@@ -163,32 +164,41 @@ export function Trust() {
 
         {/* audit row */}
         <Reveal className="mt-6">
-          <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-bq-border bg-bq-panel sm:grid-cols-4">
-            {AUDITS.map((a, i) => (
-              <div
-                key={a.firm}
-                className={cn(
-                  "px-6 py-[18px]",
-                  i !== 0 && "border-l border-bq-border",
-                  i === 2 && "border-l-0 sm:border-l",
-                  i >= 2 && "border-t border-bq-border sm:border-t-0",
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-satoshi text-[13px] font-bold text-bq-dim">{a.firm}</span>
-                  <span className="rounded-full border border-bq-border px-2 py-0.5 font-satoshi text-[9px] text-bq-muted">
-                    Audited
-                  </span>
+          <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-bq-border bg-bq-panel sm:grid-cols-3">
+            {AUDITS.map((a, i) => {
+              const { Logo, className: logoClass } = AUDIT_LOGOS[a.slug];
+              return (
+                <div
+                  key={a.firm}
+                  className={cn(
+                    "px-6 py-[18px]",
+                    // Three cells: stacked on mobile (divided by a top rule),
+                    // one row from `sm` up (divided by a left rule).
+                    i !== 0 && "border-t border-bq-border sm:border-l sm:border-t-0",
+                  )}
+                >
+                  {/* Fixed height so the three lockups, which have very
+                      different proportions, still share one baseline across
+                      the row. `text-bq-heading` is what each logo's
+                      `currentColor` resolves to — these are the proof points
+                      of the section, so they carry full heading contrast
+                      rather than the dim tone the plain firm names had. */}
+                  <div className="flex h-[40px] items-center justify-between gap-3 text-bq-heading">
+                    <Logo className={logoClass} />
+                    <span className="shrink-0 rounded-full border border-bq-border px-2 py-0.5 font-satoshi text-[9px] text-bq-muted">
+                      Audited
+                    </span>
+                  </div>
+                  <div className="mt-2.5 h-0.5 w-full rounded-full bg-bq-border-soft">
+                    <div
+                      className="h-0.5 rounded-full bg-bq-overlay/20"
+                      style={{ width: `${parseInt(a.score, 10)}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 font-satoshi text-[8px] text-bq-dim">Score: {a.score}</p>
                 </div>
-                <div className="mt-2.5 h-0.5 w-full rounded-full bg-bq-border-soft">
-                  <div
-                    className="h-0.5 rounded-full bg-bq-overlay/20"
-                    style={{ width: `${parseInt(a.score, 10)}%` }}
-                  />
-                </div>
-                <p className="mt-2 font-satoshi text-[8px] text-bq-dim">Score: {a.score}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Reveal>
       </div>

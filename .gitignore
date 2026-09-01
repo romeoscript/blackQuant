@@ -46,3 +46,6 @@ yarn-error.log*
 
 # Face-detection model weights, staged from node_modules by scripts/copy-face-models.mjs
 public/models/
+
+# Video masters downloaded by scripts/upload-videos.mjs on their way to Cloudinary
+.cache/

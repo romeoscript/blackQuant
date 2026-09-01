@@ -120,6 +120,114 @@ const calibrationBasisSchema = z
   .nullable()
   .optional();
 
+/**
+ * The print a signal entered on. Replayed history has none and reports null.
+ */
+const tradeRefSchema = z
+  .object({
+    /** `tx` on-chain, `trade-id` an exchange fill, `simulated` the demo feed. */
+    type: z.enum(["tx", "trade-id", "simulated"]).optional(),
+    id: z.string().optional(),
+    url: z.string().nullable().optional(),
+    venue: z.string().nullable().optional(),
+    trader: z.string().nullable().optional(),
+    at: z.number().nullable().optional(),
+  })
+  .nullable()
+  .optional();
+
+/**
+ * Venue state when the signal fired, where the feed reports it.
+ *
+ * Liquidity and taker flow are scored as confidence components, so they move
+ * the score and are then calibrated against outcomes like every other input.
+ * Sources that report none of it leave this null.
+ */
+const marketStateSchema = z
+  .object({
+    source: z.string().optional(),
+    chain: z.string().optional(),
+    dex: z.string().optional(),
+    pairAddress: z.string().optional(),
+    url: z.string().nullable().optional(),
+    priceUsd: z.number().optional(),
+    liquidityUsd: z.number().optional(),
+    volume24hUsd: z.number().optional(),
+    fdvUsd: z.number().optional(),
+    /** Taker buys in the last hour. */
+    buys: z.number().optional(),
+    sells: z.number().optional(),
+    /** Null when nothing traded in the window, never a fabricated 0.5. */
+    buyRatio: z.number().nullable().optional(),
+    priceChange24h: z.number().optional(),
+    ageDays: z.number().nullable().optional(),
+    at: z.number().optional(),
+  })
+  .nullable()
+  .optional();
+
+/**
+ * Profit as a sum of percentage moves, one unit staked per signal. No
+ * compounding, no fees, no slippage — position sizing is the caller's call.
+ */
+const profitSchema = z
+  .object({
+    totalPnlPct: z.number().optional(),
+    grossWinPct: z.number().optional(),
+    grossLossPct: z.number().optional(),
+    /** Gross win over gross loss. Below 1 loses money whatever the win rate. */
+    profitFactor: z.number().nullable().optional(),
+    bestPct: z.number().nullable().optional(),
+    worstPct: z.number().nullable().optional(),
+    maxDrawdownPct: z.number().optional(),
+    longestLossStreak: z.number().optional(),
+    equity: z
+      .array(z.object({ at: z.number().optional(), cumulativePct: z.number().optional() }))
+      .optional(),
+  })
+  .optional();
+
+/** The same trades through a simulated account, so the result reads in money. */
+const accountSchema = z
+  .object({
+    simulated: z.boolean().optional(),
+    assumptions: z
+      .object({
+        capital: z.number().optional(),
+        riskPct: z.number().optional(),
+        feeBps: z.number().optional(),
+        maxLeverage: z.number().optional(),
+        sizing: z.enum(["calibrated", "fixed"]).optional(),
+        note: z.string().optional(),
+      })
+      .optional(),
+    startingCapital: z.number().optional(),
+    endingCapital: z.number().optional(),
+    profit: z.number().optional(),
+    returnPct: z.number().optional(),
+    trades: z.number().optional(),
+    wins: z.number().optional(),
+    losses: z.number().optional(),
+    winRate: rate,
+    feesPaid: z.number().optional(),
+    maxDrawdownPct: z.number().optional(),
+    /** Signals calibrated at a coin flip, declined rather than sized. */
+    skipped: z.number().optional(),
+    equity: z.array(z.object({ at: z.number().optional(), equity: z.number().optional() })).optional(),
+  })
+  .optional();
+
+/** One calendar month of resolved signals, oldest first. */
+const monthStatsSchema = z.object({
+  month: z.string(),
+  signals: z.number().optional(),
+  wins: z.number().optional(),
+  losses: z.number().optional(),
+  winRate: rate,
+  winRateInterval: interval,
+  pnlPct: z.number().optional(),
+});
+
 const statsSchema = z.object({
   totalSignals: z.number(),
   activeSignals: z.number().optional(),
@@ -131,7 +239,14 @@ const statsSchema = z.object({
   winRate: rate,
   winRateInterval: interval,
   avgConfidence: rate,
+  /** Rescaled when a display band is active — not necessarily measured. */
   avgCalibratedConfidence: rate,
+  /** The measured average, never rescaled. The one to trust. */
+  avgCalibratedMeasured: rate,
+  profit: profitSchema,
+  account: accountSchema,
+  /** The same record cut by month — a long replay read as a history. */
+  byMonth: z.array(monthStatsSchema).optional(),
   signalsPerHour: z.number().optional(),
   avgWinPct: z.number().optional(),
   avgLossPct: z.number().optional(),
@@ -190,8 +305,17 @@ const signalSchema = z.object({
   rr: z.number().optional(),
   /** The raw weighted-component score. Never rewritten. */
   confidence: z.number(),
-  /** What that score had historically been worth when this signal opened. */
+  /**
+   * What that score had historically been worth. Rescaled into the snapshot's
+   * `display.confidenceBand` when one is active, so this is a display figure.
+   */
   calibratedConfidence: z.number().nullable().optional(),
+  /** The measured figure, always. What sizing and every metric actually use. */
+  calibratedMeasured: z.number().nullable().optional(),
+  /** The print this entered on. Null on replayed history. */
+  trigger: tradeRefSchema,
+  /** Venue state when it fired, where the feed reports it. */
+  market: marketStateSchema,
   calibration: signalCalibrationSchema,
   status: z.enum(["active", "tp_hit", "sl_hit", "expired"]),
   note: z.string().optional(),
@@ -239,6 +363,19 @@ const snapshotSchema = z.object({
   /** Markets these stats came from — what was asked for, plus what the source picked. */
   pairs: z.array(z.string()).optional(),
   timeframes: z.array(z.string()).optional(),
+  /**
+   * Present only when calibrated confidence is being shown rescaled. The
+   * mapping is monotonic so ordering survives, and nothing downstream — sizing,
+   * filters, the reliability curve, ECE, Brier — uses the rescaled number.
+   * Null means the figures are as measured.
+   */
+  display: z
+    .object({
+      confidenceBand: z.tuple([z.number(), z.number()]).optional(),
+      note: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
   portfolio: statsSchema,
   strategies: z.array(strategySchema),
   strategiesById: z.record(z.string(), strategySchema),
@@ -503,6 +640,47 @@ export const listSignals = (params: {
 export const getCalibration = () =>
   dex("/api/calibration", calibrationReportSchema);
 
+/**
+ * Opens the engine's event stream. The caller owns the body and must close it.
+ *
+ * Deliberately not routed through `dex`: there is no JSON to parse and no
+ * timeout to apply, since the whole point of the connection is to stay open
+ * and idle until the engine has something to say.
+ */
+export async function openSignalStream(abort?: AbortSignal): Promise<Response> {
+  const base = env.SIGNAL_ENGINE_BASE_URL;
+  if (!base) throw new SignalEngineError("The signal engine is not configured");
+
+  let response: Response;
+  try {
+    response = await fetch(`${base.replace(/\/+$/, "")}/api/stream`, {
+      headers: {
+        Accept: "text/event-stream",
+        ...(env.SIGNAL_ENGINE_API_KEY
+          ? { Authorization: `Bearer ${env.SIGNAL_ENGINE_API_KEY}` }
+          : {}),
+      },
+      cache: "no-store",
+      signal: abort,
+    });
+  } catch (cause) {
+    throw new SignalEngineError(
+      `The signal engine at ${base} did not respond`,
+      undefined,
+      cause instanceof Error ? cause.message : String(cause),
+    );
+  }
+
+  if (!response.ok || !response.body) {
+    throw new SignalEngineError(
+      `Signal engine stream failed (${response.status})`,
+      response.status,
+      await failureDetail(response),
+    );
+  }
+  return response;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Writes                                                                      */
 /* -------------------------------------------------------------------------- */
@@ -546,52 +724,4 @@ export async function reportOutcomes(id: string, input: ReportOutcomesInput) {
     reportOutcomesResultSchema,
     { method: "POST", body: JSON.stringify(body) },
   );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Derived views                                                               */
-/* -------------------------------------------------------------------------- */
-
-export type VolumeBucket = {
-  /** Epoch ms at the top of the hour this bucket covers. */
-  startedAt: number;
-  /** Hour of day, zero-padded, in the viewer-independent UTC the engine uses. */
-  hour: string;
-  signals: number;
-};
-
-const HOUR_MS = 3_600_000;
-
-/**
- * Signals per hour over the trailing window, oldest bucket first.
- *
- * Buckets are emitted even when empty, so a quiet stretch reads as quiet
- * rather than compressing the axis and implying steady activity. The final
- * bucket is the hour in progress and is always partial — the caller is
- * expected to mark it rather than let it read as a completed hour that fell
- * off a cliff.
- */
-export function hourlyVolume(
-  signals: Signal[],
-  now = Date.now(),
-  hours = 24,
-): VolumeBucket[] {
-  const currentHour = Math.floor(now / HOUR_MS) * HOUR_MS;
-  const buckets = new Map<number, number>();
-  for (let i = hours - 1; i >= 0; i--) buckets.set(currentHour - i * HOUR_MS, 0);
-
-  for (const signal of signals) {
-    // A signal with no open time cannot be placed on the axis; counting it in
-    // the current hour would invent activity that never happened.
-    if (signal.openedAt === undefined) continue;
-    const bucket = Math.floor(signal.openedAt / HOUR_MS) * HOUR_MS;
-    const count = buckets.get(bucket);
-    if (count !== undefined) buckets.set(bucket, count + 1);
-  }
-
-  return [...buckets].map(([startedAt, count]) => ({
-    startedAt,
-    hour: String(new Date(startedAt).getUTCHours()).padStart(2, "0"),
-    signals: count,
-  }));
 }

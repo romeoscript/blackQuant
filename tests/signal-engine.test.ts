@@ -23,12 +23,21 @@ vi.mock("@/lib/env", () => ({
 import {
   SignalEngineError,
   getSnapshot,
-  hourlyVolume,
   listSignals,
   registerStrategy,
   reportOutcomes,
   type Signal,
 } from "@/lib/signal-engine";
+import {
+  hourlyVolume,
+  measuredRecord,
+  monthLabel,
+  safeUrl,
+  signalConfidence,
+  signalVenue,
+  uptimeShare,
+  volumeMode,
+} from "@/lib/signal-engine-view";
 
 const HOUR_MS = 3_600_000;
 
@@ -300,6 +309,223 @@ describe("reportOutcomes", () => {
     expect(lastCall().url).toBe(
       "http://engine.test:8820/api/strategies/a%2Fb/outcomes",
     );
+  });
+});
+
+describe("measuredRecord", () => {
+  const strategy = (over: Record<string, unknown> = {}) =>
+    ({
+      id: "s",
+      name: "S",
+      active: true,
+      registered: false,
+      stats: stats(),
+      ...over,
+    }) as Parameters<typeof measuredRecord>[0];
+
+  it("prefers the calibration over this run's stats", () => {
+    // After a restart `stats` covers only the current process while the basis
+    // still carries the whole store. Reading stats first would report a
+    // measured strategy as barely measured.
+    const record = measuredRecord(
+      strategy({
+        stats: stats({ resolved: 4, wins: 3, winRate: 75, winRateInterval: [30, 96] }),
+        calibrationBasis: {
+          resolved: 400,
+          wins: 300,
+          winRate: 75,
+          interval: [70.6, 78.9],
+          origins: { engine: { n: 350 }, external: { n: 50 } },
+        },
+      }),
+    );
+
+    expect(record.basis).toBe("calibration");
+    expect(record.samples).toBe(400);
+    expect(record.interval).toEqual([70.6, 78.9]);
+    // Reported outcomes stay countable apart from the engine's own.
+    expect(record.external).toBe(50);
+  });
+
+  it("falls back to this run's stats when there is no basis", () => {
+    const record = measuredRecord(
+      strategy({ stats: stats({ resolved: 52, wins: 34, winRate: 65.4 }) }),
+    );
+
+    expect(record.basis).toBe("stats");
+    expect(record.winRate).toBe(65.4);
+    expect(record.samples).toBe(52);
+  });
+
+  it("never promotes a declared rate into a measurement", () => {
+    const record = measuredRecord(
+      strategy({ registered: true, active: false, declared: { winRate: 68, samples: 240 } }),
+    );
+
+    // The rate is carried, but under a basis that forces the caller to say
+    // "claims" rather than print it as something the engine observed.
+    expect(record.basis).toBe("declared");
+    expect(record.winRate).toBe(68);
+    expect(record.samples).toBe(240);
+  });
+
+  it("reports nothing measured rather than zero", () => {
+    const record = measuredRecord(strategy());
+
+    expect(record.basis).toBe("none");
+    expect(record.winRate).toBeNull();
+  });
+});
+
+describe("signalConfidence", () => {
+  it("leads with the calibrated figure and keeps the raw score auditable", () => {
+    const score = signalConfidence(
+      signal({
+        confidence: 82,
+        calibratedConfidence: 74,
+        calibration: { confidence: 74, interval: [66, 81], samples: 120, basis: "strategy" },
+      } as Partial<Signal>),
+    );
+
+    expect(score.measured).toBe(74);
+    expect(score.raw).toBe(82);
+    expect(score.interval).toEqual([66, 81]);
+    expect(score.basis).toBe("strategy");
+    // No band declared, so the presented figure is the measured one.
+    expect(score.banded).toBe(false);
+  });
+
+  it("reports no calibration rather than echoing the raw score as one", () => {
+    const score = signalConfidence(signal({ confidence: 82 }));
+
+    expect(score.measured).toBeNull();
+    expect(score.raw).toBe(82);
+    expect(score.basis).toBe("raw");
+  });
+
+  it("takes the measured figure, not the one rescaled into a display band", () => {
+    // The engine rescales `calibratedConfidence` into `display.confidenceBand`
+    // and keeps the measurement in `calibratedMeasured`. Reading the former
+    // would present a signal measured at 26.7 as 85.3.
+    const score = signalConfidence(
+      signal({
+        confidence: 61.6,
+        calibratedConfidence: 85.3,
+        calibratedMeasured: 26.7,
+      } as Partial<Signal>),
+    );
+
+    expect(score.measured).toBe(26.7);
+    expect(score.display).toBe(85.3);
+    expect(score.banded).toBe(true);
+  });
+
+  it("falls back to the display figure when the engine declares no band", () => {
+    // Older engines omit `calibratedMeasured` entirely; there the presented
+    // figure is the measurement and nothing has been rescaled.
+    const score = signalConfidence(
+      signal({ confidence: 70, calibratedConfidence: 64 } as Partial<Signal>),
+    );
+
+    expect(score.measured).toBe(64);
+    expect(score.banded).toBe(false);
+  });
+});
+
+describe("uptimeShare", () => {
+  const DAY = 24 * 3_600_000;
+
+  it("reports the share of the last day the engine has served", () => {
+    expect(uptimeShare(DAY)).toBe(100);
+    expect(uptimeShare(DAY * 0.95)).toBeCloseTo(95, 5);
+    // 3.65 hours up is 15% of a day, and says so rather than rounding up to a
+    // reassuring number.
+    expect(uptimeShare(13_148_228)).toBeCloseTo(15.2, 1);
+  });
+
+  it("caps at 100 for a process older than the window", () => {
+    expect(uptimeShare(30 * DAY)).toBe(100);
+  });
+
+  it("reports nothing rather than a default when uptime is unknown", () => {
+    expect(uptimeShare(null)).toBeNull();
+    expect(uptimeShare(undefined)).toBeNull();
+    expect(uptimeShare(-1)).toBeNull();
+  });
+});
+
+describe("venue links", () => {
+  it("refuses a scheme that is not http or https", () => {
+    // These strings come from an external feed and are rendered as hrefs, so a
+    // script payload would otherwise be one click from running in the page.
+    expect(safeUrl("javascript:alert(document.cookie)")).toBeNull();
+    expect(safeUrl("data:text/html,<script>alert(1)</script>")).toBeNull();
+    expect(safeUrl("file:///etc/passwd")).toBeNull();
+    expect(safeUrl("not a url")).toBeNull();
+    expect(safeUrl(null)).toBeNull();
+  });
+
+  it("keeps an ordinary pair page", () => {
+    const url = "https://dexscreener.com/bsc/0x12cd92372983c4d60fd40ae6c7545bbc5ebc8ca7";
+    expect(safeUrl(url)).toBe(url);
+  });
+
+  it("prefers the pair page over the raw fill", () => {
+    const venue = signalVenue(
+      signal({
+        market: {
+          source: "dexscreener",
+          chain: "bsc",
+          dex: "pancakeswap",
+          url: "https://dexscreener.com/bsc/0xabc",
+        },
+        trigger: { type: "trade-id", id: "1", url: null, venue: "bitstamp" },
+      } as Partial<Signal>),
+    );
+
+    expect(venue.url).toBe("https://dexscreener.com/bsc/0xabc");
+    expect(venue.name).toBe("pancakeswap");
+    expect(venue.chain).toBe("bsc");
+  });
+
+  it("names an exchange fill rather than inventing a link for it", () => {
+    // A CEX trade has an id and a venue but no page; a fabricated href would
+    // just 404.
+    const venue = signalVenue(
+      signal({
+        trigger: { type: "trade-id", id: "614926940", url: null, venue: "bitstamp" },
+      } as Partial<Signal>),
+    );
+
+    expect(venue.url).toBeNull();
+    expect(venue.name).toBe("bitstamp");
+  });
+});
+
+describe("volumeMode", () => {
+  const DAY = 24 * 3_600_000;
+
+  it("keeps the hourly axis for a live session", () => {
+    expect(volumeMode(6 * 3_600_000, 1)).toBe("hourly");
+  });
+
+  it("switches to months once the feed is a history", () => {
+    // 5957 signals over two years put ~8 in any given day, so 24 hourly bars
+    // of almost nothing is the most that axis could ever draw.
+    expect(volumeMode(730 * DAY, 24)).toBe("monthly");
+  });
+
+  it("stays hourly when there are not yet two months to compare", () => {
+    // A long span with one month of data is a single bar, which says less
+    // than the hourly axis it would replace.
+    expect(volumeMode(730 * DAY, 1)).toBe("hourly");
+  });
+
+  it("labels a month the way it fits under a bar", () => {
+    expect(monthLabel("2026-08")).toBe("Aug 26");
+    expect(monthLabel("2025-01")).toBe("Jan 25");
+    // Unparseable input comes back untouched rather than as "undefined 26".
+    expect(monthLabel("nonsense")).toBe("nonsense");
   });
 });
 
