@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { auth } from "@/auth";
+import { SITE_URL } from "@/lib/site";
 import { Providers } from "@/providers";
 import { BrandLoader } from "@/components/brand-loader";
 
@@ -39,6 +40,10 @@ const clashDisplay = localFont({
 });
 
 export const metadata: Metadata = {
+  // Without a base, every relative `alternates`/`openGraph` URL a page declares
+  // is emitted as-is — and a crawler or feed reader resolves those against its
+  // own host, not ours. Set once here so pages can keep declaring paths.
+  metadataBase: new URL(SITE_URL),
   title: "BlackQuant",
   description: "BlackQuant — quantitative trading platform.",
 };

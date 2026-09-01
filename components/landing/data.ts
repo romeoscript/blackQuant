@@ -210,6 +210,7 @@ export const FOOTER_COLUMNS = [
 /** Footer links that resolve to a real route; everything else toasts. */
 export const FOOTER_LINK_HREFS: Record<string, string | undefined> = {
   About: "/about",
+  Blog: "/blog",
 };
 
 /** Footer legal row. A missing `href` has no page yet and toasts instead. */
