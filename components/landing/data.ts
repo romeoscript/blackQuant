@@ -87,14 +87,50 @@ export type TradeRow = {
 };
 
 export const NEXUS_TRADES: TradeRow[] = [
-  { pair: "ETH/USDC", route: "3-hop · Uni→Sushi→Curve", type: "Type B", latency: "241ms", profit: "+$24.3" },
-  { pair: "WBTC/ETH", route: "Cross-chain · Arb→ETH", type: "Type A", latency: "189ms", profit: "+$11.7" },
-  { pair: "ARB/USDT", route: "Statistical · GMX→Camel", type: "Type B", latency: "312ms", profit: "+$8.1" },
-  { pair: "SOL/USDC", route: "Liquidity shift detected", type: "Type A", latency: "98ms", profit: "+$6.4", active: true },
-  { pair: "OP/USDT", route: "Multi-hop · 4 exchanges", type: "Type B", latency: "204ms", profit: "+$14.9" },
+  {
+    pair: "ETH/USDC",
+    route: "3-hop · Uni→Sushi→Curve",
+    type: "Type B",
+    latency: "241ms",
+    profit: "+$24.3",
+  },
+  {
+    pair: "WBTC/ETH",
+    route: "Cross-chain · Arb→ETH",
+    type: "Type A",
+    latency: "189ms",
+    profit: "+$11.7",
+  },
+  {
+    pair: "ARB/USDT",
+    route: "Statistical · GMX→Camel",
+    type: "Type B",
+    latency: "312ms",
+    profit: "+$8.1",
+  },
+  {
+    pair: "SOL/USDC",
+    route: "Liquidity shift detected",
+    type: "Type A",
+    latency: "98ms",
+    profit: "+$6.4",
+    active: true,
+  },
+  {
+    pair: "OP/USDT",
+    route: "Multi-hop · 4 exchanges",
+    type: "Type B",
+    latency: "204ms",
+    profit: "+$14.9",
+  },
 ];
 
-export type Pool = { name: string; apy: string; profit: string; allocation: number };
+export type Pool = {
+  name: string;
+  apy: string;
+  profit: string;
+  allocation: number;
+};
 
 export const ARBOR_POOLS: Pool[] = [
   { name: "USDC-ETH LP", apy: "14.2% APY", profit: "+$421", allocation: 38 },
@@ -125,7 +161,11 @@ export const FEATURES: Feature[] = [
     accent: "green",
     title: "Your Capital, Your Control",
     body: "BlackQuant never holds your funds. Capital flows: wallet → bot → market → profit → back to your wallet. Fully on-chain, fully verifiable.",
-    bullets: ["Zero custodial access", "On-chain verifiable every trade", "Instant profit routing to your wallet"],
+    bullets: [
+      "Zero custodial access",
+      "On-chain verifiable every trade",
+      "Instant profit routing to your wallet",
+    ],
     meta: "Your Capital, Your Control",
   },
   {
@@ -134,7 +174,11 @@ export const FEATURES: Feature[] = [
     accent: "blue",
     title: "Institutional-Grade MEV Access",
     body: "HFT-style MEV — complex multi-hop routes, cross-chain inefficiencies, statistical anomalies — detected before most platforms can even react.",
-    bullets: ["Multi-hop route detection", "Cross-chain inefficiency capture", "Sub-5ms execution latency"],
+    bullets: [
+      "Multi-hop route detection",
+      "Cross-chain inefficiency capture",
+      "Sub-5ms execution latency",
+    ],
     meta: "Institutional-Grade MEV Access",
   },
   {
@@ -143,7 +187,11 @@ export const FEATURES: Feature[] = [
     accent: "green",
     title: "A Transparent Execution Network",
     body: "Non-custodial MEV execution. Every trade is on-chain and auditable. No black boxes, no hidden fees. 4 independent audits confirm it.",
-    bullets: ["4 independent smart contract audits", "847K+ on-chain verifiable trades", "Zero custodial events ever"],
+    bullets: [
+      "4 independent smart contract audits",
+      "847K+ on-chain verifiable trades",
+      "Zero custodial events ever",
+    ],
     meta: "A Transparent Execution Network",
   },
   {
@@ -152,7 +200,11 @@ export const FEATURES: Feature[] = [
     accent: "blue",
     title: "Low-Latency Arbitrage Infrastructure",
     body: "AI-optimized routing and quantitative models across 6 distributed node clusters, 99.97% uptime SLA, sub-5ms average latency, 7 AI models running simultaneously.",
-    bullets: ["6 global node clusters", "99.97% uptime SLA", "7 AI quantitative models active"],
+    bullets: [
+      "6 global node clusters",
+      "99.97% uptime SLA",
+      "7 AI quantitative models active",
+    ],
     meta: "Low-Latency Arbitrage Infrastructure",
   },
 ];
@@ -164,11 +216,36 @@ export const TRUST_METRICS = [
   { value: "99.97%", label: "Uptime SLA" },
 ] as const;
 
-export const TRUST_CARDS: { index: string; icon: LucideIcon; title: string; body: string }[] = [
-  { index: "01", icon: Lock, title: "Non-Custodial by Design", body: "Smart contracts are immutable. BlackQuant has zero access to your principal or profits — ever." },
-  { index: "02", icon: ShieldCheck, title: "Audited Contracts", body: "Core contracts audited by Trail of Bits, OpenZeppelin, and Hacken. All reports publicly available." },
-  { index: "03", icon: BadgeCheck, title: "MEV Protection", body: "Private mempool routing prevents front-running of your on-chain transactions across all networks." },
-  { index: "04", icon: Globe, title: "Distributed Infrastructure", body: "5 regional node clusters · 99.97% uptime SLA · automatic failover across ETH, ARB, BASE, SOL." },
+export const TRUST_CARDS: {
+  index: string;
+  icon: LucideIcon;
+  title: string;
+  body: string;
+}[] = [
+  {
+    index: "01",
+    icon: Lock,
+    title: "Non-Custodial by Design",
+    body: "Smart contracts are immutable. BlackQuant has zero access to your principal or profits — ever.",
+  },
+  {
+    index: "02",
+    icon: ShieldCheck,
+    title: "Audited Contracts",
+    body: "Core contracts audited by Trail of Bits, OpenZeppelin, and Hacken. All reports publicly available.",
+  },
+  {
+    index: "03",
+    icon: BadgeCheck,
+    title: "MEV Protection",
+    body: "Private mempool routing prevents front-running of your on-chain transactions across all networks.",
+  },
+  {
+    index: "04",
+    icon: Globe,
+    title: "Distributed Infrastructure",
+    body: "5 regional node clusters · 99.97% uptime SLA · automatic failover across ETH, ARB, BASE, SOL.",
+  },
 ];
 
 // `slug` keys into AUDIT_LOGOS for the firm's wordmark. It lives here rather
@@ -188,7 +265,12 @@ export const LIVE_METRICS = [
   { label: "Avg latency", value: "4ms" },
 ] as const;
 
-export const DEX_POOLS = ["Sushiswap", "Uniswap", "Balancer", "Pancakeswap"] as const;
+export const DEX_POOLS = [
+  "Sushiswap",
+  "Uniswap",
+  "Balancer",
+  "Pancakeswap",
+] as const;
 
 export const BOT_ICONS = { nexus: Zap, arbor: Sprout } as const;
 
@@ -200,20 +282,55 @@ export const CTA_STATS = [
 ] as const;
 
 export const FOOTER_COLUMNS = [
-  { heading: "Product", links: ["Dashboard", "Nexus Bot", "Arbor Bot", "Portfolio", "Analytics"] },
-  { heading: "Developers", links: ["Documentation", "API Reference", "SDK", "GitHub", "Changelog"] },
-  { heading: "Security", links: ["Audit Reports", "Bug Bounty", "Smart Contracts", "Non-Custodial Proof", "Uptime Status"] },
-  { heading: "Company", links: ["About", "Blog", "Careers", "Press Kit", "Contact"] },
-  { heading: "Community", links: ["Twitter / X", "Discord", "Telegram", "LinkedIn", "Mirror"] },
+  // { heading: "Product", links: ["Dashboard", "Nexus Bot", "Arbor Bot", "Portfolio", "Analytics"] },
+  {
+    heading: "Developers",
+    links: ["Documentation", "API Reference", "GitHub", "Changelog"],
+  },
+  {
+    heading: "Security",
+    links: [
+      "Audit Reports",
+      "Smart Contracts",
+      "Uptime Status",
+    ],
+  },
+  {
+    heading: "Company",
+    links: ["About", "Blog", "Careers", "Press Kit", "Contact"],
+  },
+  {
+    heading: "Community",
+    links: ["Twitter / X", "Discord", "Telegram", "LinkedIn"],
+  },
 ] as const;
 
-/** Footer links that resolve to a real route; everything else toasts. */
+/** Public repository holding the on-chain contracts, and the only code we publish. */
+export const CONTRACTS_REPO =
+  "https://github.com/Blackquant-labs/blackquant-contract";
+
+/**
+ * The published handbook. Written as markdown in this repo's `docs/`, and
+ * deployed to Mintlify from `rempprandy/docs` — so the site is generated from
+ * the source here rather than maintained beside it.
+ */
+const DOCS_URL = "https://docs.blackquantlabs.com";
+
+/** Footer links that resolve to a real destination; everything else toasts. */
 export const FOOTER_LINK_HREFS: Record<string, string | undefined> = {
   About: "/about",
   Blog: "/blog",
   Careers: "/careers",
   "Press Kit": "/press",
   Contact: "/contact",
+  "Audit Reports": "/audits",
+  Changelog: "/changelog",
+  Documentation: DOCS_URL,
+  "API Reference": `${DOCS_URL}/developers/api-reference`,
+  // Both point at the same repo: it is what "our GitHub" means today, and the
+  // contracts are what a reader following the security column is looking for.
+  GitHub: CONTRACTS_REPO,
+  "Smart Contracts": CONTRACTS_REPO,
 };
 
 /** Footer legal row. A missing `href` has no page yet and toasts instead. */

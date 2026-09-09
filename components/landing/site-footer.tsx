@@ -6,12 +6,7 @@ import { AUDITS, CHAINS, FOOTER_COLUMNS, FOOTER_LINK_HREFS, LEGAL_LINKS } from "
 
 const LINK_CLASS = "text-[13px] text-bq-text/70 transition-colors hover:text-bq-heading";
 
-/**
- * The static routes, plus the status page — which is published by whichever
- * monitor watches `/api/health` rather than by this app, so it arrives as an
- * environment value instead of being hardcoded. Unset, the link falls back to
- * the same placeholder toast as every other unwired destination.
- */
+
 const FOOTER_HREFS: Record<string, string | undefined> = {
   ...FOOTER_LINK_HREFS,
   "Uptime Status": env.STATUS_PAGE_URL,
@@ -19,10 +14,7 @@ const FOOTER_HREFS: Record<string, string | undefined> = {
 
 const isExternal = (href: string) => href.startsWith("http");
 
-/**
- * Site-wide footer. Extracted from the landing page's CTA block so marketing
- * pages outside `/` can mount it without the Luminary Circle form.
- */
+
 export function SiteFooter() {
   return (
     <footer className="mt-14 border-t border-bq-border bg-bq-bg px-4 py-12 sm:px-8 md:mt-24 md:px-16 md:py-16">

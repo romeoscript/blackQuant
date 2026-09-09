@@ -1,0 +1,13 @@
+# The HTTP wrapper's own dependencies.
+fastapi>=0.115
+uvicorn[standard]>=0.32
+pydantic>=2.9
+pydantic-settings>=2.6
+
+# The framework being wrapped. Pinned to a tag rather than a branch: an
+# unpinned research repo changes the graph's behaviour without changing this
+# file, and a rating that moves for reasons nobody recorded is worse than one
+# that lags upstream.
+#
+# TradingAgents — Tauric Research, Apache-2.0.
+tradingagents @ git+https://github.com/TauricResearch/TradingAgents.git@main
