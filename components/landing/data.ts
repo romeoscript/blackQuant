@@ -326,7 +326,9 @@ export const FOOTER_LINK_HREFS: Record<string, string | undefined> = {
   "Audit Reports": "/audits",
   Changelog: "/changelog",
   Documentation: DOCS_URL,
-  "API Reference": `${DOCS_URL}/developers/api-reference`,
+  // The generated OpenAPI reference, not a hand-written page — `/api-reference`
+  // redirects to its first operation.
+  "API Reference": `${DOCS_URL}/api-reference`,
   // Both point at the same repo: it is what "our GitHub" means today, and the
   // contracts are what a reader following the security column is looking for.
   GitHub: CONTRACTS_REPO,

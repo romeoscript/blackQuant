@@ -87,5 +87,5 @@ The root layout awaits `auth()`, which opts every route into on-demand rendering
 
 ## Related
 
-* [API reference](api-reference.md)
+* [API reference](/api-reference/analyses/start-an-analysis)
 * [Webhooks](webhooks.md)

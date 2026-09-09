@@ -44,7 +44,6 @@
 ## Developers
 
 * [Architecture](developers/architecture.md)
-* [API reference](developers/api-reference.md)
 * [Webhooks](developers/webhooks.md)
 
 ## Resources

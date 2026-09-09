@@ -65,5 +65,5 @@ Each callback's raw payload is stored alongside the event, so a disputed deposit
 
 ## Related
 
-* [API reference](api-reference.md)
+* [API reference](/api-reference/analyses/start-an-analysis)
 * [Fund your account](../getting-started/fund-your-account.md)
