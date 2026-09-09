@@ -310,13 +310,11 @@ export const CONTRACTS_REPO =
   "https://github.com/Blackquant-labs/blackquant-contract";
 
 /**
- * The handbook, published from `docs/` in this repo.
- *
- * Points at the source on GitHub until the GitBook space is connected — a
- * working destination beats a placeholder toast, and swapping this one value
- * for the gitbook.io URL is the whole of that migration.
+ * The published handbook. Written as markdown in this repo's `docs/`, and
+ * deployed to Mintlify from `rempprandy/docs` — so the site is generated from
+ * the source here rather than maintained beside it.
  */
-const DOCS_URL = "https://github.com/romeoscript/blackQuant/tree/main/docs";
+const DOCS_URL = "https://docs.blackquantlabs.com";
 
 /** Footer links that resolve to a real destination; everything else toasts. */
 export const FOOTER_LINK_HREFS: Record<string, string | undefined> = {
@@ -328,7 +326,7 @@ export const FOOTER_LINK_HREFS: Record<string, string | undefined> = {
   "Audit Reports": "/audits",
   Changelog: "/changelog",
   Documentation: DOCS_URL,
-  "API Reference": `${DOCS_URL}/developers/api-reference.md`,
+  "API Reference": `${DOCS_URL}/developers/api-reference`,
   // Both point at the same repo: it is what "our GitHub" means today, and the
   // contracts are what a reader following the security column is looking for.
   GitHub: CONTRACTS_REPO,
