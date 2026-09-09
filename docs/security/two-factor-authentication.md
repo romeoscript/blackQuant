@@ -12,15 +12,13 @@ Setup instructions are in [Secure your account](../getting-started/secure-your-a
 
 ## Where the secret lives
 
-Your TOTP secret is **encrypted at rest** using AES-256-GCM with a key derived from the deployment's signing secret via HKDF.
+Your TOTP secret is **encrypted at rest** with AES-256-GCM. It is never stored in plain text, and it is never shown again after enrolment.
 
-{% hint style="warning" %}
-**Operators, note the trade-off.** Deriving the key from the signing secret means 2FA needs no separate configuration — but it also means **rotating that secret makes every stored TOTP secret undecryptable**.
+{% hint style="info" %}
+In the rare event that the platform's signing key is rotated, stored TOTP secrets can no longer be decrypted and enrolled users must re-enrol.
 
-Enrolled users must then fall back to a recovery code and re-enrol. Since rotating the signing secret already invalidates every session, this is not a routine operation. See [Environment variables](../developers/environment-variables.md).
+That case is handled as a state rather than an error: authentication falls through to recovery codes, so nobody is hard-locked out — which is the other reason to keep yours somewhere reachable.
 {% endhint %}
-
-An undecryptable secret is handled as a state, not an error — it returns null rather than throwing, and authentication falls through to recovery codes. Nobody is hard-locked out by a rotation.
 
 ## Clock skew
 

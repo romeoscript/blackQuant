@@ -44,8 +44,6 @@
 ## Developers
 
 * [Architecture](developers/architecture.md)
-* [Running it locally](developers/running-locally.md)
-* [Environment variables](developers/environment-variables.md)
 * [API reference](developers/api-reference.md)
 * [Webhooks](developers/webhooks.md)
 

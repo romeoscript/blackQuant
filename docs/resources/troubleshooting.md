@@ -49,9 +49,9 @@ If the clock is right, use a recovery code, then disable and re-enrol.
 
 "Remember me" unticked means a **24-hour** session, not "until I close the tab". Ticked is 30 days.
 
-### `no matching decryption secret` in server logs
+### Signed out unexpectedly, or stuck on the sign-in screen
 
-Self-hosting only. A session cookie was encrypted under a different `AUTH_SECRET`. The app already sends a header clearing the cookie, so one page load resolves it. If it persists, delete `authjs.session-token` in DevTools — the cookie was likely set on a different path.
+A stale session cookie. One page load normally clears it by itself. If it persists, clear cookies for the site and sign in again.
 
 ## Purchases
 
@@ -85,9 +85,9 @@ A rejection is not final — fix the specific issue named in the note and resubm
 
 ### "Not connected"
 
-The deployment has no engine configured. This is a deliberate message rather than a fallback to sample data, so you can tell a missing engine from a working one.
+The engine is not currently reachable. This is a deliberate message rather than a fallback to sample data, so you can tell a missing engine from a working one.
 
-Self-hosting: set `SIGNAL_ENGINE_BASE_URL` to an absolute URL. See [Environment variables](../developers/environment-variables.md#signal-engine).
+Nothing to do at your end — the live feed returns when the engine does.
 
 ### The feed stalls
 
@@ -100,21 +100,6 @@ Requests time out after **5 seconds**. Reload; if it persists the engine is like
 | Referral not credited | The cookie is 30 days — they may have signed up after it lapsed, or cleared cookies, or used a different browser |
 | Referral shows but no commission | Commission is paid on **purchases**, never deposits |
 | Commission smaller than expected | Tier 1 is 5%, Tier 2 is 2%, on the purchase price |
-
-## Self-hosting
-
-### `Invalid environment variables` at boot
-
-The message names the field. Common cross-field failures:
-
-* `RESEND_API_KEY` set without a valid `RESEND_FROM`
-* `NOWPAYMENTS_API_KEY` set without `NOWPAYMENTS_IPN_SECRET` / `NOWPAYMENTS_BASE_URL`
-* `SIGNAL_ENGINE_BASE_URL` not an absolute URL
-* `STATUS_PAGE_URL` not `http`/`https`
-
-### KYC uploads land on the local filesystem
-
-No S3 bucket configured, so the development-only fallback is active. Never run production this way.
 
 ## Getting help
 

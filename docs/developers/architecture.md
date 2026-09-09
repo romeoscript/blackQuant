@@ -68,7 +68,7 @@ Two server-sent event endpoints push updates without polling:
 
 ## The signal engine is a separate process
 
-`lib/signal-engine.ts` talks to it over HTTP — one `fetch` per call, no SDK, 5-second timeout. If `SIGNAL_ENGINE_BASE_URL` is unset, the UI reports "not connected" rather than rendering sample data.
+`lib/signal-engine.ts` talks to it over HTTP — one `fetch` per call, no SDK, 5-second timeout. With no engine configured, the UI reports "not connected" rather than rendering sample data.
 
 {% hint style="success" %}
 **This API places no orders.** Nothing reachable through it can move money — the separation is structural, not configuration.
@@ -81,15 +81,11 @@ Two server-sent event endpoints push updates without polling:
 * Balances are **derived from ledger entries**, not stored as a counter.
 * Debit and grant happen in **one transaction**, with write-conflict retry.
 
-## Environment safety
-
-`lib/env.ts` validates the whole environment with Zod at boot and throws a message naming the field. Related settings are checked together — an API key without its webhook secret is a boot failure, not a runtime surprise at the first callback.
-
 ## Rendering
 
 The root layout awaits `auth()`, which opts every route into on-demand rendering. Static param lists exist where they would help (`generateStaticParams` on blog posts), so pages become statically generated if that ever changes.
 
 ## Related
 
-* [Running it locally](running-locally.md)
-* [Environment variables](environment-variables.md)
+* [API reference](api-reference.md)
+* [Webhooks](webhooks.md)

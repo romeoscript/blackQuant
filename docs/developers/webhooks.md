@@ -56,26 +56,6 @@ Each callback's raw payload is stored alongside the event, so a disputed deposit
 
 **A payment intent** → fulfils a crypto checkout: grants the entitlement and awards referral commission. This is why purchase logic takes a user id rather than a session — there is nobody signed in on this path.
 
-## Configuration
-
-| Variable | Required |
-| --- | --- |
-| `NOWPAYMENTS_API_KEY` | To provision addresses |
-| `NOWPAYMENTS_IPN_SECRET` | **To verify callbacks** |
-| `NOWPAYMENTS_BASE_URL` | API base |
-
-{% hint style="danger" %}
-An API key **without** the IPN secret is the dangerous half-configuration: addresses are handed out and money arrives, but every crediting callback fails verification. Boot fails on that combination so it cannot be discovered at deposit time.
-{% endhint %}
-
-## Testing locally
-
-```bash
-npm run ipn
-```
-
-Exercises the callback path without a live processor.
-
 ## Operational notes
 
 * **Idempotency** — a payment id is unique; a replayed callback does not double-credit.

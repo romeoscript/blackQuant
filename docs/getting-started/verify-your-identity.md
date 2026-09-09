@@ -68,13 +68,9 @@ A rejection is not final. Read the note, fix the specific problem, and submit ag
 
 ## Where your documents are stored
 
-Documents go to **private object storage** — an S3-compatible bucket (AWS S3, Cloudflare R2, Backblaze B2 or MinIO), never a public directory and never the application database.
+Documents go to **private object storage** — never a public directory, and never the application database.
 
-{% hint style="warning" %}
-**Self-hosting note.** If no bucket is configured, the deployment falls back to a local directory that is explicitly development-only. Never run a production deployment in that mode: identity documents would sit on the application server's filesystem. See [Environment variables](../developers/environment-variables.md#object-storage).
-{% endhint %}
-
-You can check which mode a deployment is in from the Verification screen — it reports whether storage is a bucket or the local development fallback.
+They are readable only by the review process, and are not served over any public URL.
 
 ## Privacy
 
