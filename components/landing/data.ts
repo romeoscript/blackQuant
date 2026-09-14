@@ -258,6 +258,106 @@ export const AUDITS = [
   { firm: "Hacken", slug: "hacken", score: "97/100" },
 ] as const;
 
+export type Testimonial = {
+  quote: string;
+  name: string;
+  role: string;
+};
+
+/**
+ * Placeholder copy: these people are invented. Swap in real quotes, with the
+ * author's consent, before this ships — an invented endorsement on a financial
+ * product is a regulatory problem, not just a copy one. The quotes only restate
+ * claims the landing page already makes, so nothing here promises a return.
+ */
+export const TESTIMONIALS: Testimonial[] = [
+  {
+    quote:
+      "I've connected wallets to a lot of bots. This is the first one where I could trace every trade on-chain and watch the profit land back in my own wallet.",
+    name: "Daniel Mercer",
+    role: "DeFi fund analyst",
+  },
+  {
+    quote:
+      "The non-custodial part sold me. The bot has execution permission and nothing else — I revoked and re-granted it twice just to be sure.",
+    name: "Priya Raman",
+    role: "Independent trader",
+  },
+  {
+    quote: "Setup took less time than reading the audit reports, and I read all three.",
+    name: "Marcus Lindqvist",
+    role: "Smart contract auditor",
+  },
+  {
+    quote:
+      "Latency is the whole game in MEV. Watching multi-hop routes fill in a couple hundred milliseconds told me the infrastructure is real.",
+    name: "Tomás Herrera",
+    role: "Quant developer",
+  },
+  {
+    quote:
+      "The clearest dashboard I've used. Allocation, pool APY, compound cycles — nothing hidden behind a vague 'strategy' label.",
+    name: "Sofia Marchetti",
+    role: "Portfolio manager",
+  },
+  {
+    quote:
+      "I run a small DAO treasury. Being able to show members an on-chain trail for every execution made the vote easy.",
+    name: "Kenji Watanabe",
+    role: "DAO treasury lead",
+  },
+  {
+    quote:
+      "Arbor quietly rebalances in the background. I read the log once a day and get on with my week.",
+    name: "Hannah Cole",
+    role: "Long-term holder",
+  },
+  {
+    quote:
+      "Private mempool routing was the feature I didn't know I needed until I stopped getting front-run.",
+    name: "Samuel Park",
+    role: "On-chain trader",
+  },
+  {
+    quote: "Every other platform asked me to deposit first. BlackQuant never touches the principal, which is how it should be.",
+    name: "Oliver Grant",
+    role: "Crypto-native founder",
+  },
+  {
+    quote: "Audited by three firms and the reports are public. That shouldn't be rare, but it is.",
+    name: "Fatima Zahra",
+    role: "Security engineer",
+  },
+  {
+    quote: "Tools I used to only see inside trading desks, a wallet connection away.",
+    name: "Ethan Brooks",
+    role: "Former prop trader",
+  },
+  {
+    quote:
+      "Clean, fast, and honest about how it works. I've recommended it to half my trading group.",
+    name: "Chloé Dubois",
+    role: "Community moderator",
+  },
+  {
+    quote:
+      "Uptime has been boringly reliable, which is exactly what you want from execution infrastructure.",
+    name: "Ravi Menon",
+    role: "DevOps engineer",
+  },
+  {
+    quote: "I came for the MEV access and stayed for the transparency. No black boxes.",
+    name: "Grace Whitfield",
+    role: "Retail investor",
+  },
+  {
+    quote:
+      "Cross-chain opportunities I'd only ever read about, executed from ETH to ARB without me babysitting a single transaction.",
+    name: "Lucía Moreno",
+    role: "Protocol researcher",
+  },
+];
+
 export const LIVE_METRICS = [
   { label: "Executions Processed", value: "1,842" },
   { label: "Available Liquidity Sources", value: "14" },

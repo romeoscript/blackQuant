@@ -5,6 +5,7 @@ import { Integrations } from "@/components/landing/integrations";
 import { Infrastructure } from "@/components/landing/infrastructure";
 import { Performance } from "@/components/landing/performance";
 import { Trust } from "@/components/landing/trust";
+import { Testimonials } from "@/components/landing/testimonials";
 import { LuminaryCta } from "@/components/landing/luminary-cta";
 import { SiteFooter } from "@/components/landing/site-footer";
 import { AssistantWidget } from "@/components/assistant/assistant-widget";
@@ -19,6 +20,7 @@ export default function Home() {
       <Infrastructure />
       <Performance />
       <Trust />
+      <Testimonials />
       <LuminaryCta />
       <SiteFooter />
       <AssistantWidget />
