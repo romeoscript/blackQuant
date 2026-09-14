@@ -213,7 +213,7 @@ export async function logIn(
     }
   }
 
-  return signInWithPassword({
+  const result = await signInWithPassword({
     email,
     password: parsed.data.password,
     // Deliberately does not distinguish unknown address from wrong password.
@@ -223,6 +223,11 @@ export async function logIn(
     remember: readForm(formData, "remember") === "true",
     twoFactor,
   });
+
+  // A rejected code keeps the form on the code step instead of dropping the
+  // user back to the password. Set for every failed attempt that carried a
+  // code, so it says nothing about whether the account exists.
+  return twoFactor && !result.ok ? { ...result, needsTwoFactor: true } : result;
 }
 
 /**
